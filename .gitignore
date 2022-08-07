@@ -1,3 +1,6 @@
+# Bazel generated files
+/bazel-*
+
 # Prerequisites
 *.d
 
