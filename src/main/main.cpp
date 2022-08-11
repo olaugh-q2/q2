@@ -2,6 +2,13 @@
 #include <iterator>
 #include <string>
 
+#include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
+#include "absl/flags/usage.h"
+#include "glog/logging.h"
+#include "glog/stl_logging.h"
+#include "src/anagram/anagram_map.h"
+
 std::ostream &operator<<(std::ostream &dest, __int128_t value) {
   std::ostream::sentry s(dest);
   if (s) {
@@ -25,12 +32,18 @@ std::ostream &operator<<(std::ostream &dest, __int128_t value) {
   return dest;
 }
 
-int main() {
-  std::cout << "Hello world!" << std::endl;
+int main(int argc, char *argv[]) {
+  absl::ParseCommandLine(argc, argv);
+  //FLAGS_alsologtostderr = true;
+  //google::InitGoogleLogging(argv[0]);
+  //LOG(INFO) << "Hello world!" << std::endl;
   __int128_t product = 1;
   for (int i = 0; i < 70; i++) {
     product *= 3;
   }
-  std::cout << product << std::endl;
+  //LOG(INFO) << "product: " << product << std::endl;
+
+  std::unique_ptr<AnagramMap> anagram_map = AnagramMap::CreateFromTextfile(
+      "/Users/john/sources/bazel-q2/q2/src/main/words.txt");
   return 0;
 }
