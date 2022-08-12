@@ -14,7 +14,7 @@ std::array<int, 32> Tiles::DistributionFromString(
     const std::string& distribution) {
   std::array<int, 32> ret;
   std::fill(std::begin(ret), std::end(ret), 0);
-  for (int i = 0; i < distribution.size(); i++) {
+  for (size_t i = 0; i < distribution.size(); i++) {
     const char c = distribution[i];
     auto number = CharToNumber(c);
     if (number.has_value()) {
@@ -45,7 +45,7 @@ int Tiles::Count(int number) const {
 
 std::array<int, 32> Tiles::PrimeIndices() {
   std::vector<std::pair<int, int>> counts;
-  for (int i = 0; i < distribution_.size(); i++) {
+  for (size_t i = 0; i < distribution_.size(); i++) {
     if (distribution_[i] > 0) {
       counts.push_back(std::make_pair(distribution_[i], i));
     }
@@ -60,7 +60,7 @@ std::array<int, 32> Tiles::PrimeIndices() {
 
   std::array<int, 32> ret;
   std::fill(std::begin(ret), std::end(ret), 0);
-  for (int i = 0; i < counts.size(); i++) {
+  for (size_t i = 0; i < counts.size(); i++) {
     ret[counts[i].second] = i + 1;
   }
   return ret;
