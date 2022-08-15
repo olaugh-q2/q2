@@ -43,6 +43,17 @@ int Tiles::Count(int number) const {
   return distribution_[number];
 }
 
+absl::optional<char> Tiles::NumberToChar(int n) const {
+  if (n == blank_index_) {
+    return '?';
+  }
+  if (n >= 1 && n <= 26) {
+    return n + 'A' - 1;
+  }
+  LOG(ERROR) << "Could not convert number " << n << " to character";
+  return absl::nullopt;
+}
+
 std::array<int, 32> Tiles::PrimeIndices() {
   std::vector<std::pair<int, int>> counts;
   for (size_t i = 0; i < distribution_.size(); i++) {

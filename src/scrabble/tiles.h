@@ -7,6 +7,7 @@ class Tiles {
  public:
   Tiles(const std::string& distribution);
   absl::optional<int> CharToNumber(char c) const;
+  absl::optional<char> NumberToChar(int n) const;
   int Count(int number) const;
 
  private:

@@ -18,7 +18,7 @@ cc_test(
     srcs = ["tiles_test.cpp"],
     deps = [
         ":tiles",
-        "@com_google_absl//absl/memory:memory",
+        "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
 )
