@@ -8,7 +8,7 @@ cc_library(
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/numeric:int128",
         "@com_google_absl//absl/types:optional",
-            "@com_google_googletest//:gtest_prod",
+        "@com_google_googletest//:gtest_prod",
         "@glog",
     ],
 )
@@ -18,7 +18,7 @@ cc_test(
     srcs = ["tiles_test.cpp"],
     deps = [
         ":tiles",
-        "@com_google_absl//absl/memory:memory",
+        "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
 )
