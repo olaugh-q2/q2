@@ -1,9 +1,10 @@
-#include "tiles.h"
+#include "src/scrabble/tiles.h"
 
 #include <iterator>
 
 #include "glog/logging.h"
-#include "primes.h"
+#include "src/scrabble/primes.h"
+#include "src/scrabble/strings.h"
 
 Tiles::Tiles(const std::string& distribution)
     : blank_index_(FindBlankIndex(distribution)),
@@ -39,9 +40,7 @@ absl::optional<int> Tiles::CharToNumber(char c) const {
   return absl::nullopt;
 }
 
-int Tiles::Count(int number) const {
-  return distribution_[number];
-}
+int Tiles::Count(int number) const { return distribution_[number]; }
 
 absl::optional<char> Tiles::NumberToChar(int n) const {
   if (n == blank_index_) {
@@ -52,6 +51,21 @@ absl::optional<char> Tiles::NumberToChar(int n) const {
   }
   LOG(ERROR) << "Could not convert number " << n << " to character";
   return absl::nullopt;
+}
+
+absl::optional<LetterString> Tiles::ToLetterString(const std::string& s) const {
+  LetterString ret;
+  for (size_t i = 0; i < s.size(); i++) {
+    LOG(INFO) << "i: " << i << ", s[i]: " << s[i];
+    const char c = s[i];
+    auto number = CharToNumber(c);
+    if (number.has_value()) {
+      ret.push_back(number.value());
+    } else {
+      return absl::nullopt;
+    }
+  }
+  return ret;
 }
 
 std::array<int, 32> Tiles::PrimeIndices() {

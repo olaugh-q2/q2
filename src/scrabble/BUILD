@@ -5,6 +5,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":primes",
+        ":strings",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/numeric:int128",
         "@com_google_absl//absl/types:optional",
@@ -17,6 +18,7 @@ cc_test(
     name = "tiles_test",
     srcs = ["tiles_test.cpp"],
     deps = [
+        ":strings",
         ":tiles",
         "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
@@ -45,13 +47,4 @@ cc_library(
     srcs = ["strings.cpp"],
     hdrs = ["strings.h"],
     deps = ["@glog"],
-)
-
-cc_test(
-    name = "strings_test",
-    srcs = ["strings_test.cpp"],
-    deps = [
-        ":strings",
-        "@com_google_googletest//:gtest_main",
-    ],
 )

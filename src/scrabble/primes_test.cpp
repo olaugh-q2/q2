@@ -1,4 +1,4 @@
-#include "primes.h"
+#include "src/scrabble/primes.h"
 
 #include "gmock/gmock-more-matchers.h"
 #include "gmock/gmock.h"

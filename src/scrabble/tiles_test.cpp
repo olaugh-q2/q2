@@ -1,4 +1,4 @@
-#include "tiles.h"
+#include "src/scrabble/tiles.h"
 
 #include "absl/memory/memory.h"
 #include "gmock/gmock.h"
@@ -35,6 +35,18 @@ TEST_F(TilesTest, NumberToChar) {
 
   EXPECT_EQ(tiles_->NumberToChar(0), absl::nullopt);
   EXPECT_EQ(tiles_->NumberToChar(28), absl::nullopt);
+}
+
+TEST_F(TilesTest, ToLetterString) {
+  char quackle[8] = "QUACKLE";
+  char numbers[8] = "QUACKLE";
+  for (int i = 0; i < 7; i++) {
+    numbers[i] = quackle[i] - 'A' + 1;
+  }
+  auto letter_string = tiles_->ToLetterString(quackle);
+  ASSERT_TRUE(letter_string.has_value());
+  const LetterString expected(numbers, 7);
+  EXPECT_EQ(letter_string.value(), expected);
 }
 
 TEST_F(TilesTest, Distribution) {
