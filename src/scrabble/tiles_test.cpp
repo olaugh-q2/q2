@@ -66,4 +66,37 @@ TEST_F(TilesTest, PrimeIndices) {
   // 9 A's and 9 I's, but A is first alphabetically, which breaks the tie.
   EXPECT_EQ(prime_indices[tiles_->CharToNumber('A').value()], 2);
   EXPECT_EQ(prime_indices[tiles_->CharToNumber('I').value()], 3);
+
+  // Z is the last tile there's only one of, so it's second to last.
+  // ? is forced to be last even though there's only one of it.
+  EXPECT_EQ(prime_indices[tiles_->CharToNumber('Z').value()], 26);
+  EXPECT_EQ(prime_indices[tiles_->CharToNumber('?').value()], 27);
+}
+
+TEST_F(TilesTest, TilePrimes) {
+  EXPECT_EQ(tiles_->Prime(0), 0);
+  EXPECT_EQ(tiles_->Prime(tiles_->CharToNumber('E').value()), 2);
+  EXPECT_EQ(tiles_->Prime(tiles_->CharToNumber('A').value()), 3);
+  EXPECT_EQ(tiles_->Prime(tiles_->CharToNumber('I').value()), 5);
+
+  EXPECT_EQ(tiles_->Prime(tiles_->CharToNumber('Z').value()), 101);
+  EXPECT_EQ(tiles_->Prime(tiles_->CharToNumber('?').value()), 103);
+}
+
+TEST_F(TilesTest, ToProduct) {
+  const LetterString ae = tiles_->ToLetterString("AE").value();
+  EXPECT_EQ(tiles_->ToProduct(ae), 3 * 2);
+
+  const LetterString aia = tiles_->ToLetterString("AIA").value();
+  EXPECT_EQ(tiles_->ToProduct(aia), 3 * 5 * 3);
+
+  // This should be the biggest product with 15 tiles.
+  const LetterString ppvvwwyyjkqxz__ =
+      tiles_->ToLetterString("PPVVWWYYJKQXZ??").value();
+  absl::uint128 expected_product = 1;
+  for (absl::uint128 p :
+       {61, 61, 67, 67, 71, 71, 73, 73, 79, 83, 89, 97, 101, 103, 103}) {
+    expected_product *= p;
+  }
+  EXPECT_EQ(tiles_->ToProduct(ppvvwwyyjkqxz__), expected_product);
 }

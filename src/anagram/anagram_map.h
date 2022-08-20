@@ -3,10 +3,12 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/numeric/int128.h"
+#include "src/scrabble/tiles.h"
 
 class AnagramMap {
  public:
-  static std::unique_ptr<AnagramMap> CreateFromTextfile(const std::string& filename);
+  static std::unique_ptr<AnagramMap> CreateFromTextfile(
+      const Tiles& tiles, const std::string& filename);
 
  private:
   absl::flat_hash_map<uint64_t, std::vector<std::string>> natural_small_;

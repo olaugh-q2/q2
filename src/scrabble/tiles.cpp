@@ -9,7 +9,7 @@
 Tiles::Tiles(const std::string& distribution)
     : blank_index_(FindBlankIndex(distribution)),
       distribution_(DistributionFromString(distribution)),
-      primes_(Primes::FirstNPrimes(blank_index_)) {}
+      primes_(TilePrimes(Primes::FirstNPrimes(blank_index_), PrimeIndices())) {}
 
 std::array<int, 32> Tiles::DistributionFromString(
     const std::string& distribution) {
@@ -68,6 +68,19 @@ absl::optional<LetterString> Tiles::ToLetterString(const std::string& s) const {
   return ret;
 }
 
+std::array<uint64_t, 32> Tiles::TilePrimes(const std::array<uint64_t, 32>& primes,
+                                      const std::array<int, 32>& indices) {
+  std::array<uint64_t, 32> ret;
+  std::fill(std::begin(ret), std::end(ret), 0);
+  for (size_t i = 0; i < indices.size(); i++) {
+    const int index = indices[i];
+    if (index != 0) {
+      ret[i] = primes[index];
+    }
+  }
+  return ret;
+}
+
 std::array<int, 32> Tiles::PrimeIndices() {
   std::vector<std::pair<int, int>> counts;
   for (size_t i = 0; i < distribution_.size(); i++) {
@@ -76,7 +89,17 @@ std::array<int, 32> Tiles::PrimeIndices() {
     }
   }
   std::sort(std::begin(counts), std::end(counts),
-            [](const std::pair<int, int>& a, const std::pair<int, int>& b) {
+            [this](const std::pair<int, int>& a, const std::pair<int, int>& b) {
+              // Blank is last regardless of count. It gets the biggest prime
+              // because the maps containing large multisets don't have blanks
+              // in their keys. I believe only maps for leave values and other
+              // things with 7 or fewer tiles will need to contain blanks.
+              if (a.second == this->blank_index_) {
+                return false;
+              }
+              if (b.second == this->blank_index_) {
+                return true;
+              }
               if (a.first == b.first) {
                 return a.second < b.second;
               }
@@ -87,6 +110,14 @@ std::array<int, 32> Tiles::PrimeIndices() {
   std::fill(std::begin(ret), std::end(ret), 0);
   for (size_t i = 0; i < counts.size(); i++) {
     ret[counts[i].second] = i + 1;
+  }
+  return ret;
+}
+
+absl::uint128 Tiles::ToProduct(const LetterString& s) const {
+  absl::uint128 ret = 1;
+  for (char c : s) {
+    ret *= primes_[c];
   }
   return ret;
 }

@@ -61,8 +61,6 @@ class LetterString {
   std::size_t last_position_;
 };
 
-// bool operator==(const LetterString& lhs, const LetterString& rhs);
-
 inline int LetterString::compare(const LetterString& s) const {
   int size1 = size();
   int size2 = s.size();
@@ -80,6 +78,22 @@ inline int LetterString::compare(const LetterString& s) const {
     return -1;
   }
   return 0;
+}
+
+inline LetterString::const_iterator LetterString::begin() const {
+  return data_ + first_position();
+}
+
+inline LetterString::const_iterator LetterString::end() const {
+  return data_ + last_position() + 1;
+}
+
+inline LetterString::iterator LetterString::begin() {
+  return data_ + first_position();
+}
+
+inline LetterString::iterator LetterString::end() {
+  return data_ + last_position() + 1;
 }
 
 inline bool operator<(const LetterString& lhs, const LetterString& rhs) {
