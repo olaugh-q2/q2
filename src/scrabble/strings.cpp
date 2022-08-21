@@ -45,23 +45,3 @@ void LetterString::push_back(char c) {
 
 std::size_t LetterString::first_position() const { return first_position_; }
 std::size_t LetterString::last_position() const { return last_position_; }
-/*
-bool operator==(const LetterString& lhs, const LetterString& rhs) {
-    if (lhs.first_position() != rhs.first_position()) {
-        return false;
-    }
-    if (lhs.last_position() != rhs.last_position()) {
-        return false;
-    }
-    if (lhs.last_position() < lhs.first_position()) {
-        LOG(FATAL) << "Invalid string";
-        return false;
-    }
-    for (auto i = lhs.first_position(); i <= lhs.last_position(); i++) {
-        if (lhs[i] != rhs[i]) {
-            return false;
-        }
-    }
-    return true;
-}
-*/

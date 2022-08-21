@@ -56,11 +56,23 @@ absl::optional<char> Tiles::NumberToChar(int n) const {
 absl::optional<LetterString> Tiles::ToLetterString(const std::string& s) const {
   LetterString ret;
   for (size_t i = 0; i < s.size(); i++) {
-    LOG(INFO) << "i: " << i << ", s[i]: " << s[i];
     const char c = s[i];
     auto number = CharToNumber(c);
     if (number.has_value()) {
       ret.push_back(number.value());
+    } else {
+      return absl::nullopt;
+    }
+  }
+  return ret;
+}
+
+absl::optional<std::string> Tiles::ToString(const LetterString& s) const {
+  std::string ret;
+  for (char n : s) {
+    auto c = NumberToChar(n);
+    if (c.has_value()) {
+      ret.push_back(c.value());
     } else {
       return absl::nullopt;
     }

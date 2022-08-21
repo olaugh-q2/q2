@@ -49,6 +49,12 @@ TEST_F(TilesTest, ToLetterString) {
   EXPECT_EQ(letter_string.value(), expected);
 }
 
+TEST_F(TilesTest, ToString) {
+  const auto quackle = tiles_->ToLetterString("QUACKLE").value();
+  const absl::optional<std::string> str = tiles_->ToString(quackle);
+  //EXPECT_EQ("QUACKLE", tiles_->ToString(quackle).value());
+}
+
 TEST_F(TilesTest, Distribution) {
   EXPECT_EQ(tiles_->Count(tiles_->CharToNumber('A').value()), 9);
   EXPECT_EQ(tiles_->Count(tiles_->CharToNumber('B').value()), 2);

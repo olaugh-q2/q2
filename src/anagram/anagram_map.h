@@ -3,6 +3,8 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/numeric/int128.h"
+#include "absl/types/span.h"
+#include "src/scrabble/strings.h"
 #include "src/scrabble/tiles.h"
 
 class AnagramMap {
@@ -11,8 +13,11 @@ class AnagramMap {
       const Tiles& tiles, const std::string& filename);
 
  private:
-  absl::flat_hash_map<uint64_t, std::vector<std::string>> natural_small_;
-  absl::flat_hash_map<absl::uint128, std::vector<std::string>> natural_large_;
+  FRIEND_TEST(AnagramMapTest, CreateFromTextfile);
+  FRIEND_TEST(AnagramMapTest, CreateFromTextfile2);
+
+  absl::flat_hash_map<absl::uint128, absl::Span<const LetterString>> map_;
+  std::vector<LetterString> words_;
 };
 
 #endif  // SRC_ANAGRAM_ANAGRAM_MAP_H_

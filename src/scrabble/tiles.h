@@ -15,6 +15,7 @@ class Tiles {
   absl::optional<int> CharToNumber(char c) const;
   absl::optional<char> NumberToChar(int n) const;
   absl::optional<LetterString> ToLetterString(const std::string& s) const;
+  absl::optional<std::string> ToString(const LetterString& s) const;
   uint64_t Prime(int n) const;
   absl::uint128 ToProduct(const LetterString& s) const;
   int Count(int number) const;
