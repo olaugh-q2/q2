@@ -11,6 +11,8 @@ class AnagramMap {
  public:
   static std::unique_ptr<AnagramMap> CreateFromTextfile(
       const Tiles& tiles, const std::string& filename);
+  const absl::Span<const LetterString>* Words(
+      const absl::uint128& product) const;
 
  private:
   FRIEND_TEST(AnagramMapTest, CreateFromTextfile);

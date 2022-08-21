@@ -43,3 +43,12 @@ std::unique_ptr<AnagramMap> AnagramMap::CreateFromTextfile(
   }
   return anagram_map;
 }
+
+const absl::Span<const LetterString>* AnagramMap::Words(
+    const absl::uint128& product) const {
+  const auto it = map_.find(product);
+  if (it == map_.end()) {
+    return nullptr;
+  }
+  return &it->second;
+}

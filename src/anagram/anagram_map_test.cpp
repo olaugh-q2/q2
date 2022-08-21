@@ -41,4 +41,9 @@ TEST_F(AnagramMapTest, CreateFromTextfile2) {
   auto anagram_map = AnagramMap::CreateFromTextfile(*tiles_, input_filepath);
   ASSERT_NE(anagram_map, nullptr);
   EXPECT_EQ(anagram_map->map_.size(), 247168);
+  const auto words = anagram_map->Words(Prod("AEIOUCNRT"));
+  ASSERT_NE(words, nullptr);            
+  EXPECT_THAT(*words,
+              ElementsAre(LS("AUTOCRINE"), LS("CAUTIONER"), LS("COINTREAU"),
+                          LS("RECAUTION")));
 }
