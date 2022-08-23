@@ -12,13 +12,13 @@
 class Tiles {
  public:
   Tiles(const std::string& distribution);
-  absl::optional<int> CharToNumber(char c) const;
-  absl::optional<char> NumberToChar(int n) const;
+  absl::optional<Letter> CharToNumber(char c) const;
+  absl::optional<char> NumberToChar(Letter letter) const;
   absl::optional<LetterString> ToLetterString(const std::string& s) const;
   absl::optional<std::string> ToString(const LetterString& s) const;
-  uint64_t Prime(int n) const;
+  uint64_t Prime(Letter letter) const;
   absl::uint128 ToProduct(const LetterString& s) const;
-  int Count(int number) const;
+  int Count(Letter letter) const;
 
  private:
   FRIEND_TEST(TilesTest, PrimeIndices);
@@ -34,6 +34,6 @@ class Tiles {
   const std::array<uint64_t, 32> primes_;
 };
 
-inline uint64_t Tiles::Prime(int n) const { return primes_[n]; }
+inline uint64_t Tiles::Prime(Letter letter) const { return primes_[letter]; }
 
 #endif  // SRC_SCRABBLE_TILES_H_

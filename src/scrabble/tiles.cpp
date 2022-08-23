@@ -29,7 +29,7 @@ int Tiles::FindBlankIndex(const std::string& distribution) {
   return 'Z' - 'A' + 2;  // 27
 }
 
-absl::optional<int> Tiles::CharToNumber(char c) const {
+absl::optional<Letter> Tiles::CharToNumber(char c) const {
   if (c == '?') {
     return blank_index_;
   }
@@ -40,16 +40,16 @@ absl::optional<int> Tiles::CharToNumber(char c) const {
   return absl::nullopt;
 }
 
-int Tiles::Count(int number) const { return distribution_[number]; }
+int Tiles::Count(Letter letter) const { return distribution_[letter]; }
 
-absl::optional<char> Tiles::NumberToChar(int n) const {
-  if (n == blank_index_) {
+absl::optional<char> Tiles::NumberToChar(Letter letter) const {
+  if (letter == blank_index_) {
     return '?';
   }
-  if (n >= 1 && n <= 26) {
-    return n + 'A' - 1;
+  if (letter >= 1 && letter <= 26) {
+    return letter + 'A' - 1;
   }
-  LOG(ERROR) << "Could not convert number " << n << " to character";
+  LOG(ERROR) << "Could not convert number " << letter << " to character";
   return absl::nullopt;
 }
 

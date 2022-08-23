@@ -6,6 +6,8 @@
 
 #define FIXED_STRING_MAXIMUM_LENGTH 25
 
+typedef char Letter;
+
 class LetterString {
  public:
   typedef char* iterator;
@@ -15,9 +17,9 @@ class LetterString {
   typedef const char& const_reference;
 
   LetterString();
-  LetterString(const char* s, size_t n);
-  LetterString(size_t n, char c);
-  LetterString(const char* s);
+  LetterString(const Letter* s, size_t n);
+  LetterString(size_t n, Letter c);
+  LetterString(const Letter* s);
   LetterString(const LetterString& s);
   LetterString(LetterString&& s);
 
@@ -33,13 +35,13 @@ class LetterString {
   bool empty() const;
   std::size_t size() const { return length(); }
   void clear();
-  void push_back(char c);
+  void push_back(Letter c);
   void pop_back();
-  const char* constData() const { return data_; }
+  const Letter* constData() const { return data_; }
 
   int compare(const LetterString& s) const;
 
-  LetterString& operator+=(char c);
+  LetterString& operator+=(Letter c);
   LetterString& operator+=(const LetterString& s);
 
   const_reference operator[](std::size_t i) const { return data_[i]; }
@@ -56,7 +58,7 @@ class LetterString {
     }
   }
 
-  char data_[FIXED_STRING_MAXIMUM_LENGTH];
+  Letter data_[FIXED_STRING_MAXIMUM_LENGTH];
   std::size_t first_position_;
   std::size_t last_position_;
 };
