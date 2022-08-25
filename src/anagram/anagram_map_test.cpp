@@ -21,7 +21,7 @@ class AnagramMapTest : public testing::Test {
   LetterString LS(const std::string& s) {
     return tiles_->ToLetterString(s).value();
   }
-
+  LetterPair LP(char c1, char c2) { return {L(c1), L(c2)}; }
   absl::uint128 P(const std::string& s) { return tiles_->ToProduct(LS(s)); }
 
   std::unique_ptr<Tiles> tiles_;
@@ -42,6 +42,12 @@ TEST_F(AnagramMapTest, CreateFromTextfile) {
                                    Pair(P("AH"), ElementsAre(L('M'))),
                                    Pair(P("AM"), ElementsAre(L('H'))),
                                    Pair(P("HM"), ElementsAre(L('A')))));
+
+  EXPECT_THAT(anagram_map->double_blank_map_,
+              UnorderedElementsAre(Pair(P(""), ElementsAre(LP('A', 'H'))),
+                                   Pair(P("A"), ElementsAre(LP('H', 'M'))),
+                                   Pair(P("H"), ElementsAre(LP('A', 'M'))),
+                                   Pair(P("M"), ElementsAre(LP('A', 'H')))));
 }
 
 TEST_F(AnagramMapTest, CreateFromTextfile2) {
@@ -65,5 +71,12 @@ TEST_F(AnagramMapTest, CreateFromTextfile2) {
                                    L('S'),  // AEIOLNRST (x5)
                                    L('T'),  // NATROLITE, TENTORIAL
                                    L('U')   // OUTLINEAR
-  ));
+                                   ));
+
+  const auto double_blanks = anagram_map->DoubleBlanks(P("STRONCK"));
+  EXPECT_THAT(*double_blanks, ElementsAre(LP('A', 'L'),  // CORNSTALK
+                                          LP('C', 'U'),  // TURNCOCKS
+                                          LP('E', 'U'),  // COKERNUTS, ORESTUNCK
+                                          LP('H', 'O')   // STOCKHORN                                          
+                                          ));
 }
