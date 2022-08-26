@@ -11,7 +11,7 @@
 
 std::unique_ptr<AnagramMap> AnagramMap::CreateFromTextfile(
     const Tiles& tiles, const std::string& filename) {
-  auto anagram_map = absl::make_unique<AnagramMap>();
+  auto anagram_map = absl::make_unique<AnagramMap>(tiles);
   std::ifstream input(filename);
   if (!input) {
     LOG(ERROR) << "Failed to open " << filename;
@@ -93,6 +93,64 @@ std::unique_ptr<AnagramMap> AnagramMap::CreateFromTextfile(
                      blanks.size());
   }
   return anagram_map;
+}
+
+AnagramMap::WordRange AnagramMap::Words(const absl::uint128& product,
+                                        int num_blanks) const {
+  if (num_blanks == 0) {
+    return WordRange(Words(product));
+  } else if (num_blanks == 1) {
+    std::vector<absl::uint128> products;
+    const auto* blanks = Blanks(product);
+    if (blanks != nullptr) {
+      for (const Letter letter : *blanks) {
+        const absl::uint128 new_product = product * tiles_.Prime(letter);
+        products.emplace_back(new_product);
+      }
+    }
+    return WordRange(products, *this);
+  } else if (num_blanks == 2) {
+    std::vector<absl::uint128> products;
+    const auto* double_blanks = DoubleBlanks(product);
+    if (double_blanks != nullptr) {
+      for (const auto& blank_pair : *double_blanks) {
+        const absl::uint128 new_product = product *
+                                          tiles_.Prime(blank_pair.first) *
+                                          tiles_.Prime(blank_pair.second);
+        products.emplace_back(new_product);
+      }
+    }
+    return WordRange(products, *this);
+  } else {
+    LOG(ERROR) << "Invalid number of blanks: " << num_blanks;
+    return WordRange(nullptr);
+  }
+}
+
+std::vector<absl::Span<const LetterString>>
+AnagramMap::WordRange::MakeSpans(
+    const absl::Span<const LetterString>* span) const {
+  if (span == nullptr) {
+    return {};
+  } else {
+    return {*span};
+  }
+}
+
+std::vector<absl::Span<const LetterString>>
+AnagramMap::WordRange::MakeSpans(const std::vector<absl::uint128>& products,
+                                const AnagramMap& anagram_map) const {
+  std::vector<absl::Span<const LetterString>> spans;
+  spans.reserve(products.size());
+  for (const auto& product : products) {
+    const auto* span = anagram_map.Words(product);
+    if (span != nullptr) {
+      spans.emplace_back(*span);
+    } else {
+      LOG(ERROR) << "Invalid product with no words: " << product;
+    }
+  }
+  return spans;
 }
 
 const absl::Span<const LetterString>* AnagramMap::Words(

@@ -1,6 +1,9 @@
 #include "src/anagram/anagram_map.h"
 
+#include <range/v3/all.hpp>
+
 #include "absl/memory/memory.h"
+#include "glog/logging.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -77,6 +80,15 @@ TEST_F(AnagramMapTest, CreateFromTextfile2) {
   EXPECT_THAT(*double_blanks, ElementsAre(LP('A', 'L'),  // CORNSTALK
                                           LP('C', 'U'),  // TURNCOCKS
                                           LP('E', 'U'),  // COKERNUTS, ORESTUNCK
-                                          LP('H', 'O')   // STOCKHORN                                          
+                                          LP('H', 'O')   // STOCKHORN
                                           ));
+
+  const auto range = anagram_map->Words(P("ROOFLINE"), 1);
+  EXPECT_EQ(range.Spans().size(), 2);
+  EXPECT_EQ(range.Spans()[0].size(), 1);
+  EXPECT_EQ(range.Spans()[1].size(), 2);
+  auto span_join = range.Spans() | ranges::view::join;
+  const auto range_words = std::vector<LetterString>(span_join.begin(), span_join.end());
+  EXPECT_THAT(range_words,
+              ElementsAre(LS("FOILBORNE"), LS("ROOFLINES"), LS("SOLFERINO")));
 }

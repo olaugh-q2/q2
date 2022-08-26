@@ -19,5 +19,7 @@ cc_test(
         ":anagram_map",
         "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
+        "@glog",
+        "@range-v3",
     ],
 )
