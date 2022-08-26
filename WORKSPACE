@@ -40,3 +40,10 @@ new_local_repository(
     build_file = "third_party/usr_local.BUILD",
     path = "/usr/local",
 )
+
+http_archive(
+    name = "range-v3",  # BSL-1.0
+    sha256 = "015adb2300a98edfceaf0725beec3337f542af4915cec4d0b89fa0886f4ba9cb",
+    strip_prefix = "range-v3-0.12.0",
+    url = "https://github.com/ericniebler/range-v3/archive/0.12.0.tar.gz",
+)
