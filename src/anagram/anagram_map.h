@@ -3,6 +3,7 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/numeric/int128.h"
+#include "absl/status/status.h"
 #include "absl/types/span.h"
 #include "src/scrabble/strings.h"
 #include "src/scrabble/tiles.h"
@@ -35,6 +36,8 @@ class AnagramMap {
   explicit AnagramMap(const Tiles& tiles) : tiles_(tiles) {}
   static std::unique_ptr<AnagramMap> CreateFromTextfile(
       const Tiles& tiles, const std::string& filename);
+  absl::Status WriteToBinaryFile(const std::string& filename) const;
+
   WordRange Words(const absl::uint128& product, int num_blanks) const;
   const absl::Span<const LetterString>* Words(
       const absl::uint128& product) const;
@@ -45,6 +48,9 @@ class AnagramMap {
  private:
   FRIEND_TEST(AnagramMapTest, CreateFromTextfile);
   FRIEND_TEST(AnagramMapTest, CreateFromTextfile2);
+  FRIEND_TEST(AnagramMapTest, WriteToOstream);
+
+  bool WriteToOstream(std::ostream& os) const;
 
   const Tiles& tiles_;
   absl::flat_hash_map<absl::uint128, absl::Span<const LetterString>> map_;
@@ -52,8 +58,11 @@ class AnagramMap {
   absl::flat_hash_map<absl::uint128, absl::Span<const LetterPair>>
       double_blank_map_;
   std::vector<LetterString> words_;
+  absl::flat_hash_map<absl::uint128, uint32_t> word_indices_;
   std::vector<Letter> blanks_;
+  absl::flat_hash_map<absl::uint128, uint32_t> blank_indices_;
   std::vector<LetterPair> double_blanks_;
+  absl::flat_hash_map<absl::uint128, uint32_t> double_blank_indices_;
 };
 
 #endif  // SRC_ANAGRAM_ANAGRAM_MAP_H_

@@ -9,7 +9,7 @@ class TilesTest : public testing::Test {
   void SetUp() override {
     tiles_ = absl::make_unique<Tiles>(
         "AAAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGGHHIIIIIIIIIJ"
-        "KLLLLMMMMMMMMNNNNNNOOOOOOOOPPQRRRRRRRRSSSS"
+        "KLLLLMMNNNNNNOOOOOOOOPPQRRRRRRRRSSSS"
         "TTTTTTUUUUVVWWXYYZ??");
   }
   std::unique_ptr<Tiles> tiles_;

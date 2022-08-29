@@ -47,3 +47,29 @@ http_archive(
     strip_prefix = "range-v3-0.12.0",
     url = "https://github.com/ericniebler/range-v3/archive/0.12.0.tar.gz",
 )
+
+http_archive(
+    name = "com_google_protobuf",
+    sha256 = "c29d8b4b79389463c546f98b15aa4391d4ed7ec459340c47bffe15db63eb9126",
+    strip_prefix = "protobuf-3.21.3",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.21.3.tar.gz"],
+)
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
+
+http_archive(
+    name = "rules_proto",
+    sha256 = "602e7161d9195e50246177e7c55b2f39950a9cf7366f74ed5f22fd45750cd208",
+    strip_prefix = "rules_proto-97d8af4dc474595af3900dd85cb3a29ad28cc313",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/97d8af4dc474595af3900dd85cb3a29ad28cc313.tar.gz",
+        "https://github.com/bazelbuild/rules_proto/archive/97d8af4dc474595af3900dd85cb3a29ad28cc313.tar.gz",
+    ],
+)
+
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
+
+rules_proto_dependencies()
+rules_proto_toolchains()

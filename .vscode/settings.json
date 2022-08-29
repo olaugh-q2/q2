@@ -93,6 +93,8 @@
         "filesystem": "cpp",
         "__functional_03": "cpp",
         "*.inc": "cpp",
-        "ranges": "cpp"
+        "ranges": "cpp",
+        "coroutine": "cpp",
+        "span": "cpp"
     }
 }

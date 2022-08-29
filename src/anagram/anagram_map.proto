@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package q2.proto;
+
+message Words {
+  repeated string word = 1;
+}
+
+message BlankLetters {
+  bytes letters = 1;
+}
+
+message DoubleBlankLetters {
+  bytes letter_pairs = 1;
+}
+
+message Uint128 {
+  uint64 high = 1;
+  uint64 low = 2;
+}
+
+message WordSpan {
+  Uint128 product = 1;
+  uint32 begin = 2;
+  uint32 length = 3;
+}
+
+message WordSpans {
+  repeated WordSpan word_spans = 1;
+}
+
+message BlankSpan {
+  Uint128 product = 1;
+  uint32 begin = 2;
+  uint32 length = 3;
+}
+
+message BlankSpans {
+  repeated BlankSpan blank_spans = 1;
+}
