@@ -97,10 +97,10 @@ std::unique_ptr<AnagramMap> AnagramMap::CreateFromTextfile(
     const auto& product = pair.first;
     const auto& blanks = pair.second;
     auto sorted_blanks = blanks;
-    LOG(INFO) << "product: " << product;
+    // LOG(INFO) << "product: " << product;
     std::sort(sorted_blanks.begin(), sorted_blanks.end());
     for (const auto& blank : sorted_blanks) {
-      LOG(INFO) << "  blank: " << tiles.NumberToChar(blank).value();
+      // LOG(INFO) << "  blank: " << tiles.NumberToChar(blank).value();
       anagram_map->blanks_.emplace_back(blank);
     }
     anagram_map->blank_indices_[product] = blank_index;
@@ -137,7 +137,117 @@ std::unique_ptr<AnagramMap> AnagramMap::CreateFromTextfile(
   return anagram_map;
 }
 
+std::unique_ptr<AnagramMap> AnagramMap::CreateFromBinaryFile(
+    const Tiles& tiles, const std::string& filename) {
+  auto anagram_map = absl::make_unique<AnagramMap>(tiles);
+  std::ifstream file(filename, std::ios::binary);
+  if (!file) {
+    LOG(ERROR) << "Could not open file " << filename;
+    return nullptr;
+  }
+  auto iis = absl::make_unique<google::protobuf::io::IstreamInputStream>(&file);
+  Arena arena;
+
+  auto words = Arena::CreateMessage<q2::proto::Words>(&arena);
+  bool clean_eof = true;
+  if (!google::protobuf::util::ParseDelimitedFromZeroCopyStream(
+          words, iis.get(), &clean_eof)) {
+    LOG(ERROR) << "Could not parse words from " << filename;
+    return nullptr;
+  }
+  anagram_map->words_.reserve(words->word_size());
+  for (const auto& word : words->word()) {
+    const auto letter_string = tiles.ToLetterString(word);
+    if (!letter_string) {
+      LOG(ERROR) << "Could not parse word " << word;
+      return nullptr;
+    }
+    anagram_map->words_.emplace_back(letter_string.value());
+  }
+
+  auto blank_letters = Arena::CreateMessage<q2::proto::BlankLetters>(&arena);
+  if (!google::protobuf::util::ParseDelimitedFromZeroCopyStream(
+          blank_letters, iis.get(), &clean_eof)) {
+    LOG(ERROR) << "Could not parse blank letters from " << filename;
+    return nullptr;
+  }
+  anagram_map->blanks_.reserve(blank_letters->letters().size());
+  for (const auto& letter : blank_letters->letters()) {
+    anagram_map->blanks_.emplace_back(letter);
+  }
+
+  auto double_blank_letters =
+      Arena::CreateMessage<q2::proto::DoubleBlankLetters>(&arena);
+  if (!google::protobuf::util::ParseDelimitedFromZeroCopyStream(
+          double_blank_letters, iis.get(), &clean_eof)) {
+    LOG(ERROR) << "Could not parse double blank letters from " << filename;
+    return nullptr;
+  }
+  anagram_map->double_blanks_.reserve(
+      double_blank_letters->letter_pairs().size() / 2);
+  for (int i = 0; i < double_blank_letters->letter_pairs().size(); i += 2) {
+    anagram_map->double_blanks_.emplace_back(
+        double_blank_letters->letter_pairs()[i],
+        double_blank_letters->letter_pairs()[i + 1]);
+  }
+
+  auto word_spans = Arena::CreateMessage<q2::proto::WordSpans>(&arena);
+  if (!google::protobuf::util::ParseDelimitedFromZeroCopyStream(
+          word_spans, iis.get(), &clean_eof)) {
+    LOG(ERROR) << "Could not parse word spans from " << filename;
+    return nullptr;
+  }
+  anagram_map->map_.reserve(word_spans->word_spans_size());
+  for (const auto& word_span : word_spans->word_spans()) {
+    const absl::uint128 product = absl::MakeUint128(word_span.product().high(),
+                                                    word_span.product().low());
+    anagram_map->map_[product] =
+        absl::MakeConstSpan(anagram_map->words_)
+            .subspan(word_span.begin(), word_span.length());
+  }
+
+  auto blank_spans = Arena::CreateMessage<q2::proto::BlankSpans>(&arena);
+  if (!google::protobuf::util::ParseDelimitedFromZeroCopyStream(
+          blank_spans, iis.get(), &clean_eof)) {
+    LOG(ERROR) << "Could not parse blank spans from " << filename;
+    return nullptr;
+  }
+  anagram_map->blank_map_.reserve(blank_spans->blank_spans_size());
+  for (const auto& blank_span : blank_spans->blank_spans()) {
+    const absl::uint128 product = absl::MakeUint128(blank_span.product().high(),
+                                                    blank_span.product().low());
+    anagram_map->blank_map_[product] =
+        absl::MakeConstSpan(anagram_map->blanks_)
+            .subspan(blank_span.begin(), blank_span.length());
+  }
+
+  auto double_blank_spans = Arena::CreateMessage<q2::proto::BlankSpans>(&arena);
+  if (!google::protobuf::util::ParseDelimitedFromZeroCopyStream(
+          double_blank_spans, iis.get(), &clean_eof)) {
+    LOG(ERROR) << "Could not parse double blank spans from " << filename;
+    return nullptr;
+  }
+  anagram_map->double_blank_map_.reserve(
+      double_blank_spans->blank_spans_size());
+  for (const auto& double_blank_span : double_blank_spans->blank_spans()) {
+    const absl::uint128 product = absl::MakeUint128(
+        double_blank_span.product().high(), double_blank_span.product().low());
+    anagram_map->double_blank_map_[product] =
+        absl::MakeConstSpan(anagram_map->double_blanks_)
+            .subspan(double_blank_span.begin(), double_blank_span.length());
+  }
+
+  return anagram_map;
+}
+
 absl::Status AnagramMap::WriteToBinaryFile(const std::string& filename) const {
+  std::ofstream file(filename, std::ios::out | std::ios::binary);
+  if (!file.is_open()) {
+    return absl::NotFoundError("Could not open file " + filename);
+  }
+  if (!WriteToOstream(file)) {
+    return absl::InternalError("Could not write to file " + filename);
+  }
   return absl::OkStatus();
 }
 
@@ -148,7 +258,7 @@ bool AnagramMap::WriteToOstream(std::ostream& os) const {
     for (const auto& word : words_) {
       words->add_word(tiles_.ToString(word).value());
     }
-    LOG(INFO) << "words: " << words->DebugString();
+    // LOG(INFO) << "words: " << words->DebugString();
     if (!google::protobuf::util::SerializeDelimitedToOstream(*words, &os)) {
       return false;
     }
@@ -232,11 +342,12 @@ bool AnagramMap::WriteToOstream(std::ostream& os) const {
     std::vector<std::pair<absl::uint128, absl::Span<const LetterPair>>>
         sorted_double_blank_map(double_blank_map_.begin(),
                                 double_blank_map_.end());
-    std::sort(sorted_double_blank_map.begin(), sorted_double_blank_map.end(),
-              [](const std::pair<absl::uint128, absl::Span<const LetterPair>>&
-                     a,
-                 const std::pair<absl::uint128, absl::Span<const LetterPair>>&
-                     b) { return a.first < b.first; });
+    std::sort(
+        sorted_double_blank_map.begin(), sorted_double_blank_map.end(),
+        [](const std::pair<absl::uint128, absl::Span<const LetterPair>>& a,
+           const std::pair<absl::uint128, absl::Span<const LetterPair>>& b) {
+          return a.first < b.first;
+        });
     for (const auto& pair : sorted_double_blank_map) {
       const auto& product = pair.first;
       const auto& span = pair.second;

@@ -11,7 +11,7 @@ cc_library(
         "//src/scrabble:tiles",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/numeric:int128",
-        "@com_google_absl//absl/status:status",
+        "@com_google_absl//absl/status",
         "@com_google_protobuf//:protobuf",
         "@glog",
     ],
@@ -21,7 +21,7 @@ cc_test(
     name = "anagram_map_test",
     srcs = ["anagram_map_test.cpp"],
     copts = ["-std=c++14"],
-    data = glob(["testdata/*.txt"]),
+    data = glob(["testdata/*.txt", "testdata/*.qam"]),
     deps = [
         ":anagram_map",
         ":anagram_map_cc_proto",
@@ -29,6 +29,18 @@ cc_test(
         "@com_google_googletest//:gtest_main",
         "@glog",
         "@range-v3",
+    ],
+)
+
+cc_binary(
+    name = "anagram_tool",
+    srcs = ["anagram_tool.cpp"],
+    deps = [
+        ":anagram_map",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/flags:usage",
+        "@glog",
     ],
 )
 

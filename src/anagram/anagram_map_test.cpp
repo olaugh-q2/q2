@@ -63,48 +63,46 @@ TEST_F(AnagramMapTest, CreateFromTextfile) {
                                    Pair(P("M"), ElementsAre(LP('A', 'H')))));
 }
 
-// TEST_F(AnagramMapTest, CreateFromTextfile2) {
-//   const std::string input_filepath = "src/anagram/testdata/csw21nines.txt";
-//   auto anagram_map = AnagramMap::CreateFromTextfile(*tiles_, input_filepath);
-//   ASSERT_NE(anagram_map, nullptr);
-//   EXPECT_EQ(anagram_map->map_.size(), 39317);
-//   const auto words = anagram_map->Words(P("AEIOUCNRT"));
-//   ASSERT_NE(words, nullptr);
-//   EXPECT_THAT(*words, ElementsAre(LS("AUTOCRINE"), LS("CAUTIONER"),
-//                                   LS("COINTREAU"), LS("RECAUTION")));
+TEST_F(AnagramMapTest, CreateFromTextfile2) {
+  const std::string input_filepath = "src/anagram/testdata/csw21nines.txt";
+  auto anagram_map = AnagramMap::CreateFromTextfile(*tiles_, input_filepath);
+  ASSERT_NE(anagram_map, nullptr);
+  EXPECT_EQ(anagram_map->map_.size(), 39317);
+  const auto words = anagram_map->Words(P("AEIOUCNRT"));
+  ASSERT_NE(words, nullptr);
+  EXPECT_THAT(*words, ElementsAre(LS("AUTOCRINE"), LS("CAUTIONER"),
+                                  LS("COINTREAU"), LS("RECAUTION")));
 
-//   const auto blanks = anagram_map->Blanks(P("TAILERON"));
-//   EXPECT_THAT(*blanks, ElementsAre(L('A'),  // ALIENATOR, RATIONALE
-//                                    L('C'),  // CLARIONET, CROTALINE
-//                                    L('D'),  // RODENTIAL
-//                                    L('F'),  // REFLATION
-//                                    L('M'),  // MENTORIAL
-//                                    L('N'),  // INTERLOAN
-//                                    L('P'),  // PRELATION, RANTIPOLE
-//                                    L('S'),  // AEIOLNRST (x5)
-//                                    L('T'),  // NATROLITE, TENTORIAL
-//                                    L('U')   // OUTLINEAR
-//                                    ));
+  const auto blanks = anagram_map->Blanks(P("TAILERON"));
+  EXPECT_THAT(*blanks, ElementsAre(L('A'),  // ALIENATOR, RATIONALE
+                                   L('C'),  // CLARIONET, CROTALINE
+                                   L('D'),  // RODENTIAL
+                                   L('F'),  // REFLATION
+                                   L('M'),  // MENTORIAL
+                                   L('N'),  // INTERLOAN
+                                   L('P'),  // PRELATION, RANTIPOLE
+                                   L('S'),  // AEIOLNRST (x5)
+                                   L('T'),  // NATROLITE, TENTORIAL
+                                   L('U')   // OUTLINEAR
+                                   ));
 
-//   const auto double_blanks = anagram_map->DoubleBlanks(P("STRONCK"));
-//   EXPECT_THAT(*double_blanks, ElementsAre(LP('A', 'L'),  // CORNSTALK
-//                                           LP('C', 'U'),  // TURNCOCKS
-//                                           LP('E', 'U'),  // COKERNUTS,
-//                                           ORESTUNCK LP('H', 'O')   //
-//                                           STOCKHORN
-//                                           ));
+  const auto double_blanks = anagram_map->DoubleBlanks(P("STRONCK"));
+  EXPECT_THAT(*double_blanks, ElementsAre(LP('A', 'L'),  // CORNSTALK
+                                          LP('C', 'U'),  // TURNCOCKS
+                                          LP('E', 'U'),  // COKERNUTS, ORESTUNCK
+                                          LP('H', 'O')   // STOCKHORN
+                                          ));
 
-//   const auto range = anagram_map->Words(P("ROOFLINE"), 1);
-//   EXPECT_EQ(range.Spans().size(), 2);
-//   EXPECT_EQ(range.Spans()[0].size(), 1);
-//   EXPECT_EQ(range.Spans()[1].size(), 2);
-//   auto span_join = range.Spans() | ranges::view::join;
-//   const auto range_words =
-//       std::vector<LetterString>(span_join.begin(), span_join.end());
-//   EXPECT_THAT(range_words,
-//               ElementsAre(LS("FOILBORNE"), LS("ROOFLINES"),
-//               LS("SOLFERINO")));
-// }
+  const auto range = anagram_map->Words(P("ROOFLINE"), 1);
+  EXPECT_EQ(range.Spans().size(), 2);
+  EXPECT_EQ(range.Spans()[0].size(), 1);
+  EXPECT_EQ(range.Spans()[1].size(), 2);
+  auto span_join = range.Spans() | ranges::view::join;
+  const auto range_words =
+      std::vector<LetterString>(span_join.begin(), span_join.end());
+  EXPECT_THAT(range_words,
+              ElementsAre(LS("FOILBORNE"), LS("ROOFLINES"), LS("SOLFERINO")));
+}
 
 TEST_F(AnagramMapTest, WriteToOstream) {
   Arena arena;
@@ -194,7 +192,7 @@ TEST_F(AnagramMapTest, WriteToOstream) {
   ASSERT_TRUE(parser.ParseFromString(R"pb(
                                        blank_spans {
                                          product { low: 3 }
-                                         #begin: 0
+                                         # begin: 0
                                          length: 1
                                        }
                                        blank_spans {
@@ -220,11 +218,11 @@ TEST_F(AnagramMapTest, WriteToOstream) {
                                      )pb",
                                      expected_blank_spans));
   EXPECT_TRUE(
-    MessageDifferencer::Equivalent(*blank_spans, *expected_blank_spans));
+      MessageDifferencer::Equivalent(*blank_spans, *expected_blank_spans));
 
   auto double_blank_spans = Arena::CreateMessage<q2::proto::BlankSpans>(&arena);
-  EXPECT_TRUE(
-      ParseDelimitedFromZeroCopyStream(double_blank_spans, iis.get(), &clean_eof));
+  EXPECT_TRUE(ParseDelimitedFromZeroCopyStream(double_blank_spans, iis.get(),
+                                               &clean_eof));
   EXPECT_FALSE(clean_eof);
   LOG(INFO) << "double_blank_spans: " << double_blank_spans->DebugString();
   auto expected_double_blank_spans =
@@ -252,8 +250,80 @@ TEST_F(AnagramMapTest, WriteToOstream) {
                                        }
                                      )pb",
                                      expected_double_blank_spans));
-  EXPECT_TRUE(
-    MessageDifferencer::Equivalent(*double_blank_spans, *expected_double_blank_spans));
+  EXPECT_TRUE(MessageDifferencer::Equivalent(*double_blank_spans,
+                                             *expected_double_blank_spans));
+}
 
-  // EXPECT_TRUE(false);
+TEST_F(AnagramMapTest, CreateFromBinaryFile) {
+  const std::string input_filepath = "src/anagram/testdata/ah_ha_ham.qam";
+  auto anagram_map = AnagramMap::CreateFromBinaryFile(*tiles_, input_filepath);
+  ASSERT_NE(anagram_map, nullptr);
+  EXPECT_THAT(
+      anagram_map->map_,
+      UnorderedElementsAre(Pair(P("AH"), ElementsAre(LS("AH"), LS("HA"))),
+                           Pair(P("AHM"), ElementsAre(LS("HAM")))));
+
+  EXPECT_THAT(anagram_map->blank_map_,
+              UnorderedElementsAre(Pair(P("A"), ElementsAre(L('H'))),
+                                   Pair(P("H"), ElementsAre(L('A'))),
+                                   Pair(P("AH"), ElementsAre(L('M'))),
+                                   Pair(P("AM"), ElementsAre(L('H'))),
+                                   Pair(P("HM"), ElementsAre(L('A')))));
+
+  EXPECT_THAT(anagram_map->double_blank_map_,
+              UnorderedElementsAre(Pair(P(""), ElementsAre(LP('A', 'H'))),
+                                   Pair(P("A"), ElementsAre(LP('H', 'M'))),
+                                   Pair(P("H"), ElementsAre(LP('A', 'M'))),
+                                   Pair(P("M"), ElementsAre(LP('A', 'H')))));
+}
+
+TEST_F(AnagramMapTest, CreateFromBinaryFile2) {
+  const std::string input_filepath = "src/anagram/testdata/csw21.qam";
+  auto anagram_map = AnagramMap::CreateFromBinaryFile(*tiles_, input_filepath);
+  ASSERT_NE(anagram_map, nullptr);
+  EXPECT_EQ(anagram_map->map_.size(), 247168);
+  const auto words = anagram_map->Words(P("AEIOUCNRT"));
+  ASSERT_NE(words, nullptr);
+  EXPECT_THAT(*words, ElementsAre(LS("AUTOCRINE"), LS("CAUTIONER"),
+                                  LS("COINTREAU"), LS("RECAUTION")));
+
+  const auto blanks = anagram_map->Blanks(P("TAILERON"));
+  EXPECT_THAT(*blanks, ElementsAre(L('A'),  // ALIENATOR, RATIONALE
+                                   L('C'),  // CLARIONET, CROTALINE
+                                   L('D'),  // RODENTIAL
+                                   L('F'),  // REFLATION
+                                   L('M'),  // MENTORIAL
+                                   L('N'),  // INTERLOAN
+                                   L('P'),  // PRELATION, RANTIPOLE
+                                   L('S'),  // AEIOLNRST (x5)
+                                   L('T'),  // NATROLITE, TENTORIAL
+                                   L('U')   // OUTLINEAR
+                                   ));
+
+  const auto double_blanks = anagram_map->DoubleBlanks(P("STRONCK"));
+  EXPECT_THAT(*double_blanks, ElementsAre(LP('A', 'L'),  // CORNSTALK
+                                          LP('C', 'U'),  // TURNCOCKS
+                                          LP('E', 'U'),  // COKERNUTS, ORESTUNCK
+                                          LP('H', 'O')   // STOCKHORN
+                                          ));
+
+  const auto range = anagram_map->Words(P("ROOFLINE"), 1);
+  EXPECT_EQ(range.Spans().size(), 2);
+  EXPECT_EQ(range.Spans()[0].size(), 1);
+  EXPECT_EQ(range.Spans()[1].size(), 2);
+  auto span_join = range.Spans() | ranges::view::join;
+  const auto range_words =
+      std::vector<LetterString>(span_join.begin(), span_join.end());
+  EXPECT_THAT(range_words,
+              ElementsAre(LS("FOILBORNE"), LS("ROOFLINES"), LS("SOLFERINO")));
+
+  const auto range2 = anagram_map->Words(P("INTERNATIONAL"), 2);
+  auto span_join2 = range2.Spans() | ranges::view::join;
+  const auto range_words2 =
+      std::vector<LetterString>(span_join2.begin(), span_join2.end());
+  EXPECT_THAT(range_words2,
+              ElementsAre(LS("INTERLAMINATION"),
+                          LS("INTERNALISATION"),
+                          LS("INTERNALIZATION"),
+                          LS("INTERNATIONALLY")));
 }

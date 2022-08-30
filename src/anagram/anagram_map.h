@@ -36,6 +36,8 @@ class AnagramMap {
   explicit AnagramMap(const Tiles& tiles) : tiles_(tiles) {}
   static std::unique_ptr<AnagramMap> CreateFromTextfile(
       const Tiles& tiles, const std::string& filename);
+  static std::unique_ptr<AnagramMap> CreateFromBinaryFile(
+      const Tiles& tiles, const std::string& filename);
   absl::Status WriteToBinaryFile(const std::string& filename) const;
 
   WordRange Words(const absl::uint128& product, int num_blanks) const;
@@ -49,6 +51,8 @@ class AnagramMap {
   FRIEND_TEST(AnagramMapTest, CreateFromTextfile);
   FRIEND_TEST(AnagramMapTest, CreateFromTextfile2);
   FRIEND_TEST(AnagramMapTest, WriteToOstream);
+  FRIEND_TEST(AnagramMapTest, CreateFromBinaryFile);
+  FRIEND_TEST(AnagramMapTest, CreateFromBinaryFile2);
 
   bool WriteToOstream(std::ostream& os) const;
 
