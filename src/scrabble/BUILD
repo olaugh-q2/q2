@@ -1,3 +1,6 @@
+load("@rules_cc//cc:defs.bzl", "cc_proto_library")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+
 cc_library(
     name = "tiles",
     srcs = ["tiles.cpp"],
@@ -47,4 +50,14 @@ cc_library(
     srcs = ["strings.cpp"],
     hdrs = ["strings.h"],
     deps = ["@glog"],
+)
+
+proto_library(
+    name = "tiles_spec_proto",
+    srcs = ["tiles_spec.proto"],
+)
+
+cc_proto_library(
+    name = "tiles_spec_cc_proto",
+    deps = [":tiles_spec_proto"],
 )

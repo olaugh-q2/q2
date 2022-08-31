@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package q2.proto;
+
+message TileSpec {
+    string natural_ascii = 1;
+    string blanked_ascii = 2;
+    string natural_fullwidth = 3;
+    string blanked_fullwidth = 4;
+
+    bool is_vowel = 5;
+    uint32 score = 6;
+    uint32 count = 7;
+}
