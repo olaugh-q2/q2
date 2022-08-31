@@ -21,7 +21,10 @@ TEST_F(TilesTest, CharToNumber) {
   EXPECT_EQ(tiles_->CharToNumber('Z'), 26);
   EXPECT_EQ(tiles_->CharToNumber('?'), 27);
 
-  EXPECT_EQ(tiles_->CharToNumber('a'), absl::nullopt);
+  EXPECT_EQ(tiles_->CharToNumber('a'), 27 + 1);
+  EXPECT_EQ(tiles_->CharToNumber('b'), 27 + 2);
+  EXPECT_EQ(tiles_->CharToNumber('z'), 27 + 26);
+
   EXPECT_EQ(tiles_->CharToNumber('_'), absl::nullopt);
   EXPECT_EQ(tiles_->CharToNumber(' '), absl::nullopt);
   EXPECT_EQ(tiles_->CharToNumber('\0'), absl::nullopt);
@@ -32,9 +35,11 @@ TEST_F(TilesTest, NumberToChar) {
   EXPECT_EQ(tiles_->NumberToChar(2), 'B');
   EXPECT_EQ(tiles_->NumberToChar(26), 'Z');
   EXPECT_EQ(tiles_->NumberToChar(27), '?');
+  EXPECT_EQ(tiles_->NumberToChar(27 + 1), 'a');
+  EXPECT_EQ(tiles_->NumberToChar(27 + 26), 'z');
 
   EXPECT_EQ(tiles_->NumberToChar(0), absl::nullopt);
-  EXPECT_EQ(tiles_->NumberToChar(28), absl::nullopt);
+  EXPECT_EQ(tiles_->NumberToChar(27 + 27), absl::nullopt);
 }
 
 TEST_F(TilesTest, ToLetterString) {
@@ -49,10 +54,31 @@ TEST_F(TilesTest, ToLetterString) {
   EXPECT_EQ(letter_string.value(), expected);
 }
 
+
+TEST_F(TilesTest, ToLetterStringWithBlank) {
+  char quackle[8] = "QUACKLE";
+  char numbers[8] = "QUACKLE";
+  for (int i = 0; i < 7; i++) {
+    numbers[i] = quackle[i] - 'A' + 1;
+  }
+  quackle[0] = 'q';
+  numbers[0] += 27;
+  auto letter_string = tiles_->ToLetterString(quackle);
+  ASSERT_TRUE(letter_string.has_value());
+  const LetterString expected(numbers, 7);
+  EXPECT_EQ(letter_string.value(), expected);
+}
+
 TEST_F(TilesTest, ToString) {
   const auto quackle = tiles_->ToLetterString("QUACKLE").value();
   const absl::optional<std::string> str = tiles_->ToString(quackle);
-  //EXPECT_EQ("QUACKLE", tiles_->ToString(quackle).value());
+  EXPECT_EQ("QUACKLE", tiles_->ToString(quackle).value());
+}
+
+TEST_F(TilesTest, ToStringWithBlank) {
+  const auto quackle = tiles_->ToLetterString("qUACKLE").value();
+  const absl::optional<std::string> str = tiles_->ToString(quackle);
+  EXPECT_EQ("qUACKLE", tiles_->ToString(quackle).value());
 }
 
 TEST_F(TilesTest, Distribution) {

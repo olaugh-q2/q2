@@ -32,9 +32,10 @@ int Tiles::FindBlankIndex(const std::string& distribution) {
 absl::optional<Letter> Tiles::CharToNumber(char c) const {
   if (c == '?') {
     return blank_index_;
-  }
-  if (c >= 'A' && c <= 'Z') {
+  } else if (c >= 'A' && c <= 'Z') {
     return c - 'A' + 1;
+  } else if (c >= 'a' && c <= 'z') {
+    return c - 'a' + 1 + blank_index_;
   }
   LOG(ERROR) << "Could not convert character '" << c << "' to number";
   return absl::nullopt;
@@ -45,8 +46,9 @@ int Tiles::Count(Letter letter) const { return distribution_[letter]; }
 absl::optional<char> Tiles::NumberToChar(Letter letter) const {
   if (letter == blank_index_) {
     return '?';
-  }
-  if (letter >= 1 && letter <= 26) {
+  } else if (letter > blank_index_ && letter <= blank_index_ + 26) {
+    return (letter - blank_index_) + 'a' - 1;
+  } else if (letter >= 1 && letter <= 26) {
     return letter + 'A' - 1;
   }
   LOG(ERROR) << "Could not convert number " << letter << " to character";
