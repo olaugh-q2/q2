@@ -21,7 +21,7 @@ cc_test(
     name = "anagram_map_test",
     srcs = ["anagram_map_test.cpp"],
     copts = ["-std=c++14"],
-    data = glob(["testdata/*.txt", "testdata/*.qam"]),
+    data = glob(["testdata/*.txt", "testdata/*.qam", "testdata/*.textproto"]),
     deps = [
         ":anagram_map",
         ":anagram_map_cc_proto",

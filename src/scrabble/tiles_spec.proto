@@ -8,7 +8,21 @@ message TileSpec {
     string natural_fullwidth = 3;
     string blanked_fullwidth = 4;
 
-    bool is_vowel = 5;
+    enum TileType {
+        VOWEL = 0;
+        CONSONANT = 1;
+        OTHER = 2;
+        BLANK = 3;
+    }
+    TileType tile_type = 5;
+
     uint32 score = 6;
     uint32 count = 7;
+}
+
+message TilesSpec {
+    string language_code = 1;
+    string variant_name = 2;
+
+    repeated TileSpec tiles = 3;
 }

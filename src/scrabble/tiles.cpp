@@ -1,43 +1,84 @@
 #include "src/scrabble/tiles.h"
 
+#include <fcntl.h>
+
 #include <iterator>
 
 #include "glog/logging.h"
+#include "google/protobuf/io/zero_copy_stream_impl.h"
+#include "google/protobuf/text_format.h"
 #include "src/scrabble/primes.h"
 #include "src/scrabble/strings.h"
+#include "src/scrabble/tiles_spec.pb.h"
 
-Tiles::Tiles(const std::string& distribution)
-    : blank_index_(FindBlankIndex(distribution)),
-      distribution_(DistributionFromString(distribution)),
+using ::google::protobuf::Arena;
+using ::google::protobuf::TextFormat;
+using ::google::protobuf::io::FileInputStream;
+
+Tiles::Tiles(const std::string& filename)
+    : proto_(LoadTilesSpec(filename).value()),
+      distribution_(DistributionFromProto(proto_)),
+      blank_index_(FindBlankIndex(proto_)),
       primes_(TilePrimes(Primes::FirstNPrimes(blank_index_), PrimeIndices())) {}
 
-std::array<int, 32> Tiles::DistributionFromString(
-    const std::string& distribution) {
+absl::optional<q2::proto::TilesSpec> Tiles::LoadTilesSpec(
+    const std::string& filename) {
+  Arena arena;
+  auto tiles_spec = Arena::CreateMessage<q2::proto::TilesSpec>(&arena);
+  int fd = open(filename.c_str(), O_RDONLY);
+  if (fd < 0) {
+    LOG(ERROR) << "Error opening TilesSpec file " << filename;
+    return absl::nullopt;
+  }
+
+  google::protobuf::io::FileInputStream fis(fd);
+  fis.SetCloseOnDelete(true);
+
+  if (!google::protobuf::TextFormat::Parse(&fis, tiles_spec)) {
+    LOG(ERROR) << "Failed to parse TilesSpec file " << filename;
+    return absl::nullopt;
+  }
+  return *tiles_spec;
+}
+
+std::array<int, 32> Tiles::DistributionFromProto(
+    const q2::proto::TilesSpec& proto) {
+  LOG(INFO) << "DistributionFromProto(..)";
   std::array<int, 32> ret;
   std::fill(std::begin(ret), std::end(ret), 0);
-  for (size_t i = 0; i < distribution.size(); i++) {
-    const char c = distribution[i];
-    auto number = CharToNumber(c);
-    if (number.has_value()) {
-      ret[number.value()]++;
-    }
+  for (int i = 0; i < proto.tiles_size(); ++i) {
+    const auto& tile = proto.tiles(i);
+    ret[1 + i] = tile.count();
   }
   return ret;
 }
 
-int Tiles::FindBlankIndex(const std::string& distribution) {
-  return 'Z' - 'A' + 2;  // 27
+int Tiles::FindBlankIndex(const q2::proto::TilesSpec& proto) {
+  for (int i = 0; i < proto.tiles_size(); ++i) {
+    const q2::proto::TileSpec& tile = proto.tiles(i);
+    if (tile.tile_type() == q2::proto::TileSpec_TileType_BLANK) {
+      return 1 + i;
+    }
+  }
+  LOG(WARNING)
+      << "No blank tile found in TilesSpec, using index 1+tiles.size(): ("
+      << 1+proto.tiles_size() << ")";
+  return 1+proto.tiles_size();
 }
 
 absl::optional<Letter> Tiles::CharToNumber(char c) const {
+  LOG(INFO) << "CharToNumber(" << c << ")";
   if (c == '?') {
+    LOG(INFO) << "returning " << blank_index_;
     return blank_index_;
   } else if (c >= 'A' && c <= 'Z') {
     return c - 'A' + 1;
   } else if (c >= 'a' && c <= 'z') {
+    LOG(INFO) << "returning " << c - 'a' + 1 + blank_index_;
     return c - 'a' + 1 + blank_index_;
   }
-  LOG(ERROR) << "Could not convert character '" << c << "' to number";
+  LOG(ERROR) << "Could not convert character '" << c << " ("
+             << static_cast<int>(c) << ")' to number";
   return absl::nullopt;
 }
 
@@ -82,8 +123,9 @@ absl::optional<std::string> Tiles::ToString(const LetterString& s) const {
   return ret;
 }
 
-std::array<uint64_t, 32> Tiles::TilePrimes(const std::array<uint64_t, 32>& primes,
-                                      const std::array<int, 32>& indices) {
+std::array<uint64_t, 32> Tiles::TilePrimes(
+    const std::array<uint64_t, 32>& primes,
+    const std::array<int, 32>& indices) {
   std::array<uint64_t, 32> ret;
   std::fill(std::begin(ret), std::end(ret), 0);
   for (size_t i = 0; i < indices.size(); i++) {

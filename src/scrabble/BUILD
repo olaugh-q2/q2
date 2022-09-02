@@ -9,6 +9,7 @@ cc_library(
     deps = [
         ":primes",
         ":strings",
+        ":tiles_spec_cc_proto",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/numeric:int128",
         "@com_google_absl//absl/types:optional",
@@ -20,6 +21,7 @@ cc_library(
 cc_test(
     name = "tiles_test",
     srcs = ["tiles_test.cpp"],
+    data = glob(["testdata/*.textproto"]),
     deps = [
         ":strings",
         ":tiles",

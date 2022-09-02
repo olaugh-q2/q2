@@ -26,8 +26,7 @@ class AnagramMapTest : public testing::Test {
  protected:
   void SetUp() override {
     tiles_ = absl::make_unique<Tiles>(
-        "AAAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGGHHIIIIIIIIIJKLLLLMMNNNNNNOOOOOOOOPP"
-        "QRRRRRRSSSSTTTTTTUUUUVVWWXYYZ??");
+        "src/anagram/testdata/english_scrabble_tiles.textproto");
   }
 
   Letter L(char c) { return tiles_->CharToNumber(c).value(); }
@@ -322,8 +321,6 @@ TEST_F(AnagramMapTest, CreateFromBinaryFile2) {
   const auto range_words2 =
       std::vector<LetterString>(span_join2.begin(), span_join2.end());
   EXPECT_THAT(range_words2,
-              ElementsAre(LS("INTERLAMINATION"),
-                          LS("INTERNALISATION"),
-                          LS("INTERNALIZATION"),
-                          LS("INTERNATIONALLY")));
+              ElementsAre(LS("INTERLAMINATION"), LS("INTERNALISATION"),
+                          LS("INTERNALIZATION"), LS("INTERNATIONALLY")));
 }

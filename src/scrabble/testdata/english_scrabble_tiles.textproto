@@ -1,0 +1,296 @@
+language_code: "en"
+variant_name: "Scrabble"
+tiles {
+    natural_ascii: "A"
+    blanked_ascii: "a"
+    natural_fullwidth: "Ａ"
+    blanked_fullwidth: "ａ"
+
+    tile_type: VOWEL
+    
+    score: 1
+    count: 9
+}
+tiles {
+    natural_ascii: "B"
+    blanked_ascii: "b"
+    natural_fullwidth: "Ｂ"
+    blanked_fullwidth: "ｂ"
+
+    tile_type: CONSONANT
+    
+    score: 3
+    count: 2
+}
+tiles {
+    natural_ascii: "C"
+    blanked_ascii: "c"
+    natural_fullwidth: "Ｃ"
+    blanked_fullwidth: "ｃ"
+
+    tile_type: CONSONANT
+    
+    score: 3
+    count: 2
+}
+tiles {
+    natural_ascii: "D"
+    blanked_ascii: "d"
+    natural_fullwidth: "Ｄ"
+    blanked_fullwidth: "ｄ"
+
+    tile_type: CONSONANT
+    
+    score: 2
+    count: 4
+}
+tiles {
+    natural_ascii: "E"
+    blanked_ascii: "e"
+    natural_fullwidth: "Ｅ"
+    blanked_fullwidth: "ｅ"
+
+    tile_type: VOWEL
+    
+    score: 1
+    count: 12
+}
+tiles {
+    natural_ascii: "F"
+    blanked_ascii: "f"
+    natural_fullwidth: "Ｆ"
+    blanked_fullwidth: "ｆ"
+
+    tile_type: CONSONANT
+    
+    score: 4
+    count: 2
+}
+tiles {
+    natural_ascii: "G"
+    blanked_ascii: "g"
+    natural_fullwidth: "Ｇ"
+    blanked_fullwidth: "ｇ"
+
+    tile_type: CONSONANT
+    
+    score: 2
+    count: 3
+}
+tiles { 
+    natural_ascii: "H"
+    blanked_ascii: "h"
+    natural_fullwidth: "Ｈ"
+    blanked_fullwidth: "ｈ"
+
+    tile_type: CONSONANT
+    
+    score: 4
+    count: 2
+}
+tiles {
+    natural_ascii: "I"
+    blanked_ascii: "i"
+    natural_fullwidth: "Ｉ"
+    blanked_fullwidth: "ｉ"
+
+    tile_type: VOWEL
+    
+    score: 1
+    count: 9
+}
+tiles { 
+    natural_ascii: "J"
+    blanked_ascii: "j"
+    natural_fullwidth: "Ｊ"
+    blanked_fullwidth: "ｊ"
+
+    tile_type: CONSONANT
+    
+    score: 8
+    count: 1
+}
+tiles {
+    natural_ascii: "K"
+    blanked_ascii: "k"
+    natural_fullwidth: "Ｋ"
+    blanked_fullwidth: "ｋ"
+
+    tile_type: CONSONANT
+    
+    score: 5
+    count: 1
+}
+tiles { 
+    natural_ascii: "L"
+    blanked_ascii: "l"
+    natural_fullwidth: "Ｌ"
+    blanked_fullwidth: "ｌ"
+
+    tile_type: CONSONANT
+    
+    score: 1
+    count: 4
+}
+tiles {
+    natural_ascii: "M"
+    blanked_ascii: "m"
+    natural_fullwidth: "Ｍ"
+    blanked_fullwidth: "ｍ"
+
+    tile_type: CONSONANT
+    
+    score: 3
+    count: 2
+}
+tiles { 
+    natural_ascii: "N"
+    blanked_ascii: "n"
+    natural_fullwidth: "Ｎ"
+    blanked_fullwidth: "ｎ"
+
+    tile_type: CONSONANT
+    
+    score: 1
+    count: 6
+}
+tiles {
+    natural_ascii: "O"
+    blanked_ascii: "o"
+    natural_fullwidth: "Ｏ"
+    blanked_fullwidth: "ｏ"
+
+    tile_type: VOWEL
+    
+    score: 1
+    count: 8
+}
+tiles { 
+    natural_ascii: "P"
+    blanked_ascii: "p"
+    natural_fullwidth: "Ｐ"
+    blanked_fullwidth: "ｐ"
+
+    tile_type: CONSONANT
+    
+    score: 3
+    count: 2
+}
+tiles {
+    natural_ascii: "Q"
+    blanked_ascii: "q"
+    natural_fullwidth: "Ｑ"
+    blanked_fullwidth: "ｑ"
+
+    tile_type: CONSONANT
+    
+    score: 10
+    count: 1
+}
+tiles {
+    natural_ascii: "R"
+    blanked_ascii: "r"
+    natural_fullwidth: "Ｒ"
+    blanked_fullwidth: "ｒ"
+
+    tile_type: CONSONANT
+    
+    score: 1
+    count: 6
+}
+tiles {
+    natural_ascii: "S"
+    blanked_ascii: "s"
+    natural_fullwidth: "Ｓ"
+    blanked_fullwidth: "ｓ"
+
+    tile_type: CONSONANT
+    
+    score: 1
+    count: 4
+}
+tiles {
+    natural_ascii: "T"
+    blanked_ascii: "t"
+    natural_fullwidth: "Ｔ"
+    blanked_fullwidth: "ｔ"
+
+    tile_type: CONSONANT
+    
+    score: 1
+    count: 6
+}
+tiles {
+    natural_ascii: "U"
+    blanked_ascii: "u"
+    natural_fullwidth: "Ｕ"
+    blanked_fullwidth: "ｕ"
+
+    tile_type: VOWEL
+    
+    score: 1
+    count: 4
+}
+tiles {
+    natural_ascii: "V"
+    blanked_ascii: "v"
+    natural_fullwidth: "Ｖ"
+    blanked_fullwidth: "ｖ"
+
+    tile_type: CONSONANT
+    
+    score: 4
+    count: 2
+}
+tiles {
+    natural_ascii: "W"
+    blanked_ascii: "w"
+    natural_fullwidth: "Ｗ"
+    blanked_fullwidth: "ｗ"
+
+    tile_type: CONSONANT
+    
+    score: 4
+    count: 2
+} 
+tiles {
+    natural_ascii: "X"
+    blanked_ascii: "x"
+    natural_fullwidth: "Ｘ"
+    blanked_fullwidth: "ｘ"
+
+    tile_type: CONSONANT
+    
+    score: 8
+    count: 1
+}
+tiles {
+    natural_ascii: "Y"
+    blanked_ascii: "y"
+    natural_fullwidth: "Ｙ"
+    blanked_fullwidth: "ｙ"
+
+    tile_type: CONSONANT
+    
+    score: 4
+    count: 2
+}
+tiles {
+    natural_ascii: "Z"
+    blanked_ascii: "z"
+    natural_fullwidth: "Ｚ"
+    blanked_fullwidth: "ｚ"
+
+    tile_type: CONSONANT
+    
+    score: 10
+    count: 1
+}
+tiles {
+    natural_ascii: "?"
+
+    tile_type: BLANK
+    
+    score: 0
+    count: 2
+}

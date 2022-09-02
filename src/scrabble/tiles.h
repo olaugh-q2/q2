@@ -8,10 +8,11 @@
 #include "absl/types/optional.h"
 #include "gtest/gtest_prod.h"
 #include "src/scrabble/strings.h"
+#include "src/scrabble/tiles_spec.pb.h"
 
 class Tiles {
  public:
-  Tiles(const std::string& distribution);
+  Tiles(const std::string& filename);
   absl::optional<Letter> CharToNumber(char c) const;
   absl::optional<char> NumberToChar(Letter letter) const;
   absl::optional<LetterString> ToLetterString(const std::string& s) const;
@@ -23,14 +24,17 @@ class Tiles {
  private:
   FRIEND_TEST(TilesTest, PrimeIndices);
 
-  int FindBlankIndex(const std::string& distribution);
-  std::array<int, 32> DistributionFromString(const std::string& distribution);
+  absl::optional<q2::proto::TilesSpec> LoadTilesSpec(
+      const std::string& filename);
+  std::array<int, 32> DistributionFromProto(const q2::proto::TilesSpec& proto);
+  int FindBlankIndex(const q2::proto::TilesSpec& proto);
   std::array<int, 32> PrimeIndices();
   std::array<uint64_t, 32> TilePrimes(const std::array<uint64_t, 32>& primes,
                                       const std::array<int, 32>& indices);
 
-  const int blank_index_;
+  q2::proto::TilesSpec proto_;
   const std::array<int, 32> distribution_;
+  const int blank_index_;
   const std::array<uint64_t, 32> primes_;
 };
 
