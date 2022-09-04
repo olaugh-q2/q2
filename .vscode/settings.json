@@ -95,6 +95,7 @@
         "*.inc": "cpp",
         "ranges": "cpp",
         "coroutine": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "codecvt": "cpp"
     }
 }

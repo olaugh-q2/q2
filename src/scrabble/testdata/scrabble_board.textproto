@@ -1,0 +1,62 @@
+premium_squares {
+    # Regular non-premium square
+    letter_multiplier: 1
+    word_multiplier: 1
+    ascii_symbol: " "
+    fullwidth_symbol: "　"
+    color_rgb_hex: "#ffffff"
+}
+premium_squares {
+    # Triple Word Score
+    letter_multiplier: 1
+    word_multiplier: 3
+    ascii_symbol: "="
+    fullwidth_symbol: "＝"
+
+    color_rgb_hex: "#a92e2d"
+}
+premium_squares {
+    # Double Word Score
+    letter_multiplier: 1
+    word_multiplier: 2
+    ascii_symbol: "-"
+    fullwidth_symbol: "－"
+
+    color_rgb_hex: "f6c0c0"
+}
+premium_squares {
+    # Triple Letter Score
+    letter_multiplier: 3
+    word_multiplier: 1  
+    ascii_symbol: "\""
+    fullwidth_symbol: "＂"
+
+    color_rgb_hex: "3c88ca"
+}
+premium_squares {
+    # Double Letter Score
+    letter_multiplier: 2
+    word_multiplier: 1
+    ascii_symbol: "'"
+    fullwidth_symbol: "＇"
+
+    color_rgb_hex: "b8e7f5"
+}
+premium_square_rows: "＝　　＇　　　＝　　　＇　　＝"
+premium_square_rows: "　－　　　＂　　　＂　　　－　"
+premium_square_rows: "　　－　　　＇　＇　　　－　　"
+premium_square_rows: "＇　　－　　　＇　　　－　　＇"
+premium_square_rows: "　　　　－　　　　　－　　　　"
+premium_square_rows: "　＂　　　＂　　　＂　　　＂　"
+premium_square_rows: "　　＇　　　＇　＇　　　＇　　"
+premium_square_rows: "＝　　＇　　　－　　　＇　　＝"
+premium_square_rows: "　　＇　　　＇　＇　　　＇　　"
+premium_square_rows: "　＂　　　＂　　　＂　　　＂　"
+premium_square_rows: "　　　　－　　　　　－　　　　"
+premium_square_rows: "＇　　－　　　＇　　　－　　＇"
+premium_square_rows: "　　－　　　＇　＇　　　－　　"
+premium_square_rows: "　－　　　＂　　　＂　　　－　"
+premium_square_rows: "＝　　＇　　　＝　　　＇　　＝"
+
+starting_row: 7
+starting_column: 7

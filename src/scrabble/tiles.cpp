@@ -17,6 +17,7 @@ using ::google::protobuf::io::FileInputStream;
 
 Tiles::Tiles(const std::string& filename)
     : proto_(LoadTilesSpec(filename).value()),
+      fullwidth_symbols_(MakeFullwidthSymbols()),
       distribution_(DistributionFromProto(proto_)),
       blank_index_(FindBlankIndex(proto_)),
       primes_(TilePrimes(Primes::FirstNPrimes(blank_index_), PrimeIndices())) {}
@@ -41,9 +42,22 @@ absl::optional<q2::proto::TilesSpec> Tiles::LoadTilesSpec(
   return *tiles_spec;
 }
 
+std::array<char32_t, 32> Tiles::MakeFullwidthSymbols() const {
+  std::array<char32_t, 32> ret;
+  for (int i = 0; i < proto_.tiles().size(); ++i) {
+    const auto& tile = proto_.tiles(i);
+    const int letter = i + 1;
+    const std::string& utf8 = tile.natural_fullwidth();
+    std::u32string utf32 =
+        std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t>{}
+            .from_bytes(utf8);            
+    ret[letter] = utf32[0];
+  }
+  return ret;
+}
+
 std::array<int, 32> Tiles::DistributionFromProto(
     const q2::proto::TilesSpec& proto) {
-  LOG(INFO) << "DistributionFromProto(..)";
   std::array<int, 32> ret;
   std::fill(std::begin(ret), std::end(ret), 0);
   for (int i = 0; i < proto.tiles_size(); ++i) {

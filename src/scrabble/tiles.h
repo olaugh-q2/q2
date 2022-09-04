@@ -2,6 +2,8 @@
 #define SRC_SCRABBLE_TILES_H_
 
 #include <array>
+#include <codecvt>
+#include <locale>
 #include <string>
 
 #include "absl/numeric/int128.h"
@@ -20,19 +22,25 @@ class Tiles {
   uint64_t Prime(Letter letter) const;
   absl::uint128 ToProduct(const LetterString& s) const;
   int Count(Letter letter) const;
+  char32_t FullWidth(Letter letter) const {
+    return fullwidth_symbols_[static_cast<int>(letter)];
+  }
 
  private:
   FRIEND_TEST(TilesTest, PrimeIndices);
 
   absl::optional<q2::proto::TilesSpec> LoadTilesSpec(
       const std::string& filename);
+  std::array<char32_t, 32> MakeFullwidthSymbols() const;
   std::array<int, 32> DistributionFromProto(const q2::proto::TilesSpec& proto);
   int FindBlankIndex(const q2::proto::TilesSpec& proto);
   std::array<int, 32> PrimeIndices();
+
   std::array<uint64_t, 32> TilePrimes(const std::array<uint64_t, 32>& primes,
                                       const std::array<int, 32>& indices);
 
   q2::proto::TilesSpec proto_;
+  const std::array<char32_t, 32> fullwidth_symbols_; 
   const std::array<int, 32> distribution_;
   const int blank_index_;
   const std::array<uint64_t, 32> primes_;

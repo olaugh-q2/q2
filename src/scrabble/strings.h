@@ -32,7 +32,7 @@ class LetterString {
   void erase(const iterator i);
   std::size_t length() const;
   LetterString substr(std::size_t pos, std::size_t n) const;
-  bool empty() const;
+  bool empty() const { return length() == 0; }
   std::size_t size() const { return length(); }
   void clear();
   void push_back(Letter c);

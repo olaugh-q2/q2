@@ -7,13 +7,8 @@
 class TilesTest : public testing::Test {
  protected:
   void SetUp() override {
-    tiles_ = absl::make_unique<Tiles>("src/scrabble/testdata/english_scrabble_tiles.textproto");
-    /*
     tiles_ = absl::make_unique<Tiles>(
-        "AAAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGGHHIIIIIIIIIJ"
-        "KLLLLMMNNNNNNOOOOOOOOPPQRRRRRRRRSSSS"
-        "TTTTTTUUUUVVWWXYYZ??");
-        */
+        "src/scrabble/testdata/english_scrabble_tiles.textproto");
   }
   std::unique_ptr<Tiles> tiles_;
 };
@@ -56,7 +51,6 @@ TEST_F(TilesTest, ToLetterString) {
   const LetterString expected(numbers, 7);
   EXPECT_EQ(letter_string.value(), expected);
 }
-
 
 TEST_F(TilesTest, ToLetterStringWithBlank) {
   char quackle[8] = "QUACKLE";

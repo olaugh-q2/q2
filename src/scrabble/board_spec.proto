@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package q2.proto;
+
+message PremiumSquareDef {    
+    // Note there are no defaults in proto3, so these need to be explicitly
+    // set to 1 to get the absence of multiplier.
+    int32 letter_multiplier = 1;
+    int32 word_multiplier = 2;
+
+    string ascii_symbol = 3;
+    string fullwidth_symbol = 4;
+
+    string color_rgb_hex = 5;
+}
+
+message BoardSpec {
+    repeated PremiumSquareDef premium_squares = 1;
+
+    // Length of these strings (should all be equal) determines the board
+    // width. Count of these strings determines the board height.
+    repeated string premium_square_rows = 2;
+
+    // Zero-indexed. Error if out of bounds.
+    int32 starting_row = 3;
+    int32 starting_column = 4; 
+}
