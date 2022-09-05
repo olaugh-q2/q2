@@ -85,6 +85,13 @@ TEST_F(TilesTest, Distribution) {
   EXPECT_EQ(tiles_->Count(tiles_->CharToNumber('?').value()), 2);
 }
 
+TEST_F(TilesTest, Unblank) {
+  const auto blanked = tiles_->ToLetterString("qUACkLE").value();
+  const absl::optional<std::string> str = tiles_->ToString(blanked);
+  const auto natural = tiles_->Unblank(blanked);
+  EXPECT_EQ("QUACKLE", tiles_->ToString(natural).value());
+}
+
 TEST_F(TilesTest, PrimeIndices) {
   const auto prime_indices = tiles_->PrimeIndices();
   EXPECT_EQ(prime_indices[0], 0);  // empty

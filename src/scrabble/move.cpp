@@ -1,5 +1,6 @@
 #include "src/scrabble/move.h"
 
+#include "absl/strings/ascii.h"
 #include "glog/logging.h"
 #include "src/scrabble/strings.h"
 #include "src/scrabble/tiles.h"
@@ -41,6 +42,7 @@ void Move::Display(const Tiles& tiles, std::ostream& os) const {
 absl::StatusOr<Move> Move::Parse(const std::string& move_string,
                                  const Tiles& tiles) {
   LOG(INFO) << "Parsing move: " << move_string;
+  std::string upcase_string = absl::AsciiStrToUpper(move_string);
   if (move_string.empty()) {
     return absl::InvalidArgumentError("Move string is empty.");
   }
@@ -53,20 +55,20 @@ absl::StatusOr<Move> Move::Parse(const std::string& move_string,
         return absl::InvalidArgumentError("Invalid exchange move: " +
                                           move_string);
       } else {
-        return Move(letters.value());
+        return Move(tiles.Unblank(letters.value()));
       }
     }
   }
-  if (move_string.substr(0, 4) == "PASS") {
+  if (upcase_string.substr(0, 4) == "PASS") {
     return Move();
   }
-  if (move_string.substr(0, 5) == "EXCH ") {
+  if (upcase_string.substr(0, 5) == "EXCH ") {
     const auto letters = tiles.ToLetterString(move_string.substr(5));
     if (!letters) {
       return absl::InvalidArgumentError("Invalid exchange move: " +
                                         move_string);
     } else {
-      return Move(letters.value());
+      return Move(tiles.Unblank(letters.value()));
     }
   }
   if (move_string.size() < 5) {
@@ -76,23 +78,23 @@ absl::StatusOr<Move> Move::Parse(const std::string& move_string,
   int display_start_row;
   int start_col;
   int starting_square_length = 3;  // including space
-  if (move_string[0] >= '1' && move_string[0] <= '9') {
+  if (upcase_string[0] >= '1' && upcase_string[0] <= '9') {
     direction = Move::Across;
-    display_start_row = move_string[0] - '0';
-    if (move_string[1] >= '0' && move_string[1] <= '9') {
-      display_start_row = 10 * display_start_row + move_string[1] - '0';
-      start_col = move_string[2] - 'A';
+    display_start_row = upcase_string[0] - '0';
+    if (upcase_string[1] >= '0' && upcase_string[1] <= '9') {
+      display_start_row = 10 * display_start_row + upcase_string[1] - '0';
+      start_col = upcase_string[2] - 'A';
       ++starting_square_length;
     } else {
-      start_col = move_string[1] - 'A';
+      start_col = upcase_string[1] - 'A';
     }
   } else {
     direction = Move::Down;
-    start_col = move_string[0] - 'A';
-    display_start_row = move_string[1] - '0';
-    if (move_string[2] >= '0' && move_string[2] <= '9') {
+    start_col = upcase_string[0] - 'A';
+    display_start_row = upcase_string[1] - '0';
+    if (upcase_string[2] >= '0' && upcase_string[2] <= '9') {
       ++starting_square_length;
-      display_start_row = 10 * display_start_row + move_string[2] - '0';
+      display_start_row = 10 * display_start_row + upcase_string[2] - '0';
     }
   }
   const int start_row = display_start_row - 1;

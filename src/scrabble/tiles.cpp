@@ -137,6 +137,18 @@ absl::optional<std::string> Tiles::ToString(const LetterString& s) const {
   return ret;
 }
 
+LetterString Tiles::Unblank(const LetterString& s) const {
+  LetterString ret;
+  for (Letter letter : s) {
+    if (letter > blank_index_) {
+      ret.push_back(letter - blank_index_);
+    } else {
+      ret.push_back(letter);
+    }
+  }
+  return ret;
+}
+
 std::array<uint64_t, 32> Tiles::TilePrimes(
     const std::array<uint64_t, 32>& primes,
     const std::array<int, 32>& indices) {

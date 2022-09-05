@@ -59,7 +59,7 @@ TEST_F(MoveTest, ParsePASS) {
 }
 
 TEST_F(MoveTest, ParsePASS_0) {
-  const auto move_or = Move::Parse("PASS 0", *tiles_);
+  const auto move_or = Move::Parse("pAsS 0", *tiles_);
   ASSERT_TRUE(move_or.ok());
   std::stringstream ss;
   move_or->Display(*tiles_, ss);
@@ -90,6 +90,22 @@ TEST_F(MoveTest, ParseDashUUVW) {
   EXPECT_EQ(ss.str(), "EXCH UUVW");
 }
 
+TEST_F(MoveTest, ParseExch_uuvw) {
+  const auto move_or = Move::Parse("exch uuvw", *tiles_);
+  ASSERT_TRUE(move_or.ok());
+  std::stringstream ss;
+  move_or->Display(*tiles_, ss);
+  EXPECT_EQ(ss.str(), "EXCH UUVW");
+}
+
+TEST_F(MoveTest, ParseDashuUVw) {
+  const auto move_or = Move::Parse("-uUVw", *tiles_);
+  ASSERT_TRUE(move_or.ok());
+  std::stringstream ss;
+  move_or->Display(*tiles_, ss);
+  EXPECT_EQ(ss.str(), "EXCH UUVW");
+}
+
 TEST_F(MoveTest, ParsePlace10J) {
   const auto move_or = Move::Parse("10J FoO", *tiles_);
   ASSERT_TRUE(move_or.ok());
@@ -107,7 +123,7 @@ TEST_F(MoveTest, ParsePlaceA1) {
 }
 
 TEST_F(MoveTest, ParsePlaceJ10) {
-  const auto move_or = Move::Parse("J10 FoO", *tiles_);
+  const auto move_or = Move::Parse("j10 FoO", *tiles_);
   ASSERT_TRUE(move_or.ok());
   std::stringstream ss;
   move_or->Display(*tiles_, ss);
@@ -115,7 +131,7 @@ TEST_F(MoveTest, ParsePlaceJ10) {
 }
 
 TEST_F(MoveTest, ParsePlace1A) {
-  const auto move_or = Move::Parse("1A FoO", *tiles_);
+  const auto move_or = Move::Parse("1a FoO", *tiles_);
   ASSERT_TRUE(move_or.ok());
   std::stringstream ss;
   move_or->Display(*tiles_, ss);

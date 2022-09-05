@@ -6,6 +6,7 @@
 #include <locale>
 #include <string>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/numeric/int128.h"
 #include "absl/types/optional.h"
 #include "gtest/gtest_prod.h"
@@ -19,6 +20,7 @@ class Tiles {
   absl::optional<char> NumberToChar(Letter letter) const;
   absl::optional<LetterString> ToLetterString(const std::string& s) const;
   absl::optional<std::string> ToString(const LetterString& s) const;
+  LetterString Unblank(const LetterString& s) const;
   uint64_t Prime(Letter letter) const;
   absl::uint128 ToProduct(const LetterString& s) const;
   int Count(Letter letter) const;
