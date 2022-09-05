@@ -116,6 +116,7 @@ cc_library(
     hdrs = ["move.h"],
     deps = [
         ":tiles",
+        "@com_google_absl//absl/status:statusor",
         "@glog",
     ],
 )
@@ -123,8 +124,7 @@ cc_library(
 cc_test(
     name = "move_test",
     srcs = ["move_test.cpp"],
-        data = glob(["testdata/*.textproto"]),
-
+    data = glob(["testdata/*.textproto"]),
     deps = [
         ":move",
         "@com_google_googletest//:gtest_main",

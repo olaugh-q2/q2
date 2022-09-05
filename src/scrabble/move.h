@@ -1,6 +1,7 @@
 #ifndef SRC_SCRABBLE_MOVE_H_
 #define SRC_SCRABBLE_MOVE_H_
 
+#include "absl/status/statusor.h"
 #include "src/scrabble/strings.h"
 #include "src/scrabble/tiles.h"
 
@@ -23,6 +24,9 @@ class Move {
       : action_(Move::Exchange), letters_(letters) {}
 
   void Display(const Tiles& tiles, std::ostream& os) const;
+
+  static absl::StatusOr<Move> Parse(const std::string& move_string,
+                                    const Tiles& tiles);
 
  private:
   std::string StartingSquare() const;

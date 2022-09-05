@@ -8,19 +8,19 @@ std::string Move::StartingSquare() const {
   if (direction_ == Move::None) {
     LOG(FATAL) << "Invalid direction for move.";
   }
-  std::string square;
+  std::stringstream ss;
   if (direction_ == Move::Across) {
-    square += '1' + start_row_;
-    square += 'A' + start_col_;
+    ss << static_cast<int>(start_row_ + 1);
+    ss << static_cast<char>('A' + start_col_);
   } else {
-    square += 'A' + start_col_;
-    square += '1' + start_row_;
+    ss << static_cast<char>('A' + start_col_);
+    ss << static_cast<int>(start_row_ + 1);
   }
-  return square;
+  return ss.str();
 }
 
 void Move::Display(const Tiles& tiles, std::ostream& os) const {
-    LOG(INFO) << "Displaying move";
+  LOG(INFO) << "Displaying move";
   if (action_ == Move::Exchange) {
     LOG(INFO) << "letters_.size() = " << letters_.size();
     if (letters_.empty()) {
@@ -36,4 +36,74 @@ void Move::Display(const Tiles& tiles, std::ostream& os) const {
     os << StartingSquare() << " ";
     os << tiles.ToString(letters_).value();
   }
+}
+
+absl::StatusOr<Move> Move::Parse(const std::string& move_string,
+                                 const Tiles& tiles) {
+  LOG(INFO) << "Parsing move: " << move_string;
+  if (move_string.empty()) {
+    return absl::InvalidArgumentError("Move string is empty.");
+  }
+  if (move_string[0] == '-') {
+    if (move_string.size() == 1) {
+      return Move();
+    } else {
+      const auto letters = tiles.ToLetterString(move_string.substr(1));
+      if (!letters) {
+        return absl::InvalidArgumentError("Invalid exchange move: " +
+                                          move_string);
+      } else {
+        return Move(letters.value());
+      }
+    }
+  }
+  if (move_string.substr(0, 4) == "PASS") {
+    return Move();
+  }
+  if (move_string.substr(0, 5) == "EXCH ") {
+    const auto letters = tiles.ToLetterString(move_string.substr(5));
+    if (!letters) {
+      return absl::InvalidArgumentError("Invalid exchange move: " +
+                                        move_string);
+    } else {
+      return Move(letters.value());
+    }
+  }
+  if (move_string.size() < 5) {
+    return absl::InvalidArgumentError("Invalid move: " + move_string);
+  }
+  Direction direction;
+  int display_start_row;
+  int start_col;
+  int starting_square_length = 3;  // including space
+  if (move_string[0] >= '1' && move_string[0] <= '9') {
+    direction = Move::Across;
+    display_start_row = move_string[0] - '0';
+    if (move_string[1] >= '0' && move_string[1] <= '9') {
+      display_start_row = 10 * display_start_row + move_string[1] - '0';
+      start_col = move_string[2] - 'A';
+      ++starting_square_length;
+    } else {
+      start_col = move_string[1] - 'A';
+    }
+  } else {
+    direction = Move::Down;
+    start_col = move_string[0] - 'A';
+    display_start_row = move_string[1] - '0';
+    if (move_string[2] >= '0' && move_string[2] <= '9') {
+      ++starting_square_length;
+      display_start_row = 10 * display_start_row + move_string[2] - '0';
+    }
+  }
+  const int start_row = display_start_row - 1;
+  if (start_row < 0 || start_row > 14 || start_col < 0 || start_col > 14) {
+    return absl::InvalidArgumentError("Invalid starting square for move: " +
+                                      move_string);
+  }
+  const auto letters = tiles.ToLetterString(move_string.substr(starting_square_length));
+  if (!letters) {
+    return absl::InvalidArgumentError("Invalid tiles for place move: " +
+                                      move_string);
+  }
+  return Move(direction, start_row, start_col, letters.value());
 }
