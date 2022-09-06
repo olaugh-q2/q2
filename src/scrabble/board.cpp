@@ -16,3 +16,18 @@ LetterString Board::Row(int row_index) const {
   CHECK_LT(row_index, 15);
   return rows_[row_index];
 }
+
+void Board::UnsafePlaceMove(const Move& move) {
+  int row = move.StartRow();
+  int col = move.StartCol();
+  for (const Letter letter : move.Letters()) {
+    if (letter != 0) {  // Tiles::kUnset gives linking error ???
+      rows_[row][col] = letter;
+    }
+    if (move.Direction() == Move::Across) {
+      col++;
+    } else {
+      row++;
+    }
+  }
+}

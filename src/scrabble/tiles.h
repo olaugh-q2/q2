@@ -27,7 +27,7 @@ class Tiles {
   char32_t FullWidth(Letter letter) const {
     return fullwidth_symbols_[static_cast<int>(letter)];
   }
-
+  
  private:
   FRIEND_TEST(TilesTest, PrimeIndices);
 

@@ -50,7 +50,7 @@ std::array<char32_t, 32> Tiles::MakeFullwidthSymbols() const {
     const std::string& utf8 = tile.natural_fullwidth();
     std::u32string utf32 =
         std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t>{}
-            .from_bytes(utf8);            
+            .from_bytes(utf8);
     ret[letter] = utf32[0];
   }
   return ret;
@@ -76,13 +76,15 @@ int Tiles::FindBlankIndex(const q2::proto::TilesSpec& proto) {
   }
   LOG(WARNING)
       << "No blank tile found in TilesSpec, using index 1+tiles.size(): ("
-      << 1+proto.tiles_size() << ")";
-  return 1+proto.tiles_size();
+      << 1 + proto.tiles_size() << ")";
+  return 1 + proto.tiles_size();
 }
 
 absl::optional<Letter> Tiles::CharToNumber(char c) const {
   LOG(INFO) << "CharToNumber(" << c << ")";
-  if (c == '?') {
+  if (c == '.') {
+    return 0;
+  } else if (c == '?') {
     LOG(INFO) << "returning " << blank_index_;
     return blank_index_;
   } else if (c >= 'A' && c <= 'Z') {
@@ -99,7 +101,9 @@ absl::optional<Letter> Tiles::CharToNumber(char c) const {
 int Tiles::Count(Letter letter) const { return distribution_[letter]; }
 
 absl::optional<char> Tiles::NumberToChar(Letter letter) const {
-  if (letter == blank_index_) {
+  if (letter == 0) {
+    return '.';
+  } else if (letter == blank_index_) {
     return '?';
   } else if (letter > blank_index_ && letter <= blank_index_ + 26) {
     return (letter - blank_index_) + 'a' - 1;

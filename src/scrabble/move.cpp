@@ -74,7 +74,7 @@ absl::StatusOr<Move> Move::Parse(const std::string& move_string,
   if (move_string.size() < 5) {
     return absl::InvalidArgumentError("Invalid move: " + move_string);
   }
-  Direction direction;
+  enum Direction direction;
   int display_start_row;
   int start_col;
   int starting_square_length = 3;  // including space

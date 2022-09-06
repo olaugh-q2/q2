@@ -54,3 +54,72 @@ TEST_F(BoardLayoutTest, DisplayHeader) {
   layout_->DisplayHeader(ss);
   EXPECT_EQ(ss.str(), "  ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ");
 }
+
+TEST_F(BoardLayoutTest, UnsafePlaceMove) {
+  Board board;
+  std::array<std::string, 15> before_row_strings;
+  for (int i = 0; i < 15; ++i) {
+    std::stringstream ss;
+    layout_->DisplayRow(board, i, *tiles_, ss);
+    before_row_strings[i] = ss.str();
+  }
+  const auto& citizen = Move::Parse("8h CITIZEN", *tiles_);
+  board.UnsafePlaceMove(citizen.value());
+  std::array<std::string, 15> citizen_row_strings;
+  for (int i = 0; i < 15; ++i) {
+    std::stringstream ss;
+    layout_->DisplayRow(board, i, *tiles_, ss);
+    citizen_row_strings[i] = ss.str();
+  }
+  for (int i = 0; i < 15; ++i) {
+    if (i == 7) {
+      EXPECT_EQ(citizen_row_strings[i], " 8＝　　＇　　　ＣＩＴＩＺＥＮ＝");
+    } else {
+      EXPECT_EQ(citizen_row_strings[i], before_row_strings[i]);
+    }
+  }
+  const auto& sh = Move::Parse("o8 SH", *tiles_);
+  board.UnsafePlaceMove(sh.value());
+  std::array<std::string, 15> sh_row_strings;
+  for (int i = 0; i < 15; ++i) {
+    std::stringstream ss;
+    layout_->DisplayRow(board, i, *tiles_, ss);
+    sh_row_strings[i] = ss.str();
+  }
+  for (int i = 0; i < 15; ++i) {
+    if (i == 7) {
+      EXPECT_EQ(sh_row_strings[i], " 8＝　　＇　　　ＣＩＴＩＺＥＮＳ");
+    } else if (i == 8) {
+      EXPECT_EQ(sh_row_strings[i], " 9　　＇　　　＇　＇　　　＇　Ｈ");
+    } else {
+      EXPECT_EQ(sh_row_strings[i], before_row_strings[i]);
+    }
+  }
+  const auto& shiplaps = Move::Parse("o8 ..IPLAPS", *tiles_);
+  board.UnsafePlaceMove(shiplaps.value());
+  std::array<std::string, 15> shiplaps_row_strings;
+  for (int i = 0; i < 15; ++i) {
+    std::stringstream ss;
+    layout_->DisplayRow(board, i, *tiles_, ss);
+    shiplaps_row_strings[i] = ss.str();
+  }
+  for (int i = 0; i < 15; ++i) {
+    if (i == 7) {
+      EXPECT_EQ(shiplaps_row_strings[i], " 8＝　　＇　　　ＣＩＴＩＺＥＮＳ");
+    } else if (i == 8) {
+      EXPECT_EQ(shiplaps_row_strings[i], " 9　　＇　　　＇　＇　　　＇　Ｈ");
+    } else if (i == 9) {
+      EXPECT_EQ(shiplaps_row_strings[i], "10　＂　　　＂　　　＂　　　＂Ｉ");
+    } else if (i == 10) {
+      EXPECT_EQ(shiplaps_row_strings[i], "11　　　　－　　　　　－　　　Ｐ");
+    } else if (i == 11) {
+      EXPECT_EQ(shiplaps_row_strings[i], "12＇　　－　　　＇　　　－　　Ｌ");
+    } else if (i == 12) {
+      EXPECT_EQ(shiplaps_row_strings[i], "13　　－　　　＇　＇　　　－　Ａ");
+    } else if (i == 13) {
+      EXPECT_EQ(shiplaps_row_strings[i], "14　－　　　＂　　　＂　　　－Ｐ");
+    } else if (i == 14) {
+      EXPECT_EQ(shiplaps_row_strings[i], "15＝　　＇　　　＝　　　＇　　Ｓ");
+    }
+  }
+}

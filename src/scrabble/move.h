@@ -28,11 +28,23 @@ class Move {
   static absl::StatusOr<Move> Parse(const std::string& move_string,
                                     const Tiles& tiles);
 
+  Action Action() const { return action_; }
+
+  LetterString Letters() const { return letters_; }
+
+  Direction Direction() const { return direction_; }
+
+  int StartRow() const { return start_row_; }
+
+  int StartCol() const { return start_col_; }
+
+  static const int kUnset = 0;
+  
  private:
   std::string StartingSquare() const;
 
-  Action action_;
-  Direction direction_;
+  enum Action action_;
+  enum Direction direction_;
   int start_row_;
   int start_col_;
   LetterString letters_;

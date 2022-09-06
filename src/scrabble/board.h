@@ -3,6 +3,7 @@
 
 #include <array>
 
+#include "src/scrabble/move.h"
 #include "src/scrabble/strings.h"
 #include "src/scrabble/tiles.h"
 
@@ -10,6 +11,7 @@ class Board {
  public:
   Board();
   LetterString Row(int row_index) const;
+  void UnsafePlaceMove(const Move& move);
  private:
   std::array<LetterString, 15> rows_;
 };

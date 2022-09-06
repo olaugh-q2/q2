@@ -137,3 +137,11 @@ TEST_F(MoveTest, ParsePlace1A) {
   move_or->Display(*tiles_, ss);
   EXPECT_EQ(ss.str(), "1A FoO");
 }
+
+TEST_F(MoveTest, ParsePlaythrough) {
+  const auto move_or = Move::Parse("o8 ..IPLAPS", *tiles_);
+  ASSERT_TRUE(move_or.ok());
+  std::stringstream ss;
+  move_or->Display(*tiles_, ss);
+  EXPECT_EQ(ss.str(), "O8 ..IPLAPS");
+}

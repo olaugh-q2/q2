@@ -41,6 +41,7 @@ cc_library(
     hdrs = ["board.h"],
     visibility = ["//visibility:public"],
     deps = [
+        ":move",
         ":primes",
         ":strings",
         ":tiles",

@@ -44,6 +44,7 @@ class LetterString {
   LetterString& operator+=(Letter c);
   LetterString& operator+=(const LetterString& s);
 
+  reference operator[](size_type i) { return data_[i]; }
   const_reference operator[](std::size_t i) const { return data_[i]; }
   LetterString& operator=(const LetterString& s);
 
