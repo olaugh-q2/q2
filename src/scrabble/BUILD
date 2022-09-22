@@ -98,6 +98,7 @@ cc_library(
     name = "strings",
     srcs = ["strings.cpp"],
     hdrs = ["strings.h"],
+        visibility = ["//visibility:public"],
     deps = ["@glog"],
 )
 
