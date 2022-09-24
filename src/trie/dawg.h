@@ -2,6 +2,7 @@
 #define SRC_TRIE_DAWG_H_
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
 #include "absl/strings/string_view.h"
 #include "src/scrabble/strings.h"
 #include "src/scrabble/tiles.h"
@@ -14,25 +15,55 @@ class Dawg {
 
   class Node {
    public:
-    Node() : c_(0), is_word_(false) {}
-    void PushWord(absl::string_view word);
+    Node() : chars_(""), is_word_(false), index_(-1) {}
+    explicit Node(std::string chars, int index)
+        : chars_(chars), is_word_(false), index_(index) {}
+
     bool IsWord() const { return is_word_; }
-    char c() const { return c_; }
-    const std::vector<Node>& Children() const { return children_; }
+    void SetIsWord(bool is_word) { is_word_ = is_word; }
+    std::string Chars() const { return chars_; }
+    void AddChars(const std::string& chars) { chars_ += chars; }
+
+    const std::vector<int>& ChildIndices() const { return child_indices_; }
+    std::vector<int>& ChildIndices() { return child_indices_; }
+    void SetChildIndices(const std::vector<int>& child_indices) {
+      child_indices_ = child_indices;
+    }
+    void AddChildIndex(int i) { child_indices_.emplace_back(i); }
+    int Index() const { return index_; }
 
    private:
-    explicit Node(char c) : c_(c), is_word_(false) {}
-    const char c_;
+    std::string chars_;
     bool is_word_;
-    std::vector<Node> children_;
+    std::vector<int> child_indices_;
+    int index_;
   };
 
   const Node* Root() const { return &root_; }
+  Node* Root() { return &root_; }
+
+  const Node* NodeAt(int index) const { return &nodes_[index]; }
+  Node* NodeAt(int index) { return &nodes_[index]; }
 
  private:
+  FRIEND_TEST(DawgTest, CreateFromTextfile);
+  FRIEND_TEST(DawgTest, MergeSingleChildrenIntoParents);
+  FRIEND_TEST(DawgTest, MergeDuplicateSubtrees);
+
+  void PushWord(Node* node, absl::string_view word);
+  void MergeSingleChildrenIntoParents();
+  void MergeSingleChildrenIntoParents(Node* node);
+  void MergeDuplicateSubtrees();
+  void HashNodes(Node* node);
+  bool NodesAreEqual(const Node* lhs, const Node*) const;
+  void AddUniqueIndices(const Node* node,
+                        absl::flat_hash_set<int>* unique_indices) const;
+
   const Tiles& tiles_;
   absl::flat_hash_map<std::string, int> substring_counts_;
   Node root_;
+  std::vector<Node> nodes_;
+  std::map<size_t, std::vector<int>> hash_to_node_indices_;
 };
 
 #endif  // SRC_TRIE_DAWG_H_

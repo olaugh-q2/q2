@@ -4,6 +4,9 @@ cc_library(
     hdrs = ["dawg.h"],
     visibility = ["//visibility:public"],
     deps = [
+                "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/container:flat_hash_set",
+
         "//src/scrabble:strings",
         "//src/scrabble:tiles",
         "@glog",

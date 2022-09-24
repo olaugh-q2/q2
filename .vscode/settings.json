@@ -96,6 +96,8 @@
         "ranges": "cpp",
         "coroutine": "cpp",
         "span": "cpp",
-        "codecvt": "cpp"
+        "codecvt": "cpp",
+        "hash_map": "cpp",
+        "hash_set": "cpp"
     }
 }
