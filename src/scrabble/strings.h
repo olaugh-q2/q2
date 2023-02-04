@@ -121,10 +121,12 @@ inline bool operator!=(const LetterString& lhs, const LetterString& rhs) {
   return lhs.compare(rhs) != 0;
 }
 
-class DesignatedString {
- private:
-  LetterString tiles_;
-  LetterString letters_;
-};
+template <typename H>
+H AbslHashValue(H h, const LetterString& m) {
+  for (auto letter : m) {
+    h = H::combine(std::move(h), letter);
+  }
+  return h;
+}
 
 #endif  // SRC_SCRABBLE_STRINGS_H_

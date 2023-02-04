@@ -46,6 +46,14 @@ class AnagramMap {
   const absl::Span<const Letter>* Blanks(const absl::uint128& product) const;
   const absl::Span<const LetterPair>* DoubleBlanks(
       const absl::uint128& product) const;
+      
+  const uint32_t Hooks(const LetterString& letter_string) const {
+    auto it = hook_map_.find(letter_string);
+    if (it == hook_map_.end()) {
+      return 0;
+    }
+    return it->second;
+  }
 
  private:
   FRIEND_TEST(AnagramMapTest, CreateFromTextfile);
@@ -53,6 +61,8 @@ class AnagramMap {
   FRIEND_TEST(AnagramMapTest, WriteToOstream);
   FRIEND_TEST(AnagramMapTest, CreateFromBinaryFile);
   FRIEND_TEST(AnagramMapTest, CreateFromBinaryFile2);
+
+  void BuildHookMap();
 
   bool WriteToOstream(std::ostream& os) const;
 
@@ -67,6 +77,10 @@ class AnagramMap {
   absl::flat_hash_map<absl::uint128, uint32_t> blank_indices_;
   std::vector<LetterPair> double_blanks_;
   absl::flat_hash_map<absl::uint128, uint32_t> double_blank_indices_;
+
+  // Keys are LetterStrings with one empty character which can be filled with a
+  // letter to make a legal word.
+  absl::flat_hash_map<LetterString, uint32_t> hook_map_;
 };
 
 #endif  // SRC_ANAGRAM_ANAGRAM_MAP_H_

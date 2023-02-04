@@ -134,6 +134,9 @@ std::unique_ptr<AnagramMap> AnagramMap::CreateFromTextfile(
             .subspan(anagram_map->double_blanks_.size() - blanks.size(),
                      blanks.size());
   }
+
+  anagram_map->BuildHookMap();
+
   return anagram_map;
 }
 
@@ -236,6 +239,8 @@ std::unique_ptr<AnagramMap> AnagramMap::CreateFromBinaryFile(
         absl::MakeConstSpan(anagram_map->double_blanks_)
             .subspan(double_blank_span.begin(), double_blank_span.length());
   }
+
+  anagram_map->BuildHookMap();
 
   return anagram_map;
 }
@@ -447,4 +452,18 @@ const absl::Span<const LetterPair>* AnagramMap::DoubleBlanks(
     return nullptr;
   }
   return &it->second;
+}
+
+void AnagramMap::BuildHookMap() {
+  for (const auto& pair : map_) {
+    const auto& words = pair.second;
+    for (const auto& word : words) {
+      for (int i = 0; i < word.length(); ++i) {
+        const Letter hook_letter = word[i];
+        auto key = word;
+        key[i] = 0;
+        hook_map_[key] |= 1 << hook_letter;
+      }
+    }
+  }
 }
