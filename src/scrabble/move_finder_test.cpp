@@ -152,6 +152,8 @@ TEST_F(MoveFinderTest, AbsorbThroughTiles) {
   board.UnsafePlaceMove(oxy.value());
   EXPECT_EQ(move_finder_->AbsorbThroughTiles(board, Move::Across, 7, 0, 5),
             tiles_->ToProduct(tiles_->ToLetterString("OXYBUTZONE").value()));
+  EXPECT_EQ(move_finder_->AbsorbThroughTiles(board, Move::Across, 7, 0, 1),
+            tiles_->ToProduct(tiles_->ToLetterString("OXY").value()));
 }
 
 TEST_F(MoveFinderTest, AbsorbThroughTiles2) {
@@ -166,6 +168,8 @@ TEST_F(MoveFinderTest, AbsorbThroughTiles2) {
   board.UnsafePlaceMove(ixnay.value());
   EXPECT_EQ(move_finder_->AbsorbThroughTiles(board, Move::Across, 7, 0, 7),
             tiles_->ToProduct(tiles_->ToLetterString("XHEBUTZO").value()));
+  EXPECT_EQ(move_finder_->AbsorbThroughTiles(board, Move::Across, 7, 0, 1),
+            tiles_->ToProduct(tiles_->ToLetterString("X").value()));
 }
 
 TEST_F(MoveFinderTest, ZeroPlayedThroughTilesVertical) {
