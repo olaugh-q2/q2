@@ -2,8 +2,11 @@
 
 #include "absl/container/flat_hash_set.h"
 #include "glog/logging.h"
+#include "gmock/gmock-more-matchers.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
+using testing::ElementsAreArray;
 
 class DawgTest : public testing::Test {
  protected:
@@ -319,4 +322,46 @@ TEST_F(DawgTest, MergeDuplicateSubtrees) {
   EXPECT_TRUE(zzz->IsWord());
   const auto& zzz_children = zzz->ChildIndices();
   EXPECT_EQ(zzz_children.size(), 0);
+}
+
+TEST_F(DawgTest, CountNodeSubstrings) {
+  // AIR, AIRPLANE, AIRWAY, AIRWAYS, HAS, HAT, HORSE, HOUSE, ZZZ
+  const std::string input_filepath = "src/trie/testdata/simple.txt";
+  auto dawg = Dawg::CreateFromTextfile(*tiles_, input_filepath);
+  ASSERT_NE(dawg, nullptr);
+  dawg->MergeSingleChildrenIntoParents();
+  dawg->MergeDuplicateSubtrees();
+  dawg->CountNodeSubstrings(dawg->Root());
+
+  std::vector<std::pair<std::string, int>> substrings(
+      dawg->substring_counts_.begin(), dawg->substring_counts_.end());
+  std::sort(substrings.begin(), substrings.end(),
+            [](const std::pair<std::string, int>& lhs,
+               const std::pair<std::string, int>& rhs) {
+              return lhs.second > rhs.second;
+            });
+  for (const auto& pair : substrings) {
+    std::cout << pair.first << " " << pair.second << std::endl;
+  }
+}
+
+TEST_F(DawgTest, CountNodeSubstrings2) {
+  const std::string input_filepath = "src/trie/testdata/csw21.txt";
+  auto dawg = Dawg::CreateFromTextfile(*tiles_, input_filepath);
+  ASSERT_NE(dawg, nullptr);
+  dawg->MergeSingleChildrenIntoParents();
+  dawg->MergeDuplicateSubtrees();
+  dawg->CountNodeSubstrings(dawg->Root());
+
+  std::vector<std::pair<std::string, int>> substrings(
+      dawg->substring_counts_.begin(), dawg->substring_counts_.end());
+  std::sort(substrings.begin(), substrings.end(),
+            [](const std::pair<std::string, int>& lhs,
+               const std::pair<std::string, int>& rhs) {
+              return lhs.second > rhs.second;
+            });
+  for (const auto& pair : substrings) {
+    std::cout << pair.first << " " << pair.second << std::endl;
+  }
+  EXPECT_TRUE(false);
 }

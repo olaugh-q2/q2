@@ -7,6 +7,7 @@ cc_binary(
     deps = [
         "//src/scrabble:board_layout",
         "//src/scrabble:board",
+        "//src/scrabble:move",
         "@glog",
     ],
 )

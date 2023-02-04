@@ -11,6 +11,9 @@ class Board {
  public:
   Board();
   LetterString Row(int row_index) const;
+  Letter At(int row, int col) const {
+    return rows_[row][col];
+  }
   void UnsafePlaceMove(const Move& move);
  private:
   std::array<LetterString, 15> rows_;

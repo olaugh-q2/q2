@@ -27,7 +27,8 @@ class Tiles {
   char32_t FullWidth(Letter letter) const {
     return fullwidth_symbols_[static_cast<int>(letter)];
   }
-  
+  int BlankIndex() const { return blank_index_; }
+
  private:
   FRIEND_TEST(TilesTest, PrimeIndices);
 
@@ -42,7 +43,7 @@ class Tiles {
                                       const std::array<int, 32>& indices);
 
   q2::proto::TilesSpec proto_;
-  const std::array<char32_t, 32> fullwidth_symbols_; 
+  const std::array<char32_t, 32> fullwidth_symbols_;
   const std::array<int, 32> distribution_;
   const int blank_index_;
   const std::array<uint64_t, 32> primes_;

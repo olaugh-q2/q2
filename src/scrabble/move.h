@@ -8,11 +8,11 @@
 class Move {
  public:
   enum Action { Exchange, Place };
-  enum Direction { None, Across, Down };
+  enum Dir { None, Across, Down };
 
   Move() : action_(Move::Exchange), letters_(LetterString()) {}
 
-  Move(Direction direction, int start_row, int start_col,
+  Move(Dir direction, int start_row, int start_col,
        const LetterString& letters)
       : action_(Move::Place),
         direction_(direction),
@@ -32,19 +32,17 @@ class Move {
 
   LetterString Letters() const { return letters_; }
 
-  Direction Direction() const { return direction_; }
+  Dir Direction() const { return direction_; }
 
   int StartRow() const { return start_row_; }
 
   int StartCol() const { return start_col_; }
 
-  static const int kUnset = 0;
-  
  private:
   std::string StartingSquare() const;
 
   enum Action action_;
-  enum Direction direction_;
+  enum Dir direction_;
   int start_row_;
   int start_col_;
   LetterString letters_;

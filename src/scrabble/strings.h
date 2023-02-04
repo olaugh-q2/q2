@@ -1,6 +1,7 @@
 #ifndef SRC_SCRABBLE_STRINGS_H_
 #define SRC_SCRABBLE_STRINGS_H_
 
+#include <array>
 #include <iterator>
 #include <ostream>
 
@@ -47,6 +48,15 @@ class LetterString {
   reference operator[](size_type i) { return data_[i]; }
   const_reference operator[](std::size_t i) const { return data_[i]; }
   LetterString& operator=(const LetterString& s);
+  
+  std::array<int, 32> Counts() const {
+    std::array<int, 32> ret;
+    ret.fill(0);
+    for (size_t i = first_position(); i <= last_position(); i++) {
+      ret[data_[i]]++;
+    }
+    return ret;
+  }
 
  private:
   friend void PrintTo(const LetterString& bar, std::ostream* os) {

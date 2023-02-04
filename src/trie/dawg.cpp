@@ -1,9 +1,11 @@
 #include "src/trie/dawg.h"
 
+#include <bitset>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
@@ -25,7 +27,6 @@ std::unique_ptr<Dawg> Dawg::CreateFromTextfile(const Tiles& tiles,
     if (word.empty()) {
       continue;
     }
-    LOG(INFO) << "Read word: " << word;
     dawg->PushWord(dawg->Root(), word);
   }
   return dawg;
@@ -33,30 +34,20 @@ std::unique_ptr<Dawg> Dawg::CreateFromTextfile(const Tiles& tiles,
 
 void Dawg::PushWord(Node* node, absl::string_view word) {
   int current_node_index = node->Index();
-  LOG(INFO) << "PushWord: node->Index(): " << node->Index()
-            << ", word: " << word << ", node->Chars(): " << node->Chars()
-            << ", node->IsWord(): " << node->IsWord();
   if (word.empty()) {
-    LOG(INFO) << "PushWord: word is empty, setting node->IsWord(true)";
     node->SetIsWord(true);
     return;
   }
   const std::string first_char({word[0]});
-  LOG(INFO) << "node->ChildIndices().size(): " << node->ChildIndices().size();
   // Copying child_indices from node because adding more nodes may invalidate
   // 'node'.
   const std::vector<int> child_indices = node->ChildIndices();
   for (int index : child_indices) {
     Node* child = NodeAt(index);
-    LOG(INFO) << "child->Index(): " << child->Index()
-              << ", child->Chars(): " << child->Chars();
     if (child->Chars() == first_char) {
-      LOG(INFO) << "Found child with matching chars: " << child->Chars();
       // Note: his may invalidate 'node' by adding more nodes.
       PushWord(child, word.substr(1));
       return;
-    } else {
-      LOG(INFO) << child->Chars() << " != " << first_char;
     }
   }
   const int new_node_index = nodes_.size();
@@ -66,15 +57,7 @@ void Dawg::PushWord(Node* node, absl::string_view word) {
     // vector.
     node = &nodes_[current_node_index];
   }
-  LOG(INFO) << "Adding new node with index: " << new_node_index;
-  LOG(INFO) << "nodes_[new_node_index].Chars(): "
-            << nodes_[new_node_index].Chars();
   node->AddChildIndex(new_node_index);
-  LOG(INFO) << "child indices...";
-  for (int index : node->ChildIndices()) {
-    LOG(INFO) << "  index: " << index;
-  }
-
   PushWord(&nodes_[new_node_index], word.substr(1));
 }
 
@@ -83,8 +66,6 @@ void Dawg::MergeSingleChildrenIntoParents() {
 }
 
 void Dawg::MergeSingleChildrenIntoParents(Node* node) {
-  LOG(INFO) << "MergeSingleChildrenIntoParents: " << node->Chars()
-            << " children: " << node->ChildIndices().size();
   if (!node->IsWord() && node->ChildIndices().size() == 1) {
     Node* child = NodeAt(node->ChildIndices()[0]);
     node->SetIsWord(child->IsWord());
@@ -134,13 +115,15 @@ void Dawg::MergeDuplicateSubtrees() {
       LOG(INFO) << "Found " << indices.size()
                 << " nodes with hash: " << pair.first;
       for (int i = 0; i < indices.size() - 1; ++i) {
+        if (replacement_indices.count(indices[i]) > 0) {
+          //LOG(INFO) << "already merged " << indices[i] << " into "
+          //          << replacement_indices[indices[i]];
+          continue;
+        }
         for (int j = i + 1; j < indices.size(); ++j) {
-          if (replacement_indices.count(indices[j]) > 0) {
-            continue;
-          }
           if (NodesAreEqual(NodeAt(indices[i]), NodeAt(indices[j]))) {
-            LOG(INFO) << "Found duplicate nodes: " << indices[i] << " and "
-                      << indices[j];
+            // LOG(INFO) << "Found duplicate nodes: " << indices[i] << " and "
+            //           << indices[j];
             replacement_indices[indices[j]] = indices[i];
           }
         }
@@ -171,10 +154,42 @@ void Dawg::HashNodes(Node* node) {
   }
 }
 
-void Dawg::AddUniqueIndices(const Node* node, absl::flat_hash_set<int>* unique_indices) const {
+void Dawg::AddUniqueIndices(const Node* node,
+                            absl::flat_hash_set<int>* unique_indices) const {
   unique_indices->insert(node->Index());
   for (int index : node->ChildIndices()) {
     const Node* child = NodeAt(index);
     AddUniqueIndices(child, unique_indices);
+  }
+}
+
+void Dawg::ConvertToBytes() { ConvertToBytes(&root_, 0); }
+
+/*
+int Dawg::ConvertToBytes(Node* node, int pos) {
+  const int start_pos = pos;
+  node->SetPosition(pos);
+  CHECK_LT(node->Chars().size(), 128);
+  std::bitset<8> contents(node->Chars().size());
+  if (node->IsWord()) {
+    contents.set(7);
+  }
+  bytes_[pos++] = contents.to_ulong();
+  for (int i = 0; i < node->Chars().size(); ++i) {
+    bytes_[pos++] = node->Chars()[i];
+  }
+  int end_pos = pos *= 3 * node->ChildIndices().size();
+  for (int index : node->ChildIndices()) {
+    Node* child = NodeAt(index);
+    ConvertToBytes(child, pos);
+    pos += child->Size();
+  }
+}
+*/
+
+void Dawg::CountNodeSubstrings(const Dawg::Node* node) {
+  substring_counts_[node->Chars()]++;
+  for (int index : node->ChildIndices()) {
+    CountNodeSubstrings(Dawg::NodeAt(index));
   }
 }

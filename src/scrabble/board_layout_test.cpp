@@ -63,7 +63,7 @@ TEST_F(BoardLayoutTest, UnsafePlaceMove) {
     layout_->DisplayRow(board, i, *tiles_, ss);
     before_row_strings[i] = ss.str();
   }
-  const auto& citizen = Move::Parse("8h CITIZEN", *tiles_);
+  const auto citizen = Move::Parse("8h CITIZEN", *tiles_);
   board.UnsafePlaceMove(citizen.value());
   std::array<std::string, 15> citizen_row_strings;
   for (int i = 0; i < 15; ++i) {
@@ -95,7 +95,7 @@ TEST_F(BoardLayoutTest, UnsafePlaceMove) {
       EXPECT_EQ(sh_row_strings[i], before_row_strings[i]);
     }
   }
-  const auto& shiplaps = Move::Parse("o8 ..IPLAPS", *tiles_);
+  const auto shiplaps = Move::Parse("o8 ..IPLAPS", *tiles_);
   board.UnsafePlaceMove(shiplaps.value());
   std::array<std::string, 15> shiplaps_row_strings;
   for (int i = 0; i < 15; ++i) {

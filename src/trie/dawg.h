@@ -31,12 +31,13 @@ class Dawg {
     }
     void AddChildIndex(int i) { child_indices_.emplace_back(i); }
     int Index() const { return index_; }
-
+    void SetPosition(int position) { position_ = position; }
    private:
     std::string chars_;
     bool is_word_;
     std::vector<int> child_indices_;
     int index_;
+    int position_;
   };
 
   const Node* Root() const { return &root_; }
@@ -49,6 +50,8 @@ class Dawg {
   FRIEND_TEST(DawgTest, CreateFromTextfile);
   FRIEND_TEST(DawgTest, MergeSingleChildrenIntoParents);
   FRIEND_TEST(DawgTest, MergeDuplicateSubtrees);
+  FRIEND_TEST(DawgTest, CountNodeSubstrings);
+  FRIEND_TEST(DawgTest, CountNodeSubstrings2);
 
   void PushWord(Node* node, absl::string_view word);
   void MergeSingleChildrenIntoParents();
@@ -58,12 +61,15 @@ class Dawg {
   bool NodesAreEqual(const Node* lhs, const Node*) const;
   void AddUniqueIndices(const Node* node,
                         absl::flat_hash_set<int>* unique_indices) const;
-
+  void ConvertToBytes();
+  int ConvertToBytes(Node* node, int pos);
+  void CountNodeSubstrings(const Node* node);
   const Tiles& tiles_;
   absl::flat_hash_map<std::string, int> substring_counts_;
   Node root_;
   std::vector<Node> nodes_;
   std::map<size_t, std::vector<int>> hash_to_node_indices_;
+  std::vector<uint8_t> bytes_;
 };
 
 #endif  // SRC_TRIE_DAWG_H_

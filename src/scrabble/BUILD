@@ -98,7 +98,7 @@ cc_library(
     name = "strings",
     srcs = ["strings.cpp"],
     hdrs = ["strings.h"],
-        visibility = ["//visibility:public"],
+    visibility = ["//visibility:public"],
     deps = ["@glog"],
 )
 
@@ -116,6 +116,7 @@ cc_library(
     name = "move",
     srcs = ["move.cpp"],
     hdrs = ["move.h"],
+    visibility = ["//visibility:public"],
     deps = [
         ":tiles",
         "@com_google_absl//absl/status:statusor",
@@ -129,6 +130,65 @@ cc_test(
     data = glob(["testdata/*.textproto"]),
     deps = [
         ":move",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "move_finder",
+    srcs = ["move_finder.cpp"],
+    hdrs = ["move_finder.h"],
+    copts = ["-std=c++14"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":board",
+        ":board_layout",
+        ":move",
+        ":primes",
+        ":rack",
+        "//src/anagram:anagram_map",
+        "@com_google_absl//absl/types:optional",
+        "@glog",
+        "@range-v3",
+    ],
+)
+
+cc_test(
+    name = "move_finder_test",
+    srcs = ["move_finder_test.cpp"],
+    data = glob([
+        "testdata/*.qam",
+        "testdata/*.textproto",
+    ]),
+    deps = [
+        ":move_finder",
+        "@com_google_absl//absl/memory",
+        "@com_google_googletest//:gtest_main",
+        "@glog",
+    ],
+)
+
+cc_library(
+    name = "rack",
+    srcs = ["rack.cpp"],
+    hdrs = ["rack.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":primes",
+        ":strings",
+        ":tiles",
+        "@com_google_absl//absl/numeric:int128",
+        "@glog",
+    ],
+)
+
+cc_test(
+    name = "rack_test",
+    srcs = ["rack_test.cpp"],
+    data = glob(["testdata/*.textproto"]),
+    deps = [
+        ":rack",
+        ":tiles",
         "@com_google_googletest//:gtest_main",
     ],
 )

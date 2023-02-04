@@ -81,16 +81,16 @@ int Tiles::FindBlankIndex(const q2::proto::TilesSpec& proto) {
 }
 
 absl::optional<Letter> Tiles::CharToNumber(char c) const {
-  LOG(INFO) << "CharToNumber(" << c << ")";
+  //LOG(INFO) << "CharToNumber(" << c << ")";
   if (c == '.') {
     return 0;
   } else if (c == '?') {
-    LOG(INFO) << "returning " << blank_index_;
+    //LOG(INFO) << "returning " << blank_index_;
     return blank_index_;
   } else if (c >= 'A' && c <= 'Z') {
     return c - 'A' + 1;
   } else if (c >= 'a' && c <= 'z') {
-    LOG(INFO) << "returning " << c - 'a' + 1 + blank_index_;
+    //LOG(INFO) << "returning " << c - 'a' + 1 + blank_index_;
     return c - 'a' + 1 + blank_index_;
   }
   LOG(ERROR) << "Could not convert character '" << c << " ("
