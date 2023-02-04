@@ -163,7 +163,8 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
       if (letters.size() + num_blanks != num_tiles) {
         continue;
       }
-      const auto words = anagram_map_.Words(product * through_product, num_blanks);
+      const auto words =
+          anagram_map_.Words(product * through_product, num_blanks);
       auto span_join = words.Spans() | ranges::view::join;
       for (const auto& word : span_join) {
         LOG(INFO) << "word: " << tiles_.ToString(word).value();
