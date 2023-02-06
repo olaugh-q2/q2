@@ -30,6 +30,7 @@ class MoveFinderTest : public testing::Test {
     LOG(INFO) << "move finder ok";
   }
 
+  Letter L(char c) { return tiles_->CharToNumber(c).value(); }
   LetterString LS(const std::string& s) {
     return tiles_->ToLetterString(s).value();
   }
@@ -196,4 +197,67 @@ TEST_F(MoveFinderTest, PlayThroughWithBlanks) {
       move_finder_->FindWords(rack, board, Move::Across, 7, 4, 7);
   ExpectMoves(words, {"8E RA...TEUrS", "8E rA...TEURS", "8E RA...TEUSe",
                       "8E RA...TeUSE"});
+}
+
+TEST_F(MoveFinderTest, CrossAt) {
+  Board board;
+  const auto ky = Move::Parse("8G KY", *tiles_);
+  board.UnsafePlaceMove(ky.value());
+  const auto cross_7G = move_finder_->CrossAt(board, Move::Across, 6, 6);
+  ASSERT_TRUE(cross_7G.has_value());
+  EXPECT_EQ(*cross_7G, LS(".K"));
+}
+
+TEST_F(MoveFinderTest, CheckHooks) {
+  Board board;
+  const auto aa = Move::Parse("8G AA", *tiles_);
+  board.UnsafePlaceMove(aa.value());
+
+  const auto hm = Move::Parse("7G HM", *tiles_);
+  EXPECT_TRUE(move_finder_->CheckHooks(board, hm.value()));
+
+  const auto ae = Move::Parse("7G AE", *tiles_);
+  EXPECT_TRUE(move_finder_->CheckHooks(board, ae.value()));
+
+  const auto faan = Move::Parse("7F FAAN", *tiles_);
+  EXPECT_TRUE(move_finder_->CheckHooks(board, faan.value()));
+
+  const auto qi = Move::Parse("7G QI", *tiles_);
+  EXPECT_FALSE(move_finder_->CheckHooks(board, qi.value()));
+
+  const auto ax = Move::Parse("7G AX", *tiles_);
+  EXPECT_FALSE(move_finder_->CheckHooks(board, ax.value()));
+}
+
+TEST_F(MoveFinderTest, SevenTileOverlap) {
+  Board board;
+  const auto airtime = Move::Parse("8G AiRTIME", *tiles_);
+  board.UnsafePlaceMove(airtime.value());
+
+  Rack rack(tiles_->ToLetterString("HEATER?").value());
+  const auto words =
+      move_finder_->FindWords(rack, board, Move::Across, 6, 6, 7);
+  ExpectMoves(words, {"7G tHEATER", "7G THEAtER"});
+}
+
+TEST_F(MoveFinderTest, NonHooks) {
+  Board board;
+  const auto vav = Move::Parse("8G VAV", *tiles_);
+  board.UnsafePlaceMove(vav.value());
+
+  Rack rack(tiles_->ToLetterString("Z??").value());
+  const auto words =
+      move_finder_->FindWords(rack, board, Move::Across, 6, 6, 3);
+  ExpectMoves(words, {});
+}
+
+TEST_F(MoveFinderTest, FrontExtension) {
+  Board board;
+  const auto airtime = Move::Parse("8H DEMANDS", *tiles_);
+  board.UnsafePlaceMove(airtime.value());
+
+  Rack rack(tiles_->ToLetterString("??UNTER").value());
+  const auto words =
+      move_finder_->FindWords(rack, board, Move::Across, 7, 0, 7);
+  ExpectMoves(words, {"8A coUNTER......."});
 }

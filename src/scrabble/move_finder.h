@@ -27,6 +27,11 @@ class MoveFinder {
   FRIEND_TEST(MoveFinderTest, PlayThroughWithBlanks);
   FRIEND_TEST(MoveFinderTest, AbsorbThroughTiles);
   FRIEND_TEST(MoveFinderTest, AbsorbThroughTiles2);
+  FRIEND_TEST(MoveFinderTest, CrossAt);
+  FRIEND_TEST(MoveFinderTest, CheckHooks);
+  FRIEND_TEST(MoveFinderTest, SevenTileOverlap);
+  FRIEND_TEST(MoveFinderTest, NonHooks);
+  FRIEND_TEST(MoveFinderTest, FrontExtension);
 
   absl::uint128 AbsorbThroughTiles(const Board& board, Move::Dir direction,
                                    int start_row, int start_col,
@@ -39,6 +44,13 @@ class MoveFinder {
   absl::optional<LetterString> ZeroPlayedThroughTiles(
       const Board& board, Move::Dir direction, int start_row, int start_col,
       const LetterString& word) const;
+
+  // Returns nullopt if the square is unconstrained, otherwise returns a string
+  // with a gap for this square's hooks which is a key to use with
+  // anagram_map_.Hooks()
+  absl::optional<LetterString> CrossAt(const Board& board, Move::Dir play_dir,
+                                       int square_row, int square_col) const;
+  bool CheckHooks(const Board& board, const Move& move) const;
 
   // Word should only have played tiles (play-through is zeroed out).
   // Returns copies of the word with blanks designated to make legal plays.

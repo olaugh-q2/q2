@@ -41,7 +41,7 @@ void Move::Display(const Tiles& tiles, std::ostream& os) const {
 
 absl::StatusOr<Move> Move::Parse(const std::string& move_string,
                                  const Tiles& tiles) {
-  LOG(INFO) << "Parsing move: " << move_string;
+  //LOG(INFO) << "Parsing move: " << move_string;
   std::string upcase_string = absl::AsciiStrToUpper(move_string);
   if (move_string.empty()) {
     return absl::InvalidArgumentError("Move string is empty.");

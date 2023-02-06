@@ -176,15 +176,147 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
         }
         LOG(INFO) << "played_tiles: " << tiles_.ToString(*played_tiles).value();
         if (num_blanks == 0) {
-          moves.push_back(Move(direction, start_row, start_col, *played_tiles));
+          const Move move(direction, start_row, start_col, *played_tiles);
+          if (CheckHooks(board, move)) {
+            moves.push_back(move);
+          }
         } else {
           const auto blankified = Blankify(letters, *played_tiles);
           for (const auto& blank_word : blankified) {
-            moves.push_back(Move(direction, start_row, start_col, blank_word));
+            const Move move(direction, start_row, start_col, blank_word);
+            if (CheckHooks(board, move)) {
+              moves.push_back(move);
+            }
           }
         }
       }
     }
   }
   return moves;
+}
+
+absl::optional<LetterString> MoveFinder::CrossAt(const Board& board,
+                                                 Move::Dir play_dir,
+                                                 int square_row,
+                                                 int square_col) const {
+  LOG(INFO) << "CrossAt(" << square_row << ", " << square_col << ")";
+  CHECK_EQ(board.At(square_row, square_col), 0);
+  LetterString ret;
+  int row = square_row;
+  int col = square_col;
+  if (play_dir == Move::Across) {
+    row--;
+  } else {
+    col--;
+  }
+  int spots_before = 0;
+  while (row >= 0 && col >= 0) {
+   LOG(INFO) << "  row: " << row << ", col: " << col;
+    Letter letter = board.At(row, col);
+    if (letter) {
+      spots_before++;
+    } else {
+      break;
+    }
+    if (play_dir == Move::Across) {
+      row--;
+    } else {
+      col--;
+    }
+  }
+  LOG(INFO) << "  spots_before: " << spots_before;
+  row = square_row;
+  row = square_col;
+  if (play_dir == Move::Across) {
+    row -= spots_before;
+  } else {
+    col -= spots_before;
+  }
+
+  for (int i = 0; i < spots_before; ++i) {
+    LOG(INFO) << "  row: " << row << ", col: " << col;
+    Letter letter = board.At(row, col);
+    LOG(INFO) << "  letter: " << tiles_.NumberToChar(letter).value();
+    if (letter > tiles_.BlankIndex()) {
+      letter -= tiles_.BlankIndex();
+    }
+    ret.push_back(letter);
+    if (play_dir == Move::Across) {
+      row++;
+    } else {
+      col++;
+    }
+  }
+  ret.push_back(0);
+  row = square_row;
+  col = square_col;
+  if (play_dir == Move::Across) {
+    row++;
+  } else {
+    col++;
+  }
+  while (row < 15 && col < 15) {
+    Letter letter = board.At(row, col);
+    LOG(INFO) << "  row: " << row << ", col: " << col;
+    LOG(INFO) << "  letter: " << tiles_.NumberToChar(letter).value();
+    if (letter) {
+      if (letter > tiles_.BlankIndex()) {
+        letter -= tiles_.BlankIndex();
+      }
+      ret.push_back(letter);
+    } else {
+      break;
+    }
+    if (play_dir == Move::Across) {
+      row++;
+    } else {
+      col++;
+    }
+  }
+  if (ret.length() > 1) {
+    return ret;
+  } else {
+    return absl::nullopt;
+  }
+}
+
+bool MoveFinder::CheckHooks(const Board& board, const Move& move) const {
+  int row = move.StartRow();
+  int col = move.StartCol();
+  for (Letter letter : move.Letters()) {
+    //LOG(INFO) << "letter: " << tiles_.NumberToChar(letter).value()
+    //          << " row: " << row << " col: " << col;
+    if (letter) {
+      if (letter > tiles_.BlankIndex()) {
+        letter -= tiles_.BlankIndex();
+      }
+      const auto cross = CrossAt(board, move.Direction(), row, col);
+      if (cross) {
+        const uint32_t hooks = anagram_map_.Hooks(*cross);
+        std::string hooks_str;
+        for (int i = 1; i < tiles_.BlankIndex(); ++i) {
+          if (hooks & (1 << i)) {
+            hooks_str += tiles_.NumberToChar(i).value();
+          }
+        }
+        LOG(INFO) << "hooks: " << hooks_str;
+        if ((hooks & (1 << letter)) == 0) {
+          LOG(INFO) << "letter " << tiles_.NumberToChar(letter).value()
+                    << " does not hook";
+          return false;
+        }
+      } else {
+        LOG(INFO) << "cross was unconstrained";
+      }
+    } else {
+      LOG(INFO) << "letter was empty";
+    }
+    if (move.Direction() == Move::Across) {
+      col++;
+    } else {
+      row++;
+    }
+  }
+  //LOG(INFO) << "all hooks are ok";
+  return true;
 }
