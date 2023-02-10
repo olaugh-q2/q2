@@ -10,6 +10,25 @@
 
 class MoveFinder {
  public:
+  class Spot {
+   public:
+    Spot(Move::Dir direction, int start_row, int start_col, int num_tiles)
+        : direction_(direction),
+          start_row_(start_row),
+          start_col_(start_col),
+          num_tiles_(num_tiles) {}
+
+    Move::Dir Direction() const { return direction_; }
+    int StartRow() const { return start_row_; }
+    int StartCol() const { return start_col_; }
+    int NumTiles() const { return num_tiles_; }
+
+   private:
+    Move::Dir direction_;
+    int start_row_;
+    int start_col_;
+    int num_tiles_;
+  };
   MoveFinder(const AnagramMap& anagram_map, const BoardLayout& board_layout,
              const Tiles& tiles)
       : anagram_map_(anagram_map), board_layout_(board_layout), tiles_(tiles) {}
@@ -32,6 +51,14 @@ class MoveFinder {
   FRIEND_TEST(MoveFinderTest, SevenTileOverlap);
   FRIEND_TEST(MoveFinderTest, NonHooks);
   FRIEND_TEST(MoveFinderTest, FrontExtension);
+  FRIEND_TEST(MoveFinderTest, EmptyBoardSpots);
+  FRIEND_TEST(MoveFinderTest, AcrossSpots);
+  FRIEND_TEST(MoveFinderTest, DownSpots);
+
+  void FindSpots(int rack_tiles, const Board& board, Move::Dir direction,
+                 std::vector<MoveFinder::Spot>* spots) const;
+
+  std::vector<Spot> FindSpots(const Rack& rack, const Board& board) const;
 
   absl::uint128 AbsorbThroughTiles(const Board& board, Move::Dir direction,
                                    int start_row, int start_col,
@@ -65,5 +92,10 @@ class MoveFinder {
   const BoardLayout& board_layout_;
   const Tiles& tiles_;
 };
+
+inline bool operator==(const MoveFinder::Spot& a, const MoveFinder::Spot& b) {
+  return a.Direction() == b.Direction() && a.StartRow() == b.StartRow() &&
+         a.StartCol() == b.StartCol() && a.NumTiles() == b.NumTiles();
+}
 
 #endif  // SRC_SCRABBLE_MOVE_FINDER_H_

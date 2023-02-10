@@ -11,12 +11,15 @@ class Board {
  public:
   Board();
   LetterString Row(int row_index) const;
-  Letter At(int row, int col) const {
-    return rows_[row][col];
-  }
+  Letter At(int row, int col) const { return rows_[row][col]; }
   void UnsafePlaceMove(const Move& move);
+  bool IsEmpty() const {
+    return is_empty_;
+  }
+
  private:
   std::array<LetterString, 15> rows_;
+  bool is_empty_;
 };
 
 #endif  // SRC_SCRABBLE_BOARD_H_

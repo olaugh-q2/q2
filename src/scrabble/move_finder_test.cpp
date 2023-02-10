@@ -7,6 +7,7 @@
 
 using ::testing::ElementsAre;
 using ::testing::UnorderedElementsAre;
+using ::testing::UnorderedElementsAreArray;
 
 std::unique_ptr<Tiles> tiles_;
 std::unique_ptr<AnagramMap> anagram_map_;
@@ -68,26 +69,26 @@ TEST_F(MoveFinderTest, Blankify) {
 }
 
 TEST_F(MoveFinderTest, FindExchanges) {
-  Rack rack(tiles_->ToLetterString("AB").value());
+  const Rack rack(tiles_->ToLetterString("AB").value());
   const auto exchanges = move_finder_->FindExchanges(rack);
   ExpectMoves(exchanges, {"PASS 0", "EXCH A", "EXCH B", "EXCH AB"});
 }
 
 TEST_F(MoveFinderTest, FindExchanges2) {
-  Rack rack(tiles_->ToLetterString("AAA").value());
+  const Rack rack(tiles_->ToLetterString("AAA").value());
   const auto exchanges = move_finder_->FindExchanges(rack);
   ExpectMoves(exchanges, {"PASS 0", "EXCH A", "EXCH AA", "EXCH AAA"});
 }
 
 TEST_F(MoveFinderTest, FindExchanges3) {
-  Rack rack(tiles_->ToLetterString("A?").value());
+  const Rack rack(tiles_->ToLetterString("A?").value());
   const auto exchanges = move_finder_->FindExchanges(rack);
   ExpectMoves(exchanges, {"PASS 0", "EXCH A", "EXCH ?", "EXCH A?"});
 }
 
 TEST_F(MoveFinderTest, FindWords) {
   Board board;
-  Rack rack(tiles_->ToLetterString("IIICFVV").value());
+  const Rack rack(tiles_->ToLetterString("IIICFVV").value());
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 7, 7, 7);
   ExpectMoves(words, {"8H VIVIFIC"});
@@ -95,7 +96,7 @@ TEST_F(MoveFinderTest, FindWords) {
 
 TEST_F(MoveFinderTest, FindWords2) {
   Board board;
-  Rack rack(tiles_->ToLetterString("BANANAS").value());
+  const Rack rack(tiles_->ToLetterString("BANANAS").value());
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 7, 6, 2);
   ExpectMoves(words, {"8G AA", "8G AB", "8G BA", "8G AN", "8G NA", "8G AS"});
@@ -103,7 +104,7 @@ TEST_F(MoveFinderTest, FindWords2) {
 
 TEST_F(MoveFinderTest, FindWords3) {
   Board board;
-  Rack rack(tiles_->ToLetterString("AEURVY?").value());
+  const Rack rack(tiles_->ToLetterString("AEURVY?").value());
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 7, 5, 7);
   ExpectMoves(words, {"8F qUAVERY"});
@@ -111,7 +112,7 @@ TEST_F(MoveFinderTest, FindWords3) {
 
 TEST_F(MoveFinderTest, FindWords4) {
   Board board;
-  Rack rack(tiles_->ToLetterString("SQIRT??").value());
+  const Rack rack(tiles_->ToLetterString("SQIRT??").value());
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 7, 1, 7);
   ExpectMoves(words, {"8B QInTaRS", "8B QueRIST", "8B ReQuITS", "8B SQuIRTs",
@@ -192,7 +193,7 @@ TEST_F(MoveFinderTest, PlayThroughWithBlanks) {
   Board board;
   const auto con = Move::Parse("8G CON", *tiles_);
   board.UnsafePlaceMove(con.value());
-  Rack rack(tiles_->ToLetterString("URATES?").value());
+  const Rack rack(tiles_->ToLetterString("URATES?").value());
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 7, 4, 7);
   ExpectMoves(words, {"8E RA...TEUrS", "8E rA...TEURS", "8E RA...TEUSe",
@@ -234,7 +235,7 @@ TEST_F(MoveFinderTest, SevenTileOverlap) {
   const auto airtime = Move::Parse("8G AiRTIME", *tiles_);
   board.UnsafePlaceMove(airtime.value());
 
-  Rack rack(tiles_->ToLetterString("HEATER?").value());
+  const Rack rack(tiles_->ToLetterString("HEATER?").value());
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 6, 6, 7);
   ExpectMoves(words, {"7G tHEATER", "7G THEAtER"});
@@ -245,7 +246,7 @@ TEST_F(MoveFinderTest, NonHooks) {
   const auto vav = Move::Parse("8G VAV", *tiles_);
   board.UnsafePlaceMove(vav.value());
 
-  Rack rack(tiles_->ToLetterString("Z??").value());
+  const Rack rack(tiles_->ToLetterString("Z??").value());
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 6, 6, 3);
   ExpectMoves(words, {});
@@ -256,8 +257,147 @@ TEST_F(MoveFinderTest, FrontExtension) {
   const auto airtime = Move::Parse("8H DEMANDS", *tiles_);
   board.UnsafePlaceMove(airtime.value());
 
-  Rack rack(tiles_->ToLetterString("??UNTER").value());
+  const Rack rack(tiles_->ToLetterString("??UNTER").value());
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 7, 0, 7);
   ExpectMoves(words, {"8A coUNTER......."});
+}
+
+TEST_F(MoveFinderTest, EmptyBoardSpots) {
+  Board board;
+  const Rack rack(tiles_->ToLetterString("LULZ").value());
+  const auto spots4 = move_finder_->FindSpots(rack, board);
+  EXPECT_THAT(spots4,
+              UnorderedElementsAre(MoveFinder::Spot(Move::Across, 7, 6, 2),
+                                   MoveFinder::Spot(Move::Across, 7, 7, 2),
+                                   MoveFinder::Spot(Move::Across, 7, 5, 3),
+                                   MoveFinder::Spot(Move::Across, 7, 6, 3),
+                                   MoveFinder::Spot(Move::Across, 7, 7, 3),
+                                   MoveFinder::Spot(Move::Across, 7, 4, 4),
+                                   MoveFinder::Spot(Move::Across, 7, 5, 4),
+                                   MoveFinder::Spot(Move::Across, 7, 6, 4),
+                                   MoveFinder::Spot(Move::Across, 7, 7, 4)));
+}
+
+TEST_F(MoveFinderTest, AcrossSpots) {
+  Board board;
+  const auto an = Move::Parse("8H AN", *tiles_);
+  board.UnsafePlaceMove(an.value());
+  const auto ax = Move::Parse("9G AX", *tiles_);
+  board.UnsafePlaceMove(ax.value());
+  /*
+    ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
+   1＝　　＇　　　＝　　　＇　　＝
+   2　－　　　＂　　　＂　　　－　
+   3　　－　　　＇　＇　　　－　　
+   4＇　　－　　　＇　　　－　　＇
+   5　　　　－　　　　　－　　　　
+   6　＂　　　＂　　　＂　　　＂　
+   7　　＇　　　＇　＇　　　＇　　
+   8＝　　＇　　　ＡＮ　　＇　　＝
+   9　　＇　　　ＡＸ＇　　　＇　　
+  10　＂　　　＂　　　＂　　　＂　
+  11　　　　－　　　　　－　　　　
+  12＇　　－　　　＇　　　－　　＇
+  13　　－　　　＇　＇　　　－　　
+  14　－　　　＂　　　＂　　　－　
+  15＝　　＇　　　＝　　　＇　　＝
+  */
+  std::vector<MoveFinder::Spot> spots;
+  move_finder_->FindSpots(3, board, Move::Across, &spots);
+  EXPECT_THAT(spots, UnorderedElementsAreArray(
+                         {MoveFinder::Spot(Move::Across, 6, 5, 3),
+                          MoveFinder::Spot(Move::Across, 6, 6, 2),
+                          MoveFinder::Spot(Move::Across, 6, 6, 3),
+                          MoveFinder::Spot(Move::Across, 6, 7, 2),
+                          MoveFinder::Spot(Move::Across, 6, 7, 3),
+                          MoveFinder::Spot(Move::Across, 6, 8, 2),
+                          MoveFinder::Spot(Move::Across, 6, 8, 3),
+                          MoveFinder::Spot(Move::Across, 7, 4, 3),
+                          MoveFinder::Spot(Move::Across, 7, 5, 2),
+                          MoveFinder::Spot(Move::Across, 7, 5, 3),
+                          MoveFinder::Spot(Move::Across, 7, 6, 1),
+                          MoveFinder::Spot(Move::Across, 7, 6, 2),
+                          MoveFinder::Spot(Move::Across, 7, 6, 3),
+                          MoveFinder::Spot(Move::Across, 7, 7, 1),
+                          MoveFinder::Spot(Move::Across, 7, 7, 2),
+                          MoveFinder::Spot(Move::Across, 7, 7, 3),
+                          MoveFinder::Spot(Move::Across, 8, 3, 3),
+                          MoveFinder::Spot(Move::Across, 8, 4, 2),
+                          MoveFinder::Spot(Move::Across, 8, 4, 3),
+                          MoveFinder::Spot(Move::Across, 8, 5, 1),
+                          MoveFinder::Spot(Move::Across, 8, 5, 2),
+                          MoveFinder::Spot(Move::Across, 8, 5, 3),
+                          MoveFinder::Spot(Move::Across, 8, 6, 1),
+                          MoveFinder::Spot(Move::Across, 8, 6, 2),
+                          MoveFinder::Spot(Move::Across, 8, 6, 3),
+                          MoveFinder::Spot(Move::Across, 9, 4, 3),
+                          MoveFinder::Spot(Move::Across, 9, 5, 2),
+                          MoveFinder::Spot(Move::Across, 9, 5, 3),
+                          MoveFinder::Spot(Move::Across, 9, 6, 2),
+                          MoveFinder::Spot(Move::Across, 9, 6, 3),
+                          MoveFinder::Spot(Move::Across, 9, 7, 2),
+                          MoveFinder::Spot(Move::Across, 9, 7, 3)}));
+
+  spots.clear();
+  const auto am = Move::Parse("G9 .M", *tiles_);
+  board.UnsafePlaceMove(am.value());
+  /*
+    ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
+   1＝　　＇　　　＝　　　＇　　＝
+   2　－　　　＂　　　＂　　　－　
+   3　　－　　　＇　＇　　　－　　
+   4＇　　－　　　＇　　　－　　＇
+   5　　　　－　　　　　－　　　　
+   6　＂　　　＂　　　＂　　　＂　
+   7　　＇　　　＇　＇　　　＇　　
+   8＝　　＇　　　ＡＮ　　＇　　＝
+   9　　＇　　　ＡＸ＇　　　＇　　
+  10　＂　　　＂Ｍ　　＂　　　＂　
+  11　　　　－　　　　　－　　　　
+  12＇　　－　　　＇　　　－　　＇
+  13　　－　　　＇　＇　　　－　　
+  14　－　　　＂　　　＂　　　－　
+  15＝　　＇　　　＝　　　＇　　＝
+  */
+  move_finder_->FindSpots(1, board, Move::Across, &spots);
+  EXPECT_THAT(spots, UnorderedElementsAreArray(
+                         {MoveFinder::Spot(Move::Across, 7, 6, 1),
+                          MoveFinder::Spot(Move::Across, 7, 7, 1),
+                          MoveFinder::Spot(Move::Across, 8, 5, 1),
+                          MoveFinder::Spot(Move::Across, 8, 6, 1),
+                          MoveFinder::Spot(Move::Across, 9, 5, 1),
+                          MoveFinder::Spot(Move::Down, 7, 7, 1)}));
+
+  spots.clear();
+  const auto amp = Move::Parse("G9 .MP", *tiles_);
+  board.UnsafePlaceMove(amp.value());
+  /*
+    ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
+   1＝　　＇　　　＝　　　＇　　＝
+   2　－　　　＂　　　＂　　　－　
+   3　　－　　　＇　＇　　　－　　
+   4＇　　－　　　＇　　　－　　＇
+   5　　　　－　　　　　－　　　　
+   6　＂　　　＂　　　＂　　　＂　
+   7　　＇　　　＇　＇　　　＇　　
+   8＝　　＇　　　ＡＮ　　＇　　＝
+   9　　＇　　　ＡＸ＇　　　＇　　
+  10　＂　　　＂Ｍ　　＂　　　＂　
+  11　　　　－　Ｐ　　　－　　　　
+  12＇　　－　　　＇　　　－　　＇
+  13　　－　　　＇　＇　　　－　　
+  14　－　　　＂　　　＂　　　－　
+  15＝　　＇　　　＝　　　＇　　＝
+  */
+  move_finder_->FindSpots(1, board, Move::Across, &spots);
+  EXPECT_THAT(spots, UnorderedElementsAreArray(
+                         {MoveFinder::Spot(Move::Down, 7, 6, 1),
+                          MoveFinder::Spot(Move::Across, 7, 7, 1),
+                          MoveFinder::Spot(Move::Across, 8, 5, 1),
+                          MoveFinder::Spot(Move::Across, 8, 6, 1),
+                          MoveFinder::Spot(Move::Across, 9, 5, 1),
+                          MoveFinder::Spot(Move::Down, 7, 7, 1),
+                          MoveFinder::Spot(Move::Across, 10, 5, 1),
+                          MoveFinder::Spot(Move::Across, 10, 6, 1)}));
 }
