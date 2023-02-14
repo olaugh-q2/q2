@@ -401,3 +401,95 @@ TEST_F(MoveFinderTest, AcrossSpots) {
                           MoveFinder::Spot(Move::Across, 10, 5, 1),
                           MoveFinder::Spot(Move::Across, 10, 6, 1)}));
 }
+
+TEST_F(MoveFinderTest, DownSpots) {
+  Board board;
+  const auto an = Move::Parse("8H AN", *tiles_);
+  board.UnsafePlaceMove(an.value());
+  const auto ax = Move::Parse("9G AX", *tiles_);
+  board.UnsafePlaceMove(ax.value());
+  /*
+    ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
+   1＝　　＇　　　＝　　　＇　　＝
+   2　－　　　＂　　　＂　　　－　
+   3　　－　　　＇　＇　　　－　　
+   4＇　　－　　　＇　　　－　　＇
+   5　　　　－　　　　　－　　　　
+   6　＂　　　＂　　　＂　　　＂　
+   7　　＇　　　＇　＇　　　＇　　
+   8＝　　＇　　　ＡＮ　　＇　　＝
+   9　　＇　　　ＡＸ＇　　　＇　　
+  10　＂　　　＂　　　＂　　　＂　
+  11　　　　－　　　　　－　　　　
+  12＇　　－　　　＇　　　－　　＇
+  13　　－　　　＇　＇　　　－　　
+  14　－　　　＂　　　＂　　　－　
+  15＝　　＇　　　＝　　　＇　　＝
+  */
+  std::vector<MoveFinder::Spot> spots;
+  move_finder_->FindSpots(3, board, Move::Down, &spots);
+  EXPECT_THAT(spots, UnorderedElementsAreArray({
+                         MoveFinder::Spot(Move::Down, 4, 7, 3),
+                         MoveFinder::Spot(Move::Down, 4, 8, 3),
+                         MoveFinder::Spot(Move::Down, 5, 6, 3),
+                         MoveFinder::Spot(Move::Down, 5, 7, 2),
+                         MoveFinder::Spot(Move::Down, 5, 7, 3),
+                         MoveFinder::Spot(Move::Down, 5, 8, 2),
+                         MoveFinder::Spot(Move::Down, 5, 8, 3),
+                         MoveFinder::Spot(Move::Down, 5, 9, 3),
+                         MoveFinder::Spot(Move::Down, 6, 5, 3),
+                         MoveFinder::Spot(Move::Down, 6, 6, 2),
+                         MoveFinder::Spot(Move::Down, 6, 6, 3),
+                         MoveFinder::Spot(Move::Down, 6, 7, 1),
+                         MoveFinder::Spot(Move::Down, 6, 7, 2),
+                         MoveFinder::Spot(Move::Down, 6, 7, 3),
+                         MoveFinder::Spot(Move::Down, 6, 8, 1),
+                         MoveFinder::Spot(Move::Down, 6, 8, 2),
+                         MoveFinder::Spot(Move::Down, 6, 8, 3),
+                         MoveFinder::Spot(Move::Down, 6, 9, 2),
+                         MoveFinder::Spot(Move::Down, 6, 9, 3),
+                         MoveFinder::Spot(Move::Down, 7, 5, 2),
+                         MoveFinder::Spot(Move::Down, 7, 5, 3),
+                         MoveFinder::Spot(Move::Down, 7, 6, 2),
+                         MoveFinder::Spot(Move::Down, 7, 6, 3),
+                         MoveFinder::Spot(Move::Down, 7, 7, 1),
+                         MoveFinder::Spot(Move::Down, 7, 7, 2),
+                         MoveFinder::Spot(Move::Down, 7, 7, 3),
+                         MoveFinder::Spot(Move::Down, 7, 8, 2),
+                         MoveFinder::Spot(Move::Down, 7, 8, 3),
+                         MoveFinder::Spot(Move::Down, 7, 9, 2),
+                         MoveFinder::Spot(Move::Down, 7, 9, 3),
+                         MoveFinder::Spot(Move::Down, 8, 5, 2),
+                         MoveFinder::Spot(Move::Down, 8, 5, 3),
+                         MoveFinder::Spot(Move::Down, 8, 6, 1),
+                         MoveFinder::Spot(Move::Down, 8, 6, 2),
+                         MoveFinder::Spot(Move::Down, 8, 6, 3),
+                     }));
+
+  spots.clear();
+  const auto am = Move::Parse("G9 .M", *tiles_);
+  board.UnsafePlaceMove(am.value());
+  /*
+    ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
+   1＝　　＇　　　＝　　　＇　　＝
+   2　－　　　＂　　　＂　　　－　
+   3　　－　　　＇　＇　　　－　　
+   4＇　　－　　　＇　　　－　　＇
+   5　　　　－　　　　　－　　　　
+   6　＂　　　＂　　　＂　　　＂　
+   7　　＇　　　＇　＇　　　＇　　
+   8＝　　＇　　　ＡＮ　　＇　　＝
+   9　　＇　　　ＡＸ＇　　　＇　　
+  10　＂　　　＂Ｍ　　＂　　　＂　
+  11　　　　－　　　　　－　　　　
+  12＇　　－　　　＇　　　－　　＇
+  13　　－　　　＇　＇　　　－　　
+  14　－　　　＂　　　＂　　　－　
+  15＝　　＇　　　＝　　　＇　　＝
+  */
+  move_finder_->FindSpots(1, board, Move::Down, &spots);
+  EXPECT_THAT(spots, UnorderedElementsAreArray(
+                         {MoveFinder::Spot(Move::Down, 6, 7, 1),
+                          MoveFinder::Spot(Move::Down, 6, 8, 1),
+                          MoveFinder::Spot(Move::Down, 8, 6, 1)}));
+}
