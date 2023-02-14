@@ -37,6 +37,9 @@ void Move::Display(const Tiles& tiles, std::ostream& os) const {
     os << StartingSquare() << " ";
     os << tiles.ToString(letters_).value();
   }
+  if (score_) {
+    os << " (score = " << score_.value() << ")";
+  }
 }
 
 absl::StatusOr<Move> Move::Parse(const std::string& move_string,

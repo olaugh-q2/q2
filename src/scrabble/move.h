@@ -12,13 +12,21 @@ class Move {
 
   Move() : action_(Move::Exchange), letters_(LetterString()) {}
 
-  Move(Dir direction, int start_row, int start_col,
-       const LetterString& letters)
+  Move(Dir direction, int start_row, int start_col, const LetterString& letters)
       : action_(Move::Place),
         direction_(direction),
         start_row_(start_row),
         start_col_(start_col),
-        letters_(letters) {}
+        letters_(letters), score_(absl::nullopt) {}
+
+  Move(Dir direction, int start_row, int start_col, const LetterString& letters,
+       int score)
+      : action_(Move::Place),
+        direction_(direction),
+        start_row_(start_row),
+        start_col_(start_col),
+        letters_(letters),
+        score_(score) {}
 
   Move(const LetterString& letters)
       : action_(Move::Exchange), letters_(letters) {}
@@ -46,6 +54,7 @@ class Move {
   int start_row_;
   int start_col_;
   LetterString letters_;
+  absl::optional<int> score_;
 };
 
 #endif  // SRC_SCRABBLE_MOVE_H_
