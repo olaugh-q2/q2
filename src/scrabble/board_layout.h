@@ -22,6 +22,14 @@ class BoardLayout {
   void DisplayBottomBorder(std::ostream& os) const;
   void DisplayBoard(const Board& board, const Tiles& tiles, std::ostream& os) const;
 
+  int WordMultiplier(int row, int col) const {
+    return word_multipliers_[row][col];
+  }
+
+  int LetterMultiplier(int row, int col) const {
+    return letter_multipliers_[row][col];
+  }
+  
  private:
   FRIEND_TEST(BoardLayoutTest, Construction);
 

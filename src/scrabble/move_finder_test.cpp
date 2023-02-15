@@ -493,3 +493,15 @@ TEST_F(MoveFinderTest, DownSpots) {
                           MoveFinder::Spot(Move::Down, 6, 8, 1),
                           MoveFinder::Spot(Move::Down, 8, 6, 1)}));
 }
+
+TEST_F(MoveFinderTest, WordMultiplier) {
+  Board board;
+  EXPECT_EQ(move_finder_->WordMultiplier(board, Move::Across, 7, 7, 5), 2);
+  EXPECT_EQ(move_finder_->WordMultiplier(board, Move::Across, 7, 7, 8), 6);
+  EXPECT_EQ(move_finder_->WordMultiplier(board, Move::Across, 7, 0, 15), 18);
+    EXPECT_EQ(move_finder_->WordMultiplier(board, Move::Across, 0, 0, 15), 27);
+    EXPECT_EQ(  move_finder_->WordMultiplier(board, Move::Across, 0, 0, 14), 9);
+      EXPECT_EQ(move_finder_->WordMultiplier(board, Move::Down, 0, 0, 15), 27);
+
+
+}
