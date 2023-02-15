@@ -173,6 +173,30 @@ int MoveFinder::WordMultiplier(const Board& board, Move::Dir direction,
   return ret;
 }
 
+int MoveFinder::HookSum(const Board& board, Move::Dir direction, int start_row,
+                        int start_col, int num_tiles) const {
+  int ret = 0;
+  int row = start_row;
+  int col = start_col;
+  int tiles_used = 0;
+  while (row < 15 && col < 15) {
+    Letter sq = board.At(row, col);
+    if (!sq) {
+      const auto cross = CrossAt(board, direction, row, col, false);
+      if (cross.has_value()) {
+        const int score = tiles_.Score(cross.value());
+        ret += score * board_layout_.WordMultiplier(row, col);
+      }
+    }
+    if (direction == Move::Across) {
+      col++;
+    } else {
+      row++;
+    }
+  }
+  return ret;
+}
+
 std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
                                         Move::Dir direction, int start_row,
                                         int start_col, int num_tiles) const {
@@ -180,8 +204,10 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
   const auto subsets = rack.Subsets(tiles_);
   const absl::uint128 through_product =
       AbsorbThroughTiles(board, direction, start_row, start_col, num_tiles);
-  int word_multiplier =
+  const int word_multiplier =
       WordMultiplier(board, direction, start_row, start_col, num_tiles);
+  const int hook_sum =
+      HookSum(board, direction, start_row, start_col, num_tiles);
   for (int num_blanks = 0; num_blanks <= rack.NumBlanks(tiles_); ++num_blanks) {
     // LOG(INFO) << "num_blanks: " << num_blanks;
     for (const auto& subset : subsets) {
@@ -227,8 +253,8 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
 
 absl::optional<LetterString> MoveFinder::CrossAt(const Board& board,
                                                  Move::Dir play_dir,
-                                                 int square_row,
-                                                 int square_col) const {
+                                                 int square_row, int square_col,
+                                                 bool unblank) const {
   // LOG(INFO) << "CrossAt(" << square_row << ", " << square_col << ")";
   CHECK_EQ(board.At(square_row, square_col), 0);
   LetterString ret;
@@ -268,7 +294,13 @@ absl::optional<LetterString> MoveFinder::CrossAt(const Board& board,
     Letter letter = board.At(row, col);
     // LOG(INFO) << "  letter: " << tiles_.NumberToChar(letter).value();
     if (letter > tiles_.BlankIndex()) {
-      letter -= tiles_.BlankIndex();
+      if (unblank) {
+        // Turn blanked letter into regular letter to check words.
+        letter -= tiles_.BlankIndex();
+      } else {
+        // Turn blanked letter into blank to calculate scores.
+        letter = tiles_.BlankIndex();
+      }
     }
     ret.push_back(letter);
     if (play_dir == Move::Across) {
@@ -291,7 +323,13 @@ absl::optional<LetterString> MoveFinder::CrossAt(const Board& board,
     // LOG(INFO) << "  letter: " << tiles_.NumberToChar(letter).value();
     if (letter) {
       if (letter > tiles_.BlankIndex()) {
-        letter -= tiles_.BlankIndex();
+        if (unblank) {
+          // Turn blanked letter into regular letter to check words.
+          letter -= tiles_.BlankIndex();
+        } else {
+          // Turn blanked letter into blank to calculate scores.
+          letter = tiles_.BlankIndex();
+        }
       }
       ret.push_back(letter);
     } else {
@@ -320,7 +358,7 @@ bool MoveFinder::CheckHooks(const Board& board, const Move& move) const {
       if (letter > tiles_.BlankIndex()) {
         letter -= tiles_.BlankIndex();
       }
-      const auto cross = CrossAt(board, move.Direction(), row, col);
+      const auto cross = CrossAt(board, move.Direction(), row, col, true);
       if (cross) {
         const uint32_t hooks = anagram_map_.Hooks(*cross);
         std::string hooks_str;
@@ -356,7 +394,7 @@ void MoveFinder::FindSpots(int rack_tiles, const Board& board,
                            std::vector<MoveFinder::Spot>* spots) const {
   for (int start_row = 0; start_row < 15; start_row++) {
     for (int start_col = 0; start_col < 15; start_col++) {
-      //LOG(INFO) << "Starting at " << start_row << ", " << start_col;
+      // LOG(INFO) << "Starting at " << start_row << ", " << start_col;
       bool crossing = false;
       bool through = false;
       int previous_sq_row = start_row;
@@ -368,10 +406,10 @@ void MoveFinder::FindSpots(int rack_tiles, const Board& board,
       }
       if (previous_sq_row >= 0 && previous_sq_col >= 0) {
         if (board.At(previous_sq_row, previous_sq_col)) {
-          //LOG(INFO) << "previous square was occupied";
-          // If the previous square is occupied, this isn't a valid starting
-          // square. All moves covering this square would be covered by the spot
-          // starting at the beginning of the previous word.
+          // LOG(INFO) << "previous square was occupied";
+          //  If the previous square is occupied, this isn't a valid starting
+          //  square. All moves covering this square would be covered by the
+          //  spot starting at the beginning of the previous word.
           continue;
         }
       }
@@ -391,7 +429,7 @@ void MoveFinder::FindSpots(int rack_tiles, const Board& board,
           if (num_tiles > rack_tiles) {
             break;
           }
-          const auto cross = CrossAt(board, direction, sq_row, sq_col);
+          const auto cross = CrossAt(board, direction, sq_row, sq_col, true);
           if (cross.has_value()) {
             // LOG(INFO) << "cross: " << tiles_.ToString(*cross).value()
             //           << ", crossing = true";
@@ -399,13 +437,13 @@ void MoveFinder::FindSpots(int rack_tiles, const Board& board,
           }
         }
 
-        //LOG(INFO) << "num_tiles: " << num_tiles;
+        // LOG(INFO) << "num_tiles: " << num_tiles;
         if ((through || crossing) && recorded_num_tiles.count(num_tiles) == 0) {
           absl::optional<LetterString> across_cross = absl::nullopt;
           absl::optional<LetterString> down_cross = absl::nullopt;
           if (!sq) {
-            across_cross = CrossAt(board, Move::Across, sq_row, sq_col);
-            down_cross = CrossAt(board, Move::Down, sq_row, sq_col);
+            across_cross = CrossAt(board, Move::Across, sq_row, sq_col, true);
+            down_cross = CrossAt(board, Move::Down, sq_row, sq_col, true);
           }
           if ((num_tiles == 1) && across_cross.has_value() &&
               down_cross.has_value()) {

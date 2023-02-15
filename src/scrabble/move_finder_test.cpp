@@ -204,9 +204,31 @@ TEST_F(MoveFinderTest, CrossAt) {
   Board board;
   const auto ky = Move::Parse("8G KY", *tiles_);
   board.UnsafePlaceMove(ky.value());
-  const auto cross_7G = move_finder_->CrossAt(board, Move::Across, 6, 6);
+  const auto cross_7G = move_finder_->CrossAt(board, Move::Across, 6, 6, true);
   ASSERT_TRUE(cross_7G.has_value());
   EXPECT_EQ(*cross_7G, LS(".K"));
+
+  const auto oo = Move::Parse("9G oo", *tiles_);
+  board.UnsafePlaceMove(oo.value());
+  const auto cross_7H = move_finder_->CrossAt(board, Move::Across, 6, 7, false);
+  ASSERT_TRUE(cross_7H.has_value());
+  EXPECT_EQ(*cross_7H, LS(".Y?"));
+}
+
+TEST_F(MoveFinderTest, HookSum) {
+  Board board;
+  const auto ky = Move::Parse("8G KY", *tiles_);
+  board.UnsafePlaceMove(ky.value());
+  EXPECT_EQ(move_finder_->HookSum(board, Move::Across, 6, 6, 3), 9);
+
+  const auto oo = Move::Parse("9G oo", *tiles_);
+  board.UnsafePlaceMove(oo.value());
+  EXPECT_EQ(move_finder_->HookSum(board, Move::Across, 6, 6, 3), 9);
+
+  const auto beau = Move::Parse("10E BEAU", *tiles_);
+  board.UnsafePlaceMove(beau.value());
+  // 6 (Bx2) + 1 (E) + 6 (KoA) + 5 (YoU) = 19
+  EXPECT_EQ(move_finder_->HookSum(board, Move::Across, 10, 0, 15), 18);
 }
 
 TEST_F(MoveFinderTest, CheckHooks) {
@@ -499,9 +521,7 @@ TEST_F(MoveFinderTest, WordMultiplier) {
   EXPECT_EQ(move_finder_->WordMultiplier(board, Move::Across, 7, 7, 5), 2);
   EXPECT_EQ(move_finder_->WordMultiplier(board, Move::Across, 7, 7, 8), 6);
   EXPECT_EQ(move_finder_->WordMultiplier(board, Move::Across, 7, 0, 15), 18);
-    EXPECT_EQ(move_finder_->WordMultiplier(board, Move::Across, 0, 0, 15), 27);
-    EXPECT_EQ(  move_finder_->WordMultiplier(board, Move::Across, 0, 0, 14), 9);
-      EXPECT_EQ(move_finder_->WordMultiplier(board, Move::Down, 0, 0, 15), 27);
-
-
+  EXPECT_EQ(move_finder_->WordMultiplier(board, Move::Across, 0, 0, 15), 27);
+  EXPECT_EQ(move_finder_->WordMultiplier(board, Move::Across, 0, 0, 14), 9);
+  EXPECT_EQ(move_finder_->WordMultiplier(board, Move::Down, 0, 0, 15), 27);
 }

@@ -100,6 +100,13 @@ TEST_F(TilesTest, Distribution) {
   EXPECT_EQ(tiles_->Count(tiles_->CharToNumber('?').value()), 2);
 }
 
+TEST_F(TilesTest, Scores) {
+  EXPECT_EQ(tiles_->Score(tiles_->CharToNumber('A').value()), 1);
+  EXPECT_EQ(tiles_->Score(tiles_->CharToNumber('B').value()), 3);
+  EXPECT_EQ(tiles_->Score(tiles_->CharToNumber('Z').value()), 10);
+  EXPECT_EQ(tiles_->Score(tiles_->CharToNumber('?').value()), 0);
+}
+
 TEST_F(TilesTest, Unblank) {
   const auto blanked = tiles_->ToLetterString("qUACkLE").value();
   const absl::optional<std::string> str = tiles_->ToString(blanked);

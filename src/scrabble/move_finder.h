@@ -55,6 +55,7 @@ class MoveFinder {
   FRIEND_TEST(MoveFinderTest, AcrossSpots);
   FRIEND_TEST(MoveFinderTest, DownSpots);
   FRIEND_TEST(MoveFinderTest, WordMultiplier);
+  FRIEND_TEST(MoveFinderTest, HookSum);
 
   void FindSpots(int rack_tiles, const Board& board, Move::Dir direction,
                  std::vector<MoveFinder::Spot>* spots) const;
@@ -68,6 +69,10 @@ class MoveFinder {
   int WordMultiplier(const Board& board, Move::Dir direction, int start_row,
                      int start_col, int num_tiles) const;
 
+
+  int HookSum(const Board& board, Move::Dir direction, int start_row,
+                     int start_col, int num_tiles) const;
+
   // "Zeroes out" the tiles on the board that are played through.
   // E.g. SHOESTRING played as SH(OESTRIN)G becomes SH.......G
   // Returns nullopt if the word does not fit with the tiles already on the
@@ -78,9 +83,11 @@ class MoveFinder {
 
   // Returns nullopt if the square is unconstrained, otherwise returns a string
   // with a gap for this square's hooks which is a key to use with
-  // anagram_map_.Hooks()
+  // anagram_map_.Hooks(). Set unblank to true for checking hook validity; set
+  // it to false to get tiles for scoring.
   absl::optional<LetterString> CrossAt(const Board& board, Move::Dir play_dir,
-                                       int square_row, int square_col) const;
+                                       int square_row, int square_col,
+                                       bool unblank) const;
   bool CheckHooks(const Board& board, const Move& move) const;
 
   // Word should only have played tiles (play-through is zeroed out).

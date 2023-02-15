@@ -19,6 +19,7 @@ Tiles::Tiles(const std::string& filename)
     : proto_(LoadTilesSpec(filename).value()),
       fullwidth_symbols_(MakeFullwidthSymbols()),
       distribution_(DistributionFromProto(proto_)),
+      scores_(ScoresFromProto(proto_)),
       blank_index_(FindBlankIndex(proto_)),
       primes_(TilePrimes(Primes::FirstNPrimes(blank_index_), PrimeIndices())) {}
 
@@ -63,6 +64,17 @@ std::array<int, 32> Tiles::DistributionFromProto(
   for (int i = 0; i < proto.tiles_size(); ++i) {
     const auto& tile = proto.tiles(i);
     ret[1 + i] = tile.count();
+  }
+  return ret;
+}
+
+std::array<int, 32> Tiles::ScoresFromProto(
+    const q2::proto::TilesSpec& proto) {
+  std::array<int, 32> ret;
+  std::fill(std::begin(ret), std::end(ret), 0);
+  for (int i = 0; i < proto.tiles_size(); ++i) {
+    const auto& tile = proto.tiles(i);
+    ret[1 + i] = tile.score();
   }
   return ret;
 }

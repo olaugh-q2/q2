@@ -28,6 +28,14 @@ class Tiles {
     return fullwidth_symbols_[static_cast<int>(letter)];
   }
   int BlankIndex() const { return blank_index_; }
+  int Score(Letter letter) const { return scores_[static_cast<int>(letter)]; }
+  int Score(const LetterString& s) const {
+    int ret = 0;
+    for (Letter letter : s) {
+      ret += Score(letter);
+    }
+    return ret;
+  }
 
  private:
   FRIEND_TEST(TilesTest, PrimeIndices);
@@ -36,6 +44,7 @@ class Tiles {
       const std::string& filename);
   std::array<char32_t, 32> MakeFullwidthSymbols() const;
   std::array<int, 32> DistributionFromProto(const q2::proto::TilesSpec& proto);
+  std::array<int, 32> ScoresFromProto(const q2::proto::TilesSpec& proto);
   int FindBlankIndex(const q2::proto::TilesSpec& proto);
   std::array<int, 32> PrimeIndices();
 
@@ -45,6 +54,7 @@ class Tiles {
   q2::proto::TilesSpec proto_;
   const std::array<char32_t, 32> fullwidth_symbols_;
   const std::array<int, 32> distribution_;
+  const std::array<int, 32> scores_;
   const int blank_index_;
   const std::array<uint64_t, 32> primes_;
 };
