@@ -525,3 +525,48 @@ TEST_F(MoveFinderTest, WordMultiplier) {
   EXPECT_EQ(move_finder_->WordMultiplier(board, Move::Across, 0, 0, 14), 9);
   EXPECT_EQ(move_finder_->WordMultiplier(board, Move::Down, 0, 0, 15), 27);
 }
+
+TEST_F(MoveFinderTest, ThroughScore) {
+  Board board;
+  EXPECT_EQ(move_finder_->ThroughScore(board, Move::Across, 7, 6, 3), 0);
+
+  const auto but = Move::Parse("8H BuT", *tiles_);
+  board.UnsafePlaceMove(but.value());
+  EXPECT_EQ(move_finder_->ThroughScore(board, Move::Across, 7, 6, 3),
+            tiles_->Score(LS("B?T")));
+  EXPECT_EQ(move_finder_->ThroughScore(board, Move::Across, 7, 5, 3),
+            tiles_->Score(LS("B?T")));
+
+  const auto zone = Move::Parse("8L ZONE", *tiles_);
+  board.UnsafePlaceMove(zone.value());
+  EXPECT_EQ(move_finder_->ThroughScore(board, Move::Across, 7, 6, 3),
+            tiles_->Score(LS("B?TZONE")));
+
+  const auto oxy = Move::Parse("8A OXY", *tiles_);
+  board.UnsafePlaceMove(oxy.value());
+  EXPECT_EQ(move_finder_->ThroughScore(board, Move::Across, 7, 0, 5),
+            tiles_->Score(LS("OXYB?TZONE")));
+  EXPECT_EQ(move_finder_->ThroughScore(board, Move::Across, 7, 0, 1),
+            tiles_->Score(LS("OXY")));            
+}
+
+TEST_F(MoveFinderTest, WordScore) {
+  Board board;
+  const auto cwm = Move::Parse("8G CWM", *tiles_);
+  EXPECT_EQ(move_finder_->WordScore(board, cwm.value(), 1), 10);
+  
+  board.UnsafePlaceMove(cwm.value());
+  const auto euoi = Move::Parse("7H EUOI", *tiles_);
+  // 2 + 4 + 1 + 1 = 7
+  EXPECT_EQ(move_finder_->WordScore(board, euoi.value(), 1), 8);
+
+  board.UnsafePlaceMove(euoi.value());
+  const auto zol = Move::Parse("6J ZOL", *tiles_);
+  // 60 + 2 + 1 = 63
+  EXPECT_EQ(move_finder_->WordScore(board, zol.value(), 1), 63);
+
+  board.UnsafePlaceMove(zol.value());
+  const auto aka = Move::Parse("5J AKA", *tiles_);
+  // 7*2 + 1 + 5*2 + 1 = 26
+  EXPECT_EQ(move_finder_->WordScore(board, aka.value(), 2), 26);
+}

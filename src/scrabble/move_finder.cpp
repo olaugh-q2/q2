@@ -197,6 +197,63 @@ int MoveFinder::HookSum(const Board& board, Move::Dir direction, int start_row,
   return ret;
 }
 
+int MoveFinder::ThroughScore(const Board& board, Move::Dir direction,
+                             int start_row, int start_col,
+                             int num_tiles) const {
+  int ret = 0;
+  int row = start_row;
+  int col = start_col;
+  int num_rack_tiles = 0;
+  while (row < 15 && col < 15) {
+    Letter letter = board.At(row, col);
+    if (letter) {
+      if (letter < tiles_.BlankIndex()) {
+        ret += tiles_.Score(letter);
+      }
+    } else {
+      if (num_rack_tiles == num_tiles) {
+        return ret;
+      }
+      num_rack_tiles++;
+    }
+    if (direction == Move::Across) {
+      col++;
+    } else {
+      row++;
+    }
+  }
+  return ret;
+}
+
+int MoveFinder::WordScore(const Board& board, const Move& move,
+                          int word_multiplier) const {
+  int word = 0;
+  int crossing = 0;
+  int row = move.StartRow();
+  int col = move.StartCol();
+  for (Letter letter : move.Letters()) {
+    if (letter) {
+      if (letter < tiles_.BlankIndex()) {
+        const int tile_score = tiles_.Score(letter);
+        const int letter_multiplier = board_layout_.LetterMultiplier(row, col);
+        word += tile_score * letter_multiplier;
+
+        const auto cross = CrossAt(board, move.Direction(), row, col, false);
+        if (cross.has_value()) {
+          crossing += tile_score * letter_multiplier *
+                      board_layout_.WordMultiplier(row, col);
+        }
+      }
+    }
+    if (move.Direction() == Move::Across) {
+      col++;
+    } else {
+      row++;
+    }
+  }
+  return word * word_multiplier + crossing;
+}
+
 std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
                                         Move::Dir direction, int start_row,
                                         int start_col, int num_tiles) const {
@@ -234,6 +291,8 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
         if (num_blanks == 0) {
           const Move move(direction, start_row, start_col, *played_tiles);
           if (CheckHooks(board, move)) {
+            // const int word_score = WordScore(board, direction, start_row,
+            //                                  start_col, num_tiles);
             moves.push_back(move);
           }
         } else {

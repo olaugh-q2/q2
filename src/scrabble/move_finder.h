@@ -56,6 +56,8 @@ class MoveFinder {
   FRIEND_TEST(MoveFinderTest, DownSpots);
   FRIEND_TEST(MoveFinderTest, WordMultiplier);
   FRIEND_TEST(MoveFinderTest, HookSum);
+  FRIEND_TEST(MoveFinderTest, ThroughScore);
+  FRIEND_TEST(MoveFinderTest, WordScore);
 
   void FindSpots(int rack_tiles, const Board& board, Move::Dir direction,
                  std::vector<MoveFinder::Spot>* spots) const;
@@ -69,9 +71,13 @@ class MoveFinder {
   int WordMultiplier(const Board& board, Move::Dir direction, int start_row,
                      int start_col, int num_tiles) const;
 
-
   int HookSum(const Board& board, Move::Dir direction, int start_row,
-                     int start_col, int num_tiles) const;
+              int start_col, int num_tiles) const;
+
+  int ThroughScore(const Board& board, Move::Dir direction, int start_row,
+                   int start_col, int num_tiles) const;
+
+  int WordScore(const Board& board, const Move& move, int word_multiplier) const;
 
   // "Zeroes out" the tiles on the board that are played through.
   // E.g. SHOESTRING played as SH(OESTRIN)G becomes SH.......G
