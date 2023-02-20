@@ -91,7 +91,7 @@ TEST_F(MoveFinderTest, FindWords) {
   const Rack rack(tiles_->ToLetterString("IIICFVV").value());
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 7, 7, 7);
-  ExpectMoves(words, {"8H VIVIFIC"});
+  ExpectMoves(words, {"8H VIVIFIC (score = 94)"});
 }
 
 TEST_F(MoveFinderTest, FindWords2) {
@@ -99,7 +99,9 @@ TEST_F(MoveFinderTest, FindWords2) {
   const Rack rack(tiles_->ToLetterString("BANANAS").value());
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 7, 6, 2);
-  ExpectMoves(words, {"8G AA", "8G AB", "8G BA", "8G AN", "8G NA", "8G AS"});
+  ExpectMoves(words,
+              {"8G AA (score = 4)", "8G AB (score = 8)", "8G BA (score = 8)",
+               "8G AN (score = 4)", "8G NA (score = 4)", "8G AS (score = 4)"});
 }
 
 TEST_F(MoveFinderTest, FindWords3) {
@@ -107,7 +109,7 @@ TEST_F(MoveFinderTest, FindWords3) {
   const Rack rack(tiles_->ToLetterString("AEURVY?").value());
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 7, 5, 7);
-  ExpectMoves(words, {"8F qUAVERY"});
+  ExpectMoves(words, {"8F qUAVERY (score = 82)"});
 }
 
 TEST_F(MoveFinderTest, FindWords4) {
@@ -115,8 +117,9 @@ TEST_F(MoveFinderTest, FindWords4) {
   const Rack rack(tiles_->ToLetterString("SQIRT??").value());
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 7, 1, 7);
-  ExpectMoves(words, {"8B QInTaRS", "8B QueRIST", "8B ReQuITS", "8B SQuIRTs",
-                      "8B sQuIRTS"});
+  ExpectMoves(words, {"8B QInTaRS (score = 78)", "8B QueRIST (score = 78)",
+                      "8B ReQuITS (score = 98)", "8B SQuIRTs (score = 78)",
+                      "8B sQuIRTS (score = 78)"});
 }
 
 TEST_F(MoveFinderTest, ZeroPlayedThroughTiles) {
@@ -196,8 +199,9 @@ TEST_F(MoveFinderTest, PlayThroughWithBlanks) {
   const Rack rack(tiles_->ToLetterString("URATES?").value());
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 7, 4, 7);
-  ExpectMoves(words, {"8E RA...TEUrS", "8E rA...TEURS", "8E RA...TEUSe",
-                      "8E RA...TeUSE"});
+  ExpectMoves(words,
+              {"8E RA...TEUrS (score = 62)", "8E rA...TEURS (score = 62)",
+               "8E RA...TEUSe (score = 62)", "8E RA...TeUSE (score = 62)"});
 }
 
 TEST_F(MoveFinderTest, CrossAt) {
@@ -260,7 +264,7 @@ TEST_F(MoveFinderTest, SevenTileOverlap) {
   const Rack rack(tiles_->ToLetterString("HEATER?").value());
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 6, 6, 7);
-  ExpectMoves(words, {"7G tHEATER", "7G THEAtER"});
+  ExpectMoves(words, {"7G tHEATER (score = 80)", "7G THEAtER (score = 82)"});
 }
 
 TEST_F(MoveFinderTest, NonHooks) {
@@ -282,7 +286,7 @@ TEST_F(MoveFinderTest, FrontExtension) {
   const Rack rack(tiles_->ToLetterString("??UNTER").value());
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 7, 0, 7);
-  ExpectMoves(words, {"8A coUNTER......."});
+  ExpectMoves(words, {"8A coUNTER....... (score = 101)"});
 }
 
 TEST_F(MoveFinderTest, EmptyBoardSpots) {
@@ -547,14 +551,14 @@ TEST_F(MoveFinderTest, ThroughScore) {
   EXPECT_EQ(move_finder_->ThroughScore(board, Move::Across, 7, 0, 5),
             tiles_->Score(LS("OXYB?TZONE")));
   EXPECT_EQ(move_finder_->ThroughScore(board, Move::Across, 7, 0, 1),
-            tiles_->Score(LS("OXY")));            
+            tiles_->Score(LS("OXY")));
 }
 
 TEST_F(MoveFinderTest, WordScore) {
   Board board;
   const auto cwm = Move::Parse("8G CWM", *tiles_);
   EXPECT_EQ(move_finder_->WordScore(board, cwm.value(), 1), 10);
-  
+
   board.UnsafePlaceMove(cwm.value());
   const auto euoi = Move::Parse("7H EUOI", *tiles_);
   // 2 + 4 + 1 + 1 = 7
@@ -569,4 +573,18 @@ TEST_F(MoveFinderTest, WordScore) {
   const auto aka = Move::Parse("5J AKA", *tiles_);
   // 7*2 + 1 + 5*2 + 1 = 26
   EXPECT_EQ(move_finder_->WordScore(board, aka.value(), 2), 26);
+}
+
+TEST_F(MoveFinderTest, FindMoves) {
+  Board board;
+  const Rack rack(tiles_->ToLetterString("QUACKLE").value());
+  std::vector<Move> moves = move_finder_->FindMoves(rack, board);
+  // for (const auto& move : moves) {
+  //   std::stringstream ss;
+  //   move.Display(*tiles_, ss);
+  //   LOG(INFO) << ss.str();
+  // }
+  //  TODO: These are just the scoring plays, no exchanges yet.
+  int num_expected = 1 * 7 + 2 * 6 + 6 * 5 + 17 * 4 + 23 * 3 + 6 * 2;
+  EXPECT_EQ(moves.size(), num_expected);
 }

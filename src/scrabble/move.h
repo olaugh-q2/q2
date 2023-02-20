@@ -46,6 +46,8 @@ class Move {
 
   int StartCol() const { return start_col_; }
 
+  void SetScore(int score) { score_ = score; }
+  
  private:
   std::string StartingSquare() const;
 

@@ -33,6 +33,7 @@ class MoveFinder {
              const Tiles& tiles)
       : anagram_map_(anagram_map), board_layout_(board_layout), tiles_(tiles) {}
 
+  std::vector<Move> FindMoves(const Rack& rack, const Board& board) const;
   std::vector<Move> FindExchanges(const Rack& rack) const;
 
  private:

@@ -147,8 +147,14 @@ TEST_F(MoveTest, ParsePlaythrough) {
 }
 
 TEST_F(MoveTest, WithScore) {
-  Move move(Move::Across, 7, 3, tiles_->ToLetterString("QuACKLe").value(), 110);
-  std::stringstream ss;
-  move.Display(*tiles_, ss);
-  EXPECT_EQ(ss.str(), "8D QuACKLe (score = 110)");
+  Move quackle(Move::Across, 7, 3, tiles_->ToLetterString("QuACKLe").value(), 110);
+  std::stringstream ss1;
+  quackle.Display(*tiles_, ss1);
+  EXPECT_EQ(ss1.str(), "8D QuACKLe (score = 110)");
+
+  Move cow(Move::Across, 7, 6, tiles_->ToLetterString("COW").value());
+  cow.SetScore(16);
+  std::stringstream ss2;
+  cow.Display(*tiles_, ss2);
+  EXPECT_EQ(ss2.str(), "8G COW (score = 16)");
 }

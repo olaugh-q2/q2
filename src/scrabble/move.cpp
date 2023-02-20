@@ -21,16 +21,16 @@ std::string Move::StartingSquare() const {
 }
 
 void Move::Display(const Tiles& tiles, std::ostream& os) const {
-  LOG(INFO) << "Displaying move";
+  //LOG(INFO) << "Displaying move";
   if (action_ == Move::Exchange) {
-    LOG(INFO) << "letters_.size() = " << letters_.size();
+    //LOG(INFO) << "letters_.size() = " << letters_.size();
     if (letters_.empty()) {
       std::string pass("PASS 0");
-      LOG(INFO) << "pass: " << pass;
+      //LOG(INFO) << "pass: " << pass;
       os << pass;
     } else {
       std::string exch("EXCH ");
-      LOG(INFO) << "exch: " << exch;
+      //LOG(INFO) << "exch: " << exch;
       os << exch << tiles.ToString(letters_).value();
     }
   } else {
