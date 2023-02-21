@@ -27,6 +27,7 @@ class Tiles {
   char32_t FullWidth(Letter letter) const {
     return fullwidth_symbols_[static_cast<int>(letter)];
   }
+  int FirstLetter() const { return 1; }  // A
   int BlankIndex() const { return blank_index_; }
   int Score(Letter letter) const { return scores_[static_cast<int>(letter)]; }
   int Score(const LetterString& s) const {

@@ -29,7 +29,7 @@ class Move {
         score_(score) {}
 
   Move(const LetterString& letters)
-      : action_(Move::Exchange), letters_(letters) {}
+      : action_(Move::Exchange), letters_(letters), score_(0) {}
 
   void Display(const Tiles& tiles, std::ostream& os) const;
 

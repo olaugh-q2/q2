@@ -602,9 +602,16 @@ std::vector<MoveFinder::Spot> MoveFinder::FindSpots(const Rack& rack,
   return spots;
 }
 
-std::vector<Move> MoveFinder::FindMoves(const Rack& rack,
-                                        const Board& board) const {
+std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
+                                        const Bag& bag) const {
   std::vector<Move> moves;
+  if (bag.CanExchange()) {
+    const auto exchanges = FindExchanges(rack);
+    moves.insert(moves.end(), exchanges.begin(), exchanges.end());
+  } else {
+    Move pass;
+    moves.push_back(pass);
+  }
   const std::vector<MoveFinder::Spot> spots = FindSpots(rack, board);
   for (const MoveFinder::Spot& spot : spots) {
     const auto words = FindWords(rack, board, spot.Direction(), spot.StartRow(),

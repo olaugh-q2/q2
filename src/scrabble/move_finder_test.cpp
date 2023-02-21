@@ -9,6 +9,8 @@ using ::testing::ElementsAre;
 using ::testing::UnorderedElementsAre;
 using ::testing::UnorderedElementsAreArray;
 
+std::unique_ptr<Bag> full_bag_;
+std::unique_ptr<Bag> empty_bag_;
 std::unique_ptr<Tiles> tiles_;
 std::unique_ptr<AnagramMap> anagram_map_;
 std::unique_ptr<BoardLayout> board_layout_;
@@ -29,6 +31,10 @@ class MoveFinderTest : public testing::Test {
     move_finder_ =
         absl::make_unique<MoveFinder>(*anagram_map_, *board_layout_, *tiles_);
     LOG(INFO) << "move finder ok";
+
+    full_bag_ = absl::make_unique<Bag>(*tiles_);
+    const std::vector<Letter> empty;
+    empty_bag_ = absl::make_unique<Bag>(*tiles_, empty);
   }
 
   Letter L(char c) { return tiles_->CharToNumber(c).value(); }
@@ -71,19 +77,22 @@ TEST_F(MoveFinderTest, Blankify) {
 TEST_F(MoveFinderTest, FindExchanges) {
   const Rack rack(tiles_->ToLetterString("AB").value());
   const auto exchanges = move_finder_->FindExchanges(rack);
-  ExpectMoves(exchanges, {"PASS 0", "EXCH A", "EXCH B", "EXCH AB"});
+  ExpectMoves(exchanges, {"PASS 0 (score = 0)", "EXCH A (score = 0)",
+                          "EXCH B (score = 0)", "EXCH AB (score = 0)"});
 }
 
 TEST_F(MoveFinderTest, FindExchanges2) {
   const Rack rack(tiles_->ToLetterString("AAA").value());
   const auto exchanges = move_finder_->FindExchanges(rack);
-  ExpectMoves(exchanges, {"PASS 0", "EXCH A", "EXCH AA", "EXCH AAA"});
+  ExpectMoves(exchanges, {"PASS 0 (score = 0)", "EXCH A (score = 0)",
+                          "EXCH AA (score = 0)", "EXCH AAA (score = 0)"});
 }
 
 TEST_F(MoveFinderTest, FindExchanges3) {
   const Rack rack(tiles_->ToLetterString("A?").value());
   const auto exchanges = move_finder_->FindExchanges(rack);
-  ExpectMoves(exchanges, {"PASS 0", "EXCH A", "EXCH ?", "EXCH A?"});
+  ExpectMoves(exchanges, {"PASS 0 (score = 0)", "EXCH A (score = 0)",
+                          "EXCH ? (score = 0)", "EXCH A? (score = 0)"});
 }
 
 TEST_F(MoveFinderTest, FindWords) {
@@ -578,13 +587,28 @@ TEST_F(MoveFinderTest, WordScore) {
 TEST_F(MoveFinderTest, FindMoves) {
   Board board;
   const Rack rack(tiles_->ToLetterString("QUACKLE").value());
-  std::vector<Move> moves = move_finder_->FindMoves(rack, board);
+  std::vector<Move> moves = move_finder_->FindMoves(rack, board, *empty_bag_);
   // for (const auto& move : moves) {
   //   std::stringstream ss;
   //   move.Display(*tiles_, ss);
   //   LOG(INFO) << ss.str();
   // }
-  //  TODO: These are just the scoring plays, no exchanges yet.
+  // These are just the scoring plays and pass 0, no exchanges.
   int num_expected = 1 * 7 + 2 * 6 + 6 * 5 + 17 * 4 + 23 * 3 + 6 * 2;
+  num_expected++;  // pass 0
+  EXPECT_EQ(moves.size(), num_expected);
+}
+
+TEST_F(MoveFinderTest, FindMoves2) {
+  Board board;
+  const Rack rack(tiles_->ToLetterString("QUACKLE").value());
+  std::vector<Move> moves = move_finder_->FindMoves(rack, board, *full_bag_);
+  // for (const auto& move : moves) {
+  //   std::stringstream ss;
+  //   move.Display(*tiles_, ss);
+  //   LOG(INFO) << ss.str();
+  // }
+  int num_expected = 1 * 7 + 2 * 6 + 6 * 5 + 17 * 4 + 23 * 3 + 6 * 2;
+  num_expected += 128;  // exchanges and pass 0
   EXPECT_EQ(moves.size(), num_expected);
 }

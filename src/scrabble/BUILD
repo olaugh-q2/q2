@@ -2,6 +2,29 @@ load("@rules_cc//cc:defs.bzl", "cc_proto_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
 cc_library(
+    name = "bag",
+    srcs = ["bag.cpp"],
+    hdrs = ["bag.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":tiles",
+        "@glog",
+    ],
+)
+
+cc_test(
+    name = "bag_test",
+    srcs = ["bag_test.cpp"],
+    data = glob(["testdata/*.textproto"]),
+    deps = [
+        ":bag",
+        ":tiles",
+        "@com_google_absl//absl/memory",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "board_layout",
     srcs = ["board_layout.cpp"],
     hdrs = ["board_layout.h"],
@@ -141,6 +164,7 @@ cc_library(
     copts = ["-std=c++14"],
     visibility = ["//visibility:public"],
     deps = [
+        ":bag",
         ":board",
         ":board_layout",
         ":move",

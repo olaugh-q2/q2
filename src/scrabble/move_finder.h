@@ -2,6 +2,7 @@
 #define SRC_SCRABBLE_MOVE_FINDER_H_
 
 #include "src/anagram/anagram_map.h"
+#include "src/scrabble/bag.h"
 #include "src/scrabble/board.h"
 #include "src/scrabble/board_layout.h"
 #include "src/scrabble/move.h"
@@ -29,11 +30,13 @@ class MoveFinder {
     int start_col_;
     int num_tiles_;
   };
+
   MoveFinder(const AnagramMap& anagram_map, const BoardLayout& board_layout,
              const Tiles& tiles)
       : anagram_map_(anagram_map), board_layout_(board_layout), tiles_(tiles) {}
 
-  std::vector<Move> FindMoves(const Rack& rack, const Board& board) const;
+  std::vector<Move> FindMoves(const Rack& rack, const Board& board,
+                              const Bag& bag) const;
   std::vector<Move> FindExchanges(const Rack& rack) const;
 
  private:
@@ -78,7 +81,8 @@ class MoveFinder {
   int ThroughScore(const Board& board, Move::Dir direction, int start_row,
                    int start_col, int num_tiles) const;
 
-  int WordScore(const Board& board, const Move& move, int word_multiplier) const;
+  int WordScore(const Board& board, const Move& move,
+                int word_multiplier) const;
 
   // "Zeroes out" the tiles on the board that are played through.
   // E.g. SHOESTRING played as SH(OESTRIN)G becomes SH.......G

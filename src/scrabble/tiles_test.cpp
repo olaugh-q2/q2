@@ -10,6 +10,7 @@ class TilesTest : public testing::Test {
     tiles_ = absl::make_unique<Tiles>(
         "src/scrabble/testdata/english_scrabble_tiles.textproto");
   }
+  
   std::unique_ptr<Tiles> tiles_;
 };
 
