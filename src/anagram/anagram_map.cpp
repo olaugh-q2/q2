@@ -259,7 +259,7 @@ absl::Status AnagramMap::WriteToBinaryFile(const std::string& filename) const {
 bool AnagramMap::WriteToOstream(std::ostream& os) const {
   Arena arena;
   {
-    auto* words = Arena::CreateMessage<q2::proto::Words>(&arena);
+    auto words = Arena::CreateMessage<q2::proto::Words>(&arena);
     for (const auto& word : words_) {
       words->add_word(tiles_.ToString(word).value());
     }
@@ -466,4 +466,5 @@ void AnagramMap::BuildHookMap() {
       }
     }
   }
+  LOG(INFO) << "Built hook map with " << hook_map_.size() << " entries";
 }

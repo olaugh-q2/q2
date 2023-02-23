@@ -12,6 +12,7 @@ using ::testing::UnorderedElementsAreArray;
 std::unique_ptr<Bag> full_bag_;
 std::unique_ptr<Bag> empty_bag_;
 std::unique_ptr<Tiles> tiles_;
+std::unique_ptr<Leaves> leaves_;
 std::unique_ptr<AnagramMap> anagram_map_;
 std::unique_ptr<BoardLayout> board_layout_;
 std::unique_ptr<MoveFinder> move_finder_;
@@ -28,8 +29,10 @@ class MoveFinderTest : public testing::Test {
     board_layout_ = absl::make_unique<BoardLayout>(
         "src/scrabble/testdata/scrabble_board.textproto");
     LOG(INFO) << "board layout ok";
-    move_finder_ =
-        absl::make_unique<MoveFinder>(*anagram_map_, *board_layout_, *tiles_);
+    leaves_ = Leaves::CreateFromBinaryFile(
+        *tiles_, "src/scrabble/testdata/csw_scrabble_macondo.qlv");
+    move_finder_ = absl::make_unique<MoveFinder>(*anagram_map_, *board_layout_,
+                                                 *tiles_, *leaves_);
     LOG(INFO) << "move finder ok";
 
     full_bag_ = absl::make_unique<Bag>(*tiles_);

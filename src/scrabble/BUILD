@@ -171,6 +171,7 @@ cc_library(
         ":primes",
         ":rack",
         "//src/anagram:anagram_map",
+        "//src/leaves:leaves",
         "@com_google_absl//absl/container:flat_hash_set",
         "@com_google_absl//absl/types:optional",
         "@glog",

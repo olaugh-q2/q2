@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package q2.proto;
+
+message Leave {
+  uint64 product = 1;
+  float value = 2;
+}
+
+message Leaves {
+  repeated Leave leaves = 1;
+}

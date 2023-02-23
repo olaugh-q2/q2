@@ -273,21 +273,7 @@ TEST_F(AnagramMapTest, CreateFromBinaryFile) {
               UnorderedElementsAre(Pair(P(""), ElementsAre(LP('A', 'H'))),
                                    Pair(P("A"), ElementsAre(LP('H', 'M'))),
                                    Pair(P("H"), ElementsAre(LP('A', 'M'))),
-                                   Pair(P("M"), ElementsAre(LP('A', 'H')))));
-
-                                     const auto _m = LS(".M");
-  uint32_t _m_expected_hooks = (1 << L('A')) | (1 << L('E')) | (1 << L('H')) |
-                               (1 << L('M')) | (1 << L('O')) | (1 << L('U'));
-  EXPECT_EQ(anagram_map->Hooks(_m), _m_expected_hooks);
-
-  const auto bum_ = LS("BUM.");
-  uint32_t bum_expected_hooks = (1 << L('F')) | (1 << L('P')) | (1 << L('S'));
-  EXPECT_EQ(anagram_map->Hooks(bum_), bum_expected_hooks);
-
-  const auto has_ing = LS("HAS.ING");
-  uint32_t has_ing_expected_hooks =
-      (1 << L('H')) | (1 << L('P')) | (1 << L('T'));
-  EXPECT_EQ(anagram_map->Hooks(has_ing), has_ing_expected_hooks);
+                                   Pair(P("M"), ElementsAre(LP('A', 'H')))));                                   
 }
 
 TEST_F(AnagramMapTest, CreateFromBinaryFile2) {

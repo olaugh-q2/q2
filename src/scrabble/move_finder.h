@@ -2,6 +2,7 @@
 #define SRC_SCRABBLE_MOVE_FINDER_H_
 
 #include "src/anagram/anagram_map.h"
+#include "src/leaves/leaves.h"
 #include "src/scrabble/bag.h"
 #include "src/scrabble/board.h"
 #include "src/scrabble/board_layout.h"
@@ -32,8 +33,8 @@ class MoveFinder {
   };
 
   MoveFinder(const AnagramMap& anagram_map, const BoardLayout& board_layout,
-             const Tiles& tiles)
-      : anagram_map_(anagram_map), board_layout_(board_layout), tiles_(tiles) {}
+             const Tiles& tiles, const Leaves& leaves)
+      : anagram_map_(anagram_map), board_layout_(board_layout), tiles_(tiles), leaves_(leaves) {}
 
   std::vector<Move> FindMoves(const Rack& rack, const Board& board,
                               const Bag& bag) const;
@@ -113,6 +114,7 @@ class MoveFinder {
   const AnagramMap& anagram_map_;
   const BoardLayout& board_layout_;
   const Tiles& tiles_;
+  const Leaves& leaves_;
 };
 
 inline bool operator==(const MoveFinder::Spot& a, const MoveFinder::Spot& b) {

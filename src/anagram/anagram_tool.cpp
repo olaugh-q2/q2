@@ -15,10 +15,8 @@ int main(int argc, char *argv[]) {
   LOG(INFO) << "input_textfile: " << absl::GetFlag(FLAGS_input_textfile);
   LOG(INFO) << "output_file: " << absl::GetFlag(FLAGS_output_file);
 
-  // TODO: load tiles from textproto spec
   auto tiles = absl::make_unique<Tiles>(
-      "AAAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGGHHIIIIIIIIIJKLLLLMMNNNNNNOOOOOOOOPP"
-      "QRRRRRRSSSSTTTTTTUUUUVVWWXYYZ??");
+        "src/anagram/testdata/english_scrabble_tiles.textproto");
 
   std::unique_ptr<AnagramMap> anagram_map = AnagramMap::CreateFromTextfile(
       *tiles, absl::GetFlag(FLAGS_input_textfile));

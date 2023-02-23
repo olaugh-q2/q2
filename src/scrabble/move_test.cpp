@@ -26,7 +26,7 @@ TEST_F(MoveTest, Exchange) {
   Move move(tiles_->ToLetterString("UUVW").value());
   std::stringstream ss;
   move.Display(*tiles_, ss);
-  EXPECT_EQ(ss.str(), "EXCH UUVW");
+  EXPECT_EQ(ss.str(), "EXCH UUVW (score = 0)");
 }
 
 TEST_F(MoveTest, PlaceAcross) {
@@ -79,7 +79,7 @@ TEST_F(MoveTest, ParseEXCH_UUVW) {
   ASSERT_TRUE(move_or.ok());
   std::stringstream ss;
   move_or->Display(*tiles_, ss);
-  EXPECT_EQ(ss.str(), "EXCH UUVW");
+  EXPECT_EQ(ss.str(), "EXCH UUVW (score = 0)");
 }
 
 TEST_F(MoveTest, ParseDashUUVW) {
@@ -87,7 +87,7 @@ TEST_F(MoveTest, ParseDashUUVW) {
   ASSERT_TRUE(move_or.ok());
   std::stringstream ss;
   move_or->Display(*tiles_, ss);
-  EXPECT_EQ(ss.str(), "EXCH UUVW");
+  EXPECT_EQ(ss.str(), "EXCH UUVW (score = 0)");
 }
 
 TEST_F(MoveTest, ParseExch_uuvw) {
@@ -95,7 +95,7 @@ TEST_F(MoveTest, ParseExch_uuvw) {
   ASSERT_TRUE(move_or.ok());
   std::stringstream ss;
   move_or->Display(*tiles_, ss);
-  EXPECT_EQ(ss.str(), "EXCH UUVW");
+  EXPECT_EQ(ss.str(), "EXCH UUVW (score = 0)");
 }
 
 TEST_F(MoveTest, ParseDashuUVw) {
@@ -103,7 +103,7 @@ TEST_F(MoveTest, ParseDashuUVw) {
   ASSERT_TRUE(move_or.ok());
   std::stringstream ss;
   move_or->Display(*tiles_, ss);
-  EXPECT_EQ(ss.str(), "EXCH UUVW");
+  EXPECT_EQ(ss.str(), "EXCH UUVW (score = 0)");
 }
 
 TEST_F(MoveTest, ParsePlace10J) {

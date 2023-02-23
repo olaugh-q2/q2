@@ -28,7 +28,20 @@ TEST_F(LeavesTest, CreateFromCsv) {
   EXPECT_FLOAT_EQ(leaves->Value(1), 0.0);
   uint64_t i_product = tiles_->Prime(L('I'));
   EXPECT_FLOAT_EQ(leaves->Value(i_product), 0.7403481220894292);
-  EXPECT_FLOAT_EQ(leaves->Value(1009 /* prime */), 0.0 /* error */);
+  EXPECT_FLOAT_EQ(leaves->Value(1009 /* big prime */), 0.0 /* default */);
+  uint64_t anise_blank_product =
+      static_cast<uint64_t>(tiles_->ToProduct(LS("AEINS?")));
+  EXPECT_FLOAT_EQ(leaves->Value(anise_blank_product), 38.35431501026073);
+}
+
+TEST_F(LeavesTest, CreateFromBinaryFile) {
+  const std::string input_filepath = "src/leaves/testdata/macondo.qlv";
+  auto leaves = Leaves::CreateFromBinaryFile(*tiles_, input_filepath);
+  ASSERT_NE(leaves, nullptr);
+  EXPECT_FLOAT_EQ(leaves->Value(1), 0.0);
+  uint64_t i_product = tiles_->Prime(L('I'));
+  EXPECT_FLOAT_EQ(leaves->Value(i_product), 0.7403481220894292);
+  EXPECT_FLOAT_EQ(leaves->Value(1009 /* big prime */), 0.0 /* default */);
   uint64_t anise_blank_product =
       static_cast<uint64_t>(tiles_->ToProduct(LS("AEINS?")));
   EXPECT_FLOAT_EQ(leaves->Value(anise_blank_product), 38.35431501026073);
