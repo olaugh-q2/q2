@@ -8,14 +8,41 @@
 std::vector<Move> MoveFinder::FindExchanges(const Rack& rack) const {
   std::vector<Move> moves;
   const auto subsets = rack.Subsets(tiles_);
+  const auto counts = rack.Counts();
   for (int num_blanks = 0; num_blanks <= rack.NumBlanks(tiles_); ++num_blanks) {
     for (const auto& subset : subsets) {
-      // const absl::uint128& product = subset.first;
       LetterString letters = subset.second;
+      auto leave_counts = counts;
+      for (const auto& letter : letters) {
+        leave_counts[letter]--;
+      }
       for (int i = 0; i < num_blanks; ++i) {
         letters.push_back(tiles_.BlankIndex());
+        leave_counts[tiles_.BlankIndex()]--;
       }
-      moves.push_back(Move(letters));
+      if (letters.size() == 0) {
+        // Pass 0 is a special case and we don't want to handle it as an
+        // exchange because we don't have leave values for it and generally it
+        // should be penalized for giving away too much information. Unless
+        // we're being very clever, it should be a last resort.
+        continue;
+      }
+      uint64_t leave_product = 1;
+      LetterString leave;
+      for (Letter letter = tiles_.FirstLetter(); letter <= tiles_.BlankIndex();
+           ++letter) {
+        for (int j = 0; j < leave_counts[letter]; ++j) {
+          leave.push_back(letter);
+          leave_product *= tiles_.Prime(letter);
+        }
+      }
+
+      Move move(letters);
+      const double leave_value = leaves_.Value(leave_product);
+      move.SetLeave(leave);
+      move.SetLeaveValue(leave_value);
+      move.ComputeEquity();
+      moves.push_back(move);
     }
   }
   return moves;
@@ -605,12 +632,17 @@ std::vector<MoveFinder::Spot> MoveFinder::FindSpots(const Rack& rack,
 std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
                                         const Bag& bag) const {
   std::vector<Move> moves;
+  // In normal static eval, Pass 0 is a last resort.
+  LetterString empty;
+  Move pass(empty);
+  pass.SetLeave(rack.Letters());
+  pass.SetLeaveValue(-1000);
+  pass.ComputeEquity();
+  moves.push_back(pass);
+
   if (bag.CanExchange()) {
     const auto exchanges = FindExchanges(rack);
     moves.insert(moves.end(), exchanges.begin(), exchanges.end());
-  } else {
-    Move pass;
-    moves.push_back(pass);
   }
   const std::vector<MoveFinder::Spot> spots = FindSpots(rack, board);
   for (const MoveFinder::Spot& spot : spots) {

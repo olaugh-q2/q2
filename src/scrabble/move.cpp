@@ -21,16 +21,16 @@ std::string Move::StartingSquare() const {
 }
 
 void Move::Display(const Tiles& tiles, std::ostream& os) const {
-  //LOG(INFO) << "Displaying move";
+  // LOG(INFO) << "Displaying move";
   if (action_ == Move::Exchange) {
-    //LOG(INFO) << "letters_.size() = " << letters_.size();
+    // LOG(INFO) << "letters_.size() = " << letters_.size();
     if (letters_.empty()) {
       std::string pass("PASS 0");
-      //LOG(INFO) << "pass: " << pass;
+      // LOG(INFO) << "pass: " << pass;
       os << pass;
     } else {
       std::string exch("EXCH ");
-      //LOG(INFO) << "exch: " << exch;
+      // LOG(INFO) << "exch: " << exch;
       os << exch << tiles.ToString(letters_).value();
     }
   } else {
@@ -42,16 +42,49 @@ void Move::Display(const Tiles& tiles, std::ostream& os) const {
   }
 }
 
+void Move::DisplayVerbose(const Tiles& tiles, std::ostream& os) const {
+  // LOG(INFO) << "Displaying move";
+  if (action_ == Move::Exchange) {
+    // LOG(INFO) << "letters_.size() = " << letters_.size();
+    if (letters_.empty()) {
+      std::string pass("PASS 0");
+      // LOG(INFO) << "pass: " << pass;
+      os << pass;
+    } else {
+      std::string exch("EXCH ");
+      // LOG(INFO) << "exch: " << exch;
+      os << exch << tiles.ToString(letters_).value();
+    }
+  } else {
+    os << StartingSquare() << " ";
+    os << tiles.ToString(letters_).value();
+  }
+  if (leave_ && leave_value_) {
+    if (leave_.value().size() == 0) {
+      os << " [leaving nothing = " << leave_value_.value() << "]";
+    } else {
+      os << " [leaving " << tiles.ToString(*leave_).value() << " = "
+         << leave_value_.value() << "]";
+    }
+  }
+  if (score_) {
+    os << " (score = " << score_.value() << ")";
+  }
+  if (equity_) {
+    os << " (equity = " << equity_.value() << ")";
+  }
+}
+
 absl::StatusOr<Move> Move::Parse(const std::string& move_string,
                                  const Tiles& tiles) {
-  //LOG(INFO) << "Parsing move: " << move_string;
   std::string upcase_string = absl::AsciiStrToUpper(move_string);
   if (move_string.empty()) {
     return absl::InvalidArgumentError("Move string is empty.");
   }
   if (move_string[0] == '-') {
     if (move_string.size() == 1) {
-      return Move();
+      const LetterString empty;
+      return Move(empty);
     } else {
       const auto letters = tiles.ToLetterString(move_string.substr(1));
       if (!letters) {
@@ -63,7 +96,12 @@ absl::StatusOr<Move> Move::Parse(const std::string& move_string,
     }
   }
   if (upcase_string.substr(0, 4) == "PASS") {
-    return Move();
+    LetterString empty;
+    Move pass(empty);
+    LOG(INFO) << "constructed pass move.";
+    Move ret = std::move(pass);
+    LOG(INFO) << "std::moved pass move.";
+    return ret;
   }
   if (upcase_string.substr(0, 5) == "EXCH ") {
     const auto letters = tiles.ToLetterString(move_string.substr(5));
@@ -105,7 +143,8 @@ absl::StatusOr<Move> Move::Parse(const std::string& move_string,
     return absl::InvalidArgumentError("Invalid starting square for move: " +
                                       move_string);
   }
-  const auto letters = tiles.ToLetterString(move_string.substr(starting_square_length));
+  const auto letters =
+      tiles.ToLetterString(move_string.substr(starting_square_length));
   if (!letters) {
     return absl::InvalidArgumentError("Invalid tiles for place move: " +
                                       move_string);

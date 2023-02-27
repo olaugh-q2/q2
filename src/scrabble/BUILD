@@ -184,6 +184,7 @@ cc_test(
     srcs = ["move_finder_test.cpp"],
     data = glob([
         "testdata/*.qam",
+        "testdata/*.qlv",
         "testdata/*.textproto",
     ]),
     deps = [

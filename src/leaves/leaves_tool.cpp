@@ -12,7 +12,7 @@ ABSL_FLAG(std::string, output_file, "", "output .qlv file path");
 int main(int argc, char *argv[]) {
   absl::ParseCommandLine(argc, argv);
   LOG(INFO) << "Hello world!" << std::endl;
-  LOG(INFO) << "input_csw: " << absl::GetFlag(FLAGS_input_csv);
+  LOG(INFO) << "input_csv: " << absl::GetFlag(FLAGS_input_csv);
   LOG(INFO) << "output_file: " << absl::GetFlag(FLAGS_output_file);
 
   auto tiles = absl::make_unique<Tiles>(

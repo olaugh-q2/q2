@@ -16,10 +16,11 @@ class MoveTest : public testing::Test {
 };
 
 TEST_F(MoveTest, Pass) {
-  Move move;
+  LetterString empty;
+  Move move(empty);
   std::stringstream ss;
   move.Display(*tiles_, ss);
-  EXPECT_EQ(ss.str(), "PASS 0");
+  EXPECT_EQ(ss.str(), "PASS 0 (score = 0)");
 }
 
 TEST_F(MoveTest, Exchange) {
@@ -55,7 +56,7 @@ TEST_F(MoveTest, ParsePASS) {
   ASSERT_TRUE(move_or.ok());
   std::stringstream ss;
   move_or->Display(*tiles_, ss);
-  EXPECT_EQ(ss.str(), "PASS 0");
+  EXPECT_EQ(ss.str(), "PASS 0 (score = 0)");
 }
 
 TEST_F(MoveTest, ParsePASS_0) {
@@ -63,7 +64,7 @@ TEST_F(MoveTest, ParsePASS_0) {
   ASSERT_TRUE(move_or.ok());
   std::stringstream ss;
   move_or->Display(*tiles_, ss);
-  EXPECT_EQ(ss.str(), "PASS 0");
+  EXPECT_EQ(ss.str(), "PASS 0 (score = 0)");
 }
 
 TEST_F(MoveTest, ParseDash) {
@@ -71,7 +72,7 @@ TEST_F(MoveTest, ParseDash) {
   ASSERT_TRUE(move_or.ok());
   std::stringstream ss;
   move_or->Display(*tiles_, ss);
-  EXPECT_EQ(ss.str(), "PASS 0");
+  EXPECT_EQ(ss.str(), "PASS 0 (score = 0)");
 }
 
 TEST_F(MoveTest, ParseEXCH_UUVW) {
@@ -147,7 +148,8 @@ TEST_F(MoveTest, ParsePlaythrough) {
 }
 
 TEST_F(MoveTest, WithScore) {
-  Move quackle(Move::Across, 7, 3, tiles_->ToLetterString("QuACKLe").value(), 110);
+  Move quackle(Move::Across, 7, 3, tiles_->ToLetterString("QuACKLe").value(),
+               110);
   std::stringstream ss1;
   quackle.Display(*tiles_, ss1);
   EXPECT_EQ(ss1.str(), "8D QuACKLe (score = 110)");
@@ -157,4 +159,53 @@ TEST_F(MoveTest, WithScore) {
   std::stringstream ss2;
   cow.Display(*tiles_, ss2);
   EXPECT_EQ(ss2.str(), "8G COW (score = 16)");
+}
+
+TEST_F(MoveTest, Assignable) {
+  const Move a(Move::Across, 7, 6, tiles_->ToLetterString("COW").value());
+  const Move b = a;
+  std::stringstream ss;
+  b.Display(*tiles_, ss);
+  EXPECT_EQ(ss.str(), "8G COW");
+}
+
+TEST_F(MoveTest, Copyable) {
+  const Move a(Move::Across, 7, 6, tiles_->ToLetterString("COW").value());
+  const Move b(a);
+  std::stringstream ss;
+  b.Display(*tiles_, ss);
+  EXPECT_EQ(ss.str(), "8G COW");
+}
+
+TEST_F(MoveTest, Moveable) {
+  Move a(Move::Across, 7, 6, tiles_->ToLetterString("COW").value());
+  Move b(Move::Across, 7, 6, tiles_->ToLetterString("ZZZ").value());
+  b = std::move(a);
+  std::stringstream ss;
+  b.Display(*tiles_, ss);
+  EXPECT_EQ(ss.str(), "8G COW");
+}
+
+TEST_F(MoveTest, Swappable) {
+  std::vector<Move> moves(
+      {Move(Move::Across, 0, 0, tiles_->ToLetterString("XX").value(), 4),
+       Move(Move::Across, 0, 0, tiles_->ToLetterString("XX").value(), 2)});
+  std::swap(moves[0], moves[1]);
+  EXPECT_EQ(moves[0].Score(), 2);
+  EXPECT_EQ(moves[1].Score(), 4);
+}
+
+TEST_F(MoveTest, Sortable) {
+  std::vector<Move> moves(
+      {Move(Move::Across, 0, 0, tiles_->ToLetterString("XX").value(), 4),
+       Move(Move::Across, 0, 0, tiles_->ToLetterString("XX").value(), 2),
+       Move(Move::Across, 0, 0, tiles_->ToLetterString("XX").value(), 3),
+       Move(Move::Across, 0, 0, tiles_->ToLetterString("XX").value(), 9)});
+  std::sort(moves.begin(), moves.end(), [](const Move &a, const Move &b) {
+    return a.Score() > b.Score();
+  });
+  EXPECT_EQ(moves[0].Score(), 9);
+  EXPECT_EQ(moves[1].Score(), 4);
+  EXPECT_EQ(moves[2].Score(), 3);
+  EXPECT_EQ(moves[3].Score(), 2);
 }

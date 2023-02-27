@@ -10,7 +10,7 @@ class TilesTest : public testing::Test {
     tiles_ = absl::make_unique<Tiles>(
         "src/scrabble/testdata/english_scrabble_tiles.textproto");
   }
-  
+
   std::unique_ptr<Tiles> tiles_;
 };
 
@@ -158,4 +158,34 @@ TEST_F(TilesTest, ToProduct) {
     expected_product *= p;
   }
   EXPECT_EQ(tiles_->ToProduct(ppvvwwyyjkqxz__), expected_product);
+}
+
+TEST_F(TilesTest, LetterStringAssignable) {
+  LetterString a = tiles_->ToLetterString("QUACKLE").value();
+  LetterString b = a;
+  EXPECT_EQ("QUACKLE", tiles_->ToString(a).value());
+  EXPECT_EQ("QUACKLE", tiles_->ToString(b).value());
+}
+
+TEST_F(TilesTest, LetterStringMoveAssignable) {
+  LetterString a = tiles_->ToLetterString("QUACKLE").value();
+  LetterString b = std::move(a);
+  EXPECT_TRUE(std::is_move_assignable<LetterString>::value);
+  EXPECT_EQ("QUACKLE", tiles_->ToString(b).value());
+}
+
+TEST_F(TilesTest, LetterStringMoveConstructible) {
+  LetterString a = tiles_->ToLetterString("QUACKLE").value();
+  LetterString b(std::move(a));
+  EXPECT_TRUE(std::is_move_constructible<LetterString>::value);
+  EXPECT_EQ("QUACKLE", tiles_->ToString(b).value());
+}
+
+TEST_F(TilesTest, LetterStringSwappable) {
+  EXPECT_TRUE(std::is_move_constructible<LetterString>::value);
+  LetterString a = tiles_->ToLetterString("AA").value();
+  LetterString b = tiles_->ToLetterString("BB").value();
+  std::swap(a, b);
+  EXPECT_EQ("BB", tiles_->ToString(a).value());
+  EXPECT_EQ("AA", tiles_->ToString(b).value());
 }

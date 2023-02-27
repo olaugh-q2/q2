@@ -1,9 +1,12 @@
 #include "src/scrabble/move_finder.h"
 
+#include <algorithm>
+
 #include "absl/memory/memory.h"
 #include "glog/logging.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "src/scrabble/move.h"
 
 using ::testing::ElementsAre;
 using ::testing::UnorderedElementsAre;
@@ -80,22 +83,22 @@ TEST_F(MoveFinderTest, Blankify) {
 TEST_F(MoveFinderTest, FindExchanges) {
   const Rack rack(tiles_->ToLetterString("AB").value());
   const auto exchanges = move_finder_->FindExchanges(rack);
-  ExpectMoves(exchanges, {"PASS 0 (score = 0)", "EXCH A (score = 0)",
-                          "EXCH B (score = 0)", "EXCH AB (score = 0)"});
+  ExpectMoves(exchanges, {"EXCH A (score = 0)", "EXCH B (score = 0)",
+                          "EXCH AB (score = 0)"});
 }
 
 TEST_F(MoveFinderTest, FindExchanges2) {
   const Rack rack(tiles_->ToLetterString("AAA").value());
   const auto exchanges = move_finder_->FindExchanges(rack);
-  ExpectMoves(exchanges, {"PASS 0 (score = 0)", "EXCH A (score = 0)",
-                          "EXCH AA (score = 0)", "EXCH AAA (score = 0)"});
+  ExpectMoves(exchanges, {"EXCH A (score = 0)", "EXCH AA (score = 0)",
+                          "EXCH AAA (score = 0)"});
 }
 
 TEST_F(MoveFinderTest, FindExchanges3) {
   const Rack rack(tiles_->ToLetterString("A?").value());
   const auto exchanges = move_finder_->FindExchanges(rack);
-  ExpectMoves(exchanges, {"PASS 0 (score = 0)", "EXCH A (score = 0)",
-                          "EXCH ? (score = 0)", "EXCH A? (score = 0)"});
+  ExpectMoves(exchanges, {"EXCH A (score = 0)", "EXCH ? (score = 0)",
+                          "EXCH A? (score = 0)"});
 }
 
 TEST_F(MoveFinderTest, FindWords) {
@@ -614,4 +617,38 @@ TEST_F(MoveFinderTest, FindMoves2) {
   int num_expected = 1 * 7 + 2 * 6 + 6 * 5 + 17 * 4 + 23 * 3 + 6 * 2;
   num_expected += 128;  // exchanges and pass 0
   EXPECT_EQ(moves.size(), num_expected);
+}
+
+TEST_F(MoveFinderTest, FindBestExchange) {
+  Board board;
+  const Rack rack(tiles_->ToLetterString("RRRVVWW").value());
+  std::vector<Move> moves = move_finder_->FindMoves(rack, board, *full_bag_);
+
+  int num_expected = 4 * 3 * 3;
+  EXPECT_EQ(moves.size(), num_expected);
+
+  std::sort(moves.begin(), moves.end(), [](const Move& a, const Move& b) {
+    return a.Equity() > b.Equity();
+  });
+
+  // Keep R is best
+  EXPECT_EQ(moves[0].Letters(), LS("RRVVWW"));
+  EXPECT_EQ(moves[0].Leave(), LS("R"));
+  EXPECT_EQ(moves[0].Score(), 0.0);
+  EXPECT_GE(moves[0].LeaveValue(), 0.0);
+  EXPECT_GE(moves[0].Equity(), 0.0);
+
+  // Keep VVWW is worst (except for Pass which is forced to be last)
+  EXPECT_EQ(moves[34].Letters(), LS("RRR"));
+  EXPECT_EQ(moves[34].Leave(), LS("VVWW"));
+  EXPECT_EQ(moves[34].Score(), 0.0);
+  EXPECT_LE(moves[34].LeaveValue(), 0.0);
+  EXPECT_LE(moves[34].Equity(), 0.0);
+
+  // Pass is last
+  EXPECT_EQ(moves[35].Letters(), LS(""));
+  EXPECT_EQ(moves[35].Leave(), LS("RRRVVWW"));
+  EXPECT_EQ(moves[35].Score(), 0.0);
+  EXPECT_FLOAT_EQ(moves[35].LeaveValue(), -1000.0);
+  EXPECT_FLOAT_EQ(moves[35].Equity(), -1000.0);
 }

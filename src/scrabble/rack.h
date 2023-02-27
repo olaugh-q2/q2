@@ -13,10 +13,12 @@ class Rack {
     absl::flat_hash_map<absl::uint128, LetterString> double_blank_subsets;
   };
   Rack(const LetterString& letters) : letters_(letters) {}
+  LetterString Letters() const { return letters_; }
   int NumTiles() const { return letters_.size(); }
   std::array<int, 32> Counts() const;
-  absl::flat_hash_map<absl::uint128, LetterString> Subsets(const Tiles& tiles) const;
-  
+  absl::flat_hash_map<absl::uint128, LetterString> Subsets(
+      const Tiles& tiles) const;
+
   int NumBlanks(const Tiles& tiles) const;
 
   void Display(const Tiles& tiles, std::ostream& os) const;

@@ -5,6 +5,8 @@
 #include <iterator>
 #include <ostream>
 
+#include "glog/logging.h"
+
 #define FIXED_STRING_MAXIMUM_LENGTH 25
 
 typedef char Letter;
@@ -18,6 +20,7 @@ class LetterString {
   typedef const char& const_reference;
 
   LetterString();
+  ~LetterString() {}
   LetterString(const Letter* s, size_t n);
   LetterString(size_t n, Letter c);
   LetterString(const Letter* s);
@@ -48,7 +51,8 @@ class LetterString {
   reference operator[](size_type i) { return data_[i]; }
   const_reference operator[](std::size_t i) const { return data_[i]; }
   LetterString& operator=(const LetterString& s);
-  
+  LetterString& operator=(LetterString&& s);
+
   std::array<int, 32> Counts() const {
     std::array<int, 32> ret;
     ret.fill(0);

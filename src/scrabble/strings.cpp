@@ -39,6 +39,7 @@ LetterString::LetterString(const char* s) {
 }
 
 LetterString::LetterString(const LetterString& s) {
+  //LOG(INFO) << "called copy constructor";
   int sz = s.size();
   memcpy(data_ + s.first_position(), s.data_ + s.first_position(), sz);
   first_position_ = s.first_position();
@@ -46,6 +47,7 @@ LetterString::LetterString(const LetterString& s) {
 }
 
 LetterString::LetterString(LetterString&& s) {
+  //LOG(INFO) << "called std::move constructor";
   int sz = s.size();
   memcpy(data_ + s.first_position(), s.data_ + s.first_position(), sz);
   first_position_ = s.first_position();
@@ -67,7 +69,17 @@ void LetterString::push_back(char c) {
 std::size_t LetterString::first_position() const { return first_position_; }
 std::size_t LetterString::last_position() const { return last_position_; }
 
-inline LetterString& LetterString::operator=(const LetterString& s) {
+LetterString& LetterString::operator=(const LetterString& s) {
+  //LOG(INFO) << "called operator=";
+  int sz = s.size();
+  memcpy(data_, s.data_, sz);
+  first_position_ = s.first_position();
+  last_position_ = s.last_position();
+  return *this;
+}
+
+LetterString& LetterString::operator=(LetterString&& s) {
+  //LOG(INFO) << "called std::move operator=";
   int sz = s.size();
   memcpy(data_, s.data_, sz);
   first_position_ = s.first_position();

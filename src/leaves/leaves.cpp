@@ -57,7 +57,7 @@ std::unique_ptr<Leaves> Leaves::CreateFromCsv(const Tiles& tiles,
     }
     leaves->leave_map_[small_product] = value;
   }
-
+  leaves->leave_map_[1] = 0.0;  // add empty leave in case it's missing
   return leaves;
 }
 
@@ -89,6 +89,7 @@ std::unique_ptr<Leaves> Leaves::CreateFromBinaryFile(
     }
     leaves->leave_map_[product] = value;
   }
+  leaves->leave_map_[1] = 0.0;  // add empty leave in case it's missing
   return leaves;
 }
 
