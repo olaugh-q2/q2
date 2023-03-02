@@ -601,7 +601,8 @@ TEST_F(MoveFinderTest, WordScore) {
 TEST_F(MoveFinderTest, FindMoves) {
   Board board;
   const Rack rack(tiles_->ToLetterString("QUACKLE").value());
-  std::vector<Move> moves = move_finder_->FindMoves(rack, board, *empty_bag_);
+  std::vector<Move> moves =
+      move_finder_->FindMoves(rack, board, *empty_bag_, MoveFinder::RecordAll);
   // for (const auto& move : moves) {
   //   std::stringstream ss;
   //   move.Display(*tiles_, ss);
@@ -616,7 +617,8 @@ TEST_F(MoveFinderTest, FindMoves) {
 TEST_F(MoveFinderTest, FindMoves2) {
   Board board;
   const Rack rack(tiles_->ToLetterString("QUACKLE").value());
-  std::vector<Move> moves = move_finder_->FindMoves(rack, board, *full_bag_);
+  std::vector<Move> moves =
+      move_finder_->FindMoves(rack, board, *full_bag_, MoveFinder::RecordAll);
   // for (const auto& move : moves) {
   //   std::stringstream ss;
   //   move.Display(*tiles_, ss);
@@ -630,7 +632,8 @@ TEST_F(MoveFinderTest, FindMoves2) {
 TEST_F(MoveFinderTest, FindBestExchange) {
   Board board;
   const Rack rack(tiles_->ToLetterString("RRRVVWW").value());
-  std::vector<Move> moves = move_finder_->FindMoves(rack, board, *full_bag_);
+  std::vector<Move> moves =
+      move_finder_->FindMoves(rack, board, *full_bag_, MoveFinder::RecordAll);
 
   int num_expected = 4 * 3 * 3;
   EXPECT_EQ(moves.size(), num_expected);
@@ -664,7 +667,8 @@ TEST_F(MoveFinderTest, FindBestExchange) {
 TEST_F(MoveFinderTest, FindBestMove) {
   Board board;
   const Rack rack(tiles_->ToLetterString("QCLEANS").value());
-  std::vector<Move> moves = move_finder_->FindMoves(rack, board, *full_bag_);
+  std::vector<Move> moves =
+      move_finder_->FindMoves(rack, board, *full_bag_, MoveFinder::RecordAll);
   std::sort(moves.begin(), moves.end(), [](const Move& a, const Move& b) {
     return a.Equity() > b.Equity();
   });
@@ -678,4 +682,20 @@ TEST_F(MoveFinderTest, FindBestMove) {
   }
   ExpectMove(moves[0], "EXCH Q (score = 0)");
   ExpectMove(*best_nonexchange, "8D CLEAN (score = 20)");
+}
+
+TEST_F(MoveFinderTest, RecordBest1) {
+  Board board;
+  const Rack rack(tiles_->ToLetterString("QCLEANS").value());
+  std::vector<Move> moves =
+      move_finder_->FindMoves(rack, board, *full_bag_, MoveFinder::RecordBest);
+  ExpectMoves(moves, {"EXCH Q (score = 0)"});
+}
+
+TEST_F(MoveFinderTest, RecordBest2) {
+  Board board;
+  const Rack rack(tiles_->ToLetterString("QANASTA").value());
+  std::vector<Move> moves =
+      move_finder_->FindMoves(rack, board, *full_bag_, MoveFinder::RecordBest);
+  ExpectMoves(moves, {"8D QANAT (score = 48)"});
 }

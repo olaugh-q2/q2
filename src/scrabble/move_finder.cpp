@@ -654,7 +654,8 @@ std::vector<MoveFinder::Spot> MoveFinder::FindSpots(const Rack& rack,
 }
 
 std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
-                                        const Bag& bag) const {
+                                        const Bag& bag,
+                                        RecordMode record_mode) const {
   std::vector<Move> moves;
   // In normal static eval, Pass 0 is a last resort.
   LetterString empty;
@@ -666,13 +667,30 @@ std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
 
   if (bag.CanExchange()) {
     const auto exchanges = FindExchanges(rack);
-    moves.insert(moves.end(), exchanges.begin(), exchanges.end());
+    if (record_mode == MoveFinder::RecordBest) {
+      for (const Move& exchange : exchanges) {
+        if (moves.empty() || (exchange.Equity() > moves[0].Equity())) {
+          moves[0] = exchange;
+        }
+      }
+    } else {
+      moves.insert(moves.end(), exchanges.begin(), exchanges.end());
+    }
   }
   const std::vector<MoveFinder::Spot> spots = FindSpots(rack, board);
   for (const MoveFinder::Spot& spot : spots) {
     const auto words = FindWords(rack, board, spot.Direction(), spot.StartRow(),
                                  spot.StartCol(), spot.NumTiles());
-    moves.insert(moves.end(), words.begin(), words.end());
+    if (record_mode == MoveFinder::RecordBest) {
+      for (const Move& word : words) {
+        if (moves.empty() || (word.Equity() > moves[0].Equity())) {
+          moves[0] = word;
+        }
+      }
+    }
+      else {
+        moves.insert(moves.end(), words.begin(), words.end());
+      }
+    }
+    return moves;
   }
-  return moves;
-}
