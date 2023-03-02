@@ -310,6 +310,24 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
       if (letters.size() + num_blanks != num_tiles) {
         continue;
       }
+      auto leave_counts = rack.Counts();
+      for (Letter letter : letters) {
+        leave_counts[letter]--;
+      }
+      uint64_t leave_product = 1;
+      LetterString leave;
+      for (Letter letter = tiles_.FirstLetter(); letter < tiles_.BlankIndex();
+           ++letter) {
+        for (int i = 0; i < leave_counts[letter]; ++i) {
+          leave.push_back(letter);
+          leave_product *= tiles_.Prime(letter);
+        }
+      }
+      for (int i = 0; i < num_blanks; ++i) {
+        leave.push_back(tiles_.BlankIndex());
+        leave_product *= tiles_.Prime(tiles_.BlankIndex());
+      }
+      const double leave_value = leaves_.Value(leave_product);
       const auto words =
           anagram_map_.Words(product * through_product, num_blanks);
       auto span_join = words.Spans() | ranges::view::join;
@@ -329,6 +347,9 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
             const int word_score = WordScore(board, move, word_multiplier);
             const int score = word_score + through_score + hook_sum + bonus;
             move.SetScore(score);
+            move.SetLeave(leave);
+            move.SetLeaveValue(leave_value);
+            move.ComputeEquity();
             moves.push_back(move);
           }
         } else {
@@ -339,6 +360,9 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
               const int word_score = WordScore(board, move, word_multiplier);
               const int score = word_score + through_score + hook_sum + bonus;
               move.SetScore(score);
+              move.SetLeave(leave);
+              move.SetLeaveValue(leave_value);
+              move.ComputeEquity();
               moves.push_back(move);
             }
           }

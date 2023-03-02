@@ -47,6 +47,14 @@ class MoveFinderTest : public testing::Test {
   LetterString LS(const std::string& s) {
     return tiles_->ToLetterString(s).value();
   }
+
+  void ExpectMove(const Move& move, const std::string& expected) {
+    std::stringstream ss;
+    move.Display(*tiles_, ss);
+    const auto actual = ss.str();
+    EXPECT_EQ(actual, expected);
+  }
+
   void ExpectMoves(const std::vector<Move>& moves,
                    const std::vector<std::string>& expected) {
     std::vector<std::string> actual;
@@ -651,4 +659,23 @@ TEST_F(MoveFinderTest, FindBestExchange) {
   EXPECT_EQ(moves[35].Score(), 0.0);
   EXPECT_FLOAT_EQ(moves[35].LeaveValue(), -1000.0);
   EXPECT_FLOAT_EQ(moves[35].Equity(), -1000.0);
+}
+
+TEST_F(MoveFinderTest, FindBestMove) {
+  Board board;
+  const Rack rack(tiles_->ToLetterString("QCLEANS").value());
+  std::vector<Move> moves = move_finder_->FindMoves(rack, board, *full_bag_);
+  std::sort(moves.begin(), moves.end(), [](const Move& a, const Move& b) {
+    return a.Equity() > b.Equity();
+  });
+
+  const Move* best_nonexchange = nullptr;
+  for (const auto& move : moves) {
+    if (move.Action() != Move::Exchange) {
+      best_nonexchange = &move;
+      break;
+    }
+  }
+  ExpectMove(moves[0], "EXCH Q (score = 0)");
+  ExpectMove(*best_nonexchange, "8D CLEAN (score = 20)");
 }
