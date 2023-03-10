@@ -43,6 +43,7 @@ class MoveFinder {
 
  private:
   FRIEND_TEST(MoveFinderTest, Blankify);
+  FRIEND_TEST(MoveFinderTest, BlankifyAllBlanks);
   FRIEND_TEST(MoveFinderTest, FindWords);
   FRIEND_TEST(MoveFinderTest, FindWords2);
   FRIEND_TEST(MoveFinderTest, FindWords3);

@@ -48,6 +48,7 @@ BoardLayout::MakeSymbolMap(const q2::proto::BoardSpec& proto) {
             .from_bytes(utf8);
     ret[utf32[0]] = &square;
   }
+  //LOG(INFO) << "Loaded " << ret.size() << " premium squares";
   return ret;
 }
 
@@ -81,6 +82,7 @@ std::array<std::array<char32_t, 15>, 15> BoardLayout::MakeSquareSymbols()
       ret[i][j] = utf32[j];
     }
   }
+  //LOG(INFO) << "Made square symbols";
   return ret;
 }
 
@@ -110,6 +112,7 @@ std::array<std::array<int, 15>, 15> BoardLayout::MakeLetterMultipliers() const {
       ret[i][j] = square->letter_multiplier();
     }
   }
+  //LOG(INFO) << "Made letter multipliers";
   return ret;
 }
 
@@ -139,6 +142,7 @@ std::array<std::array<int, 15>, 15> BoardLayout::MakeWordMultipliers() const {
       ret[i][j] = square->word_multiplier();
     }
   }
+  //LOG(INFO) << "Made word multipliers";
   return ret;
 }
 

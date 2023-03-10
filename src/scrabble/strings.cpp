@@ -66,8 +66,8 @@ void LetterString::push_back(char c) {
   data_[++last_position_] = c;
 }
 
-std::size_t LetterString::first_position() const { return first_position_; }
-std::size_t LetterString::last_position() const { return last_position_; }
+int LetterString::first_position() const { return first_position_; }
+int LetterString::last_position() const { return last_position_; }
 
 LetterString& LetterString::operator=(const LetterString& s) {
   //LOG(INFO) << "called operator=";

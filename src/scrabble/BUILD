@@ -32,6 +32,7 @@ cc_library(
     deps = [
         ":board",
         ":board_spec_cc_proto",
+        ":tiles",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/types:optional",
         "@glog",
@@ -170,6 +171,7 @@ cc_library(
         ":move",
         ":primes",
         ":rack",
+        ":tiles",
         "//src/anagram:anagram_map",
         "//src/leaves:leaves",
         "@com_google_absl//absl/container:flat_hash_set",
@@ -191,6 +193,23 @@ cc_test(
         ":move_finder",
         "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
+        "@glog",
+    ],
+)
+
+cc_binary(
+    name = "move_finder_benchmark",
+    srcs = ["move_finder_benchmark.cpp"],
+    data = glob([
+        "testdata/*.qam",
+        "testdata/*.qlv",
+        "testdata/*.textproto",
+    ]),
+    deps = [
+        ":move_finder",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/flags:usage",
         "@glog",
     ],
 )

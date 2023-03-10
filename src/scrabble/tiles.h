@@ -43,7 +43,7 @@ class Tiles {
 
   absl::optional<q2::proto::TilesSpec> LoadTilesSpec(
       const std::string& filename);
-  std::array<char32_t, 32> MakeFullwidthSymbols() const;
+  std::array<char32_t, 64> MakeFullwidthSymbols() const;
   std::array<int, 32> DistributionFromProto(const q2::proto::TilesSpec& proto);
   std::array<int, 32> ScoresFromProto(const q2::proto::TilesSpec& proto);
   int FindBlankIndex(const q2::proto::TilesSpec& proto);
@@ -53,10 +53,10 @@ class Tiles {
                                       const std::array<int, 32>& indices);
 
   q2::proto::TilesSpec proto_;
-  const std::array<char32_t, 32> fullwidth_symbols_;
+    const int blank_index_;
+  const std::array<char32_t, 64> fullwidth_symbols_;
   const std::array<int, 32> distribution_;
   const std::array<int, 32> scores_;
-  const int blank_index_;
   const std::array<uint64_t, 32> primes_;
 };
 

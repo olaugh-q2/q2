@@ -27,8 +27,8 @@ class LetterString {
   LetterString(const LetterString& s);
   LetterString(LetterString&& s);
 
-  std::size_t first_position() const;
-  std::size_t last_position() const;
+  int first_position() const;
+  int last_position() const;
   const_iterator begin() const;
   const_iterator end() const;
   iterator begin();
@@ -56,7 +56,7 @@ class LetterString {
   std::array<int, 32> Counts() const {
     std::array<int, 32> ret;
     ret.fill(0);
-    for (size_t i = first_position(); i <= last_position(); i++) {
+    for (auto i = first_position(); i <= last_position(); i++) {
       ret[data_[i]]++;
     }
     return ret;
@@ -74,8 +74,8 @@ class LetterString {
   }
 
   Letter data_[FIXED_STRING_MAXIMUM_LENGTH];
-  std::size_t first_position_;
-  std::size_t last_position_;
+  int first_position_;
+  int last_position_;
 };
 
 inline int LetterString::compare(const LetterString& s) const {

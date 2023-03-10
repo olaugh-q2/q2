@@ -88,6 +88,13 @@ TEST_F(MoveFinderTest, Blankify) {
               UnorderedElementsAre(LS("...sTAINS"), LS("...STAINs")));
 }
 
+TEST_F(MoveFinderTest, BlankifyAllBlanks) {
+  const LetterString empty;
+  const LetterString aa = tiles_->ToLetterString("AA").value();
+  
+  EXPECT_THAT(move_finder_->Blankify(empty, aa), ElementsAre(LS("aa")));
+}
+
 TEST_F(MoveFinderTest, FindExchanges) {
   const Rack rack(tiles_->ToLetterString("AB").value());
   const auto exchanges = move_finder_->FindExchanges(rack);
@@ -698,4 +705,80 @@ TEST_F(MoveFinderTest, RecordBest2) {
   std::vector<Move> moves =
       move_finder_->FindMoves(rack, board, *full_bag_, MoveFinder::RecordBest);
   ExpectMoves(moves, {"8D QANAT (score = 48)"});
+}
+
+TEST_F(MoveFinderTest, RepeatedlyPlay1) {
+  Board board;
+  std::vector<Move> moves;
+  int moves_played = 0;
+  for (int i = 0;; ++i) {
+    const Rack rack(tiles_->ToLetterString("RATES??").value());
+    std::vector<Move> moves = move_finder_->FindMoves(rack, board, *empty_bag_,
+                                                      MoveFinder::RecordBest);
+    ASSERT_EQ(moves.size(), 1);
+    std::stringstream ss;
+    moves[0].Display(*tiles_, ss);
+    LOG(INFO) << "moves[0]: " << ss.str();
+    if (moves[0].Action() != Move::Place) {
+      break;
+    }
+    board.UnsafePlaceMove(moves[0]);
+    moves_played++;
+  }
+  LOG(INFO) << "Played " << moves_played << " moves";
+  std::stringstream ss;
+  board_layout_->DisplayBoard(board, *tiles_, ss);
+  LOG(INFO) << std::endl << ss.str();
+  EXPECT_GE(moves_played, 30);
+}
+
+
+TEST_F(MoveFinderTest, RepeatedlyPlay2) {
+  Board board;
+  std::vector<Move> moves;
+  int moves_played = 0;
+  for (int i = 0;; ++i) {
+    const Rack rack(tiles_->ToLetterString("PLUMBUM").value());
+    std::vector<Move> moves = move_finder_->FindMoves(rack, board, *empty_bag_,
+                                                      MoveFinder::RecordBest);
+    ASSERT_EQ(moves.size(), 1);
+    std::stringstream ss;
+    moves[0].Display(*tiles_, ss);
+    LOG(INFO) << "moves[0]: " << ss.str();
+    if (moves[0].Action() != Move::Place) {
+      break;
+    }
+    board.UnsafePlaceMove(moves[0]);
+    moves_played++;
+  }
+  LOG(INFO) << "Played " << moves_played << " moves";
+  std::stringstream ss;
+  board_layout_->DisplayBoard(board, *tiles_, ss);
+  LOG(INFO) << std::endl << ss.str();
+  EXPECT_GE(moves_played, 30);
+}
+
+TEST_F(MoveFinderTest, RepeatedlyPlay3) {
+  Board board;
+  std::vector<Move> moves;
+  int moves_played = 0;
+  for (int i = 0;; ++i) {
+    const Rack rack(tiles_->ToLetterString("AAAAAAA").value());
+    std::vector<Move> moves = move_finder_->FindMoves(rack, board, *empty_bag_,
+                                                      MoveFinder::RecordBest);
+    ASSERT_EQ(moves.size(), 1);
+    std::stringstream ss;
+    moves[0].Display(*tiles_, ss);
+    LOG(INFO) << "moves[0]: " << ss.str();
+    if (moves[0].Action() != Move::Place) {
+      break;
+    }
+    board.UnsafePlaceMove(moves[0]);
+    moves_played++;
+  }
+  LOG(INFO) << "Played " << moves_played << " moves";
+  std::stringstream ss;
+  board_layout_->DisplayBoard(board, *tiles_, ss);
+  LOG(INFO) << std::endl << ss.str();
+  EXPECT_EQ(moves_played, 2);
 }

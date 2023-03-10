@@ -11,6 +11,12 @@ class TilesTest : public testing::Test {
         "src/scrabble/testdata/english_scrabble_tiles.textproto");
   }
 
+
+  Letter L(char c) { return tiles_->CharToNumber(c).value(); }
+  LetterString LS(const std::string& s) {
+    return tiles_->ToLetterString(s).value();
+  }
+
   std::unique_ptr<Tiles> tiles_;
 };
 
@@ -188,4 +194,15 @@ TEST_F(TilesTest, LetterStringSwappable) {
   std::swap(a, b);
   EXPECT_EQ("BB", tiles_->ToString(a).value());
   EXPECT_EQ("AA", tiles_->ToString(b).value());
+}
+
+TEST_F(TilesTest, FullWidth) {
+  const char32_t fullwidth_a = 0xff21;
+  EXPECT_EQ(tiles_->FullWidth(L('A')), fullwidth_a);
+
+const char32_t fullwidth_question_mark = 0xff1f;
+    EXPECT_EQ(tiles_->FullWidth(L('?')), fullwidth_question_mark);
+
+  const char32_t fullwidth_lower_z = 0xff5a;
+    EXPECT_EQ(tiles_->FullWidth(L('z')), fullwidth_lower_z);
 }

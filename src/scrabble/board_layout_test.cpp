@@ -19,7 +19,8 @@ class BoardLayoutTest : public testing::Test {
 };
 
 TEST_F(BoardLayoutTest, Construction) {
-  const auto& lm = layout_->letter_multipliers_;
+  const auto lm = layout_->letter_multipliers_;
+  LOG(INFO) << "bar";
   EXPECT_THAT(lm[0],
               ElementsAreArray({1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1}));
   EXPECT_THAT(lm[1],
@@ -78,7 +79,7 @@ TEST_F(BoardLayoutTest, UnsafePlaceMove) {
       EXPECT_EQ(citizen_row_strings[i], before_row_strings[i]);
     }
   }
-  const auto& sh = Move::Parse("o8 SH", *tiles_);
+  const auto& sh = Move::Parse("o8 sH", *tiles_);
   board.UnsafePlaceMove(sh.value());
   std::array<std::string, 15> sh_row_strings;
   for (int i = 0; i < 15; ++i) {
@@ -87,8 +88,9 @@ TEST_F(BoardLayoutTest, UnsafePlaceMove) {
     sh_row_strings[i] = ss.str();
   }
   for (int i = 0; i < 15; ++i) {
+    LOG(INFO) << sh_row_strings[i];
     if (i == 7) {
-      EXPECT_EQ(sh_row_strings[i], " 8＝　　＇　　　ＣＩＴＩＺＥＮＳ");
+      EXPECT_EQ(sh_row_strings[i], " 8＝　　＇　　　ＣＩＴＩＺＥＮｓ");
     } else if (i == 8) {
       EXPECT_EQ(sh_row_strings[i], " 9　　＇　　　＇　＇　　　＇　Ｈ");
     } else {
@@ -105,7 +107,7 @@ TEST_F(BoardLayoutTest, UnsafePlaceMove) {
   }
   for (int i = 0; i < 15; ++i) {
     if (i == 7) {
-      EXPECT_EQ(shiplaps_row_strings[i], " 8＝　　＇　　　ＣＩＴＩＺＥＮＳ");
+      EXPECT_EQ(shiplaps_row_strings[i], " 8＝　　＇　　　ＣＩＴＩＺＥＮｓ");
     } else if (i == 8) {
       EXPECT_EQ(shiplaps_row_strings[i], " 9　　＇　　　＇　＇　　　＇　Ｈ");
     } else if (i == 9) {

@@ -12,6 +12,12 @@ class RackTest : public testing::Test {
     tiles_ = absl::make_unique<Tiles>(
         "src/scrabble/testdata/english_scrabble_tiles.textproto");
   }
+
+  Letter L(char c) { return tiles_->CharToNumber(c).value(); }
+  LetterString LS(const std::string& s) {
+    return tiles_->ToLetterString(s).value();
+  }
+
   std::unique_ptr<Tiles> tiles_;
 };
 
@@ -100,4 +106,21 @@ TEST_F(RackTest, NumBlanks) {
   EXPECT_EQ(no_blanks.NumBlanks(*tiles_), 0);
   EXPECT_EQ(one_blank.NumBlanks(*tiles_), 1);
   EXPECT_EQ(two_blanks.NumBlanks(*tiles_), 2);
+}
+
+TEST_F(RackTest, Counts1) {
+  Rack nonempty(tiles_->ToLetterString("A").value());
+  auto counts = nonempty.Counts();
+  EXPECT_EQ(counts[L('A')], 1);
+  for (Letter letter = L('B'); letter <= L('?'); ++letter) {
+    EXPECT_EQ(counts[letter], 0);
+  }
+}
+
+TEST_F(RackTest, Counts2) {
+  Rack empty(tiles_->ToLetterString("").value());
+  auto counts = empty.Counts();
+  for (Letter letter = L('A'); letter <= L('?'); ++letter) {
+    EXPECT_EQ(counts[letter], 0);
+  }
 }

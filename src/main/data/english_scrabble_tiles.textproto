@@ -288,7 +288,7 @@ tiles {
 }
 tiles {
     natural_ascii: "?"
-
+    natural_fullwidth: "？"
     tile_type: BLANK
     
     score: 0

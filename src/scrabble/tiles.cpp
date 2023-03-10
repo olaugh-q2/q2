@@ -17,10 +17,10 @@ using ::google::protobuf::io::FileInputStream;
 
 Tiles::Tiles(const std::string& filename)
     : proto_(LoadTilesSpec(filename).value()),
+      blank_index_(FindBlankIndex(proto_)),
       fullwidth_symbols_(MakeFullwidthSymbols()),
       distribution_(DistributionFromProto(proto_)),
       scores_(ScoresFromProto(proto_)),
-      blank_index_(FindBlankIndex(proto_)),
       primes_(TilePrimes(Primes::FirstNPrimes(blank_index_), PrimeIndices())) {}
 
 absl::optional<q2::proto::TilesSpec> Tiles::LoadTilesSpec(
@@ -43,8 +43,8 @@ absl::optional<q2::proto::TilesSpec> Tiles::LoadTilesSpec(
   return *tiles_spec;
 }
 
-std::array<char32_t, 32> Tiles::MakeFullwidthSymbols() const {
-  std::array<char32_t, 32> ret;
+std::array<char32_t, 64> Tiles::MakeFullwidthSymbols() const {
+  std::array<char32_t, 64> ret;
   for (int i = 0; i < proto_.tiles().size(); ++i) {
     const auto& tile = proto_.tiles(i);
     const int letter = i + 1;
@@ -53,6 +53,14 @@ std::array<char32_t, 32> Tiles::MakeFullwidthSymbols() const {
         std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t>{}
             .from_bytes(utf8);
     ret[letter] = utf32[0];
+
+    if (letter < blank_index_) {
+      const std::string& blank_utf8 = tile.blanked_fullwidth();
+      std::u32string blank_utf32 =
+          std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t>{}
+              .from_bytes(blank_utf8);
+      ret[letter + blank_index_] = blank_utf32[0];
+    }
   }
   return ret;
 }
@@ -68,8 +76,7 @@ std::array<int, 32> Tiles::DistributionFromProto(
   return ret;
 }
 
-std::array<int, 32> Tiles::ScoresFromProto(
-    const q2::proto::TilesSpec& proto) {
+std::array<int, 32> Tiles::ScoresFromProto(const q2::proto::TilesSpec& proto) {
   std::array<int, 32> ret;
   std::fill(std::begin(ret), std::end(ret), 0);
   for (int i = 0; i < proto.tiles_size(); ++i) {
@@ -93,16 +100,16 @@ int Tiles::FindBlankIndex(const q2::proto::TilesSpec& proto) {
 }
 
 absl::optional<Letter> Tiles::CharToNumber(char c) const {
-  //LOG(INFO) << "CharToNumber(" << c << ")";
+  // LOG(INFO) << "CharToNumber(" << c << ")";
   if (c == '.') {
     return 0;
   } else if (c == '?') {
-    //LOG(INFO) << "returning " << blank_index_;
+    // LOG(INFO) << "returning " << blank_index_;
     return blank_index_;
   } else if (c >= 'A' && c <= 'Z') {
     return c - 'A' + 1;
   } else if (c >= 'a' && c <= 'z') {
-    //LOG(INFO) << "returning " << c - 'a' + 1 + blank_index_;
+    // LOG(INFO) << "returning " << c - 'a' + 1 + blank_index_;
     return c - 'a' + 1 + blank_index_;
   }
   LOG(ERROR) << "Could not convert character '" << c << " ("

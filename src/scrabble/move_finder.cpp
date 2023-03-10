@@ -76,6 +76,9 @@ absl::optional<LetterString> MoveFinder::ZeroPlayedThroughTiles(
 
 std::vector<LetterString> MoveFinder::Blankify(const LetterString& rack_letters,
                                                const LetterString& word) const {
+  // LOG(INFO) << "Blankify('" << tiles_.ToString(rack_letters).value() << "',
+  // '"
+  //           << tiles_.ToString(word).value() << "')";
   std::array<int, 32> rack_counts = rack_letters.Counts();
   std::array<int, 32> word_counts = word.Counts();
   std::vector<LetterString> ret;
@@ -87,6 +90,7 @@ std::vector<LetterString> MoveFinder::Blankify(const LetterString& rack_letters,
   }
   CHECK_GE(blank_letters.size(), 1);
   CHECK_LE(blank_letters.size(), 2);
+  // LOG(INFO) << "blank_letters.size(): " << blank_letters.size();
   if (blank_letters.size() == 1) {
     const Letter blank_letter = blank_letters[0];
     // LOG(INFO) << "blank_letter: " <<
@@ -113,8 +117,10 @@ std::vector<LetterString> MoveFinder::Blankify(const LetterString& rack_letters,
       for (int i = 0; i < positions.size() - 1; ++i) {
         for (int j = i + 1; j < positions.size(); ++j) {
           LetterString ret_word = word;
+          // LOG(INFO) << "ret_word: " << tiles_.ToString(ret_word).value();
           ret_word[positions[i]] += tiles_.BlankIndex();
           ret_word[positions[j]] += tiles_.BlankIndex();
+          // LOG(INFO) << "ret_word: " << tiles_.ToString(ret_word).value();
           ret.push_back(ret_word);
         }
       }
@@ -288,6 +294,8 @@ int MoveFinder::WordScore(const Board& board, const Move& move,
 std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
                                         Move::Dir direction, int start_row,
                                         int start_col, int num_tiles) const {
+  // LOG(INFO) << "FindWords(" << direction << ", " << start_row << ", "
+  //           << start_col << ", " << num_tiles << ")";
   std::vector<Move> moves;
   const auto subsets = rack.Subsets(tiles_);
   const absl::uint128 through_product =
@@ -314,19 +322,17 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
       for (Letter letter : letters) {
         leave_counts[letter]--;
       }
+      leave_counts[tiles_.BlankIndex()] -= num_blanks;
       uint64_t leave_product = 1;
       LetterString leave;
-      for (Letter letter = tiles_.FirstLetter(); letter < tiles_.BlankIndex();
+      for (Letter letter = tiles_.FirstLetter(); letter <= tiles_.BlankIndex();
            ++letter) {
         for (int i = 0; i < leave_counts[letter]; ++i) {
           leave.push_back(letter);
           leave_product *= tiles_.Prime(letter);
         }
       }
-      for (int i = 0; i < num_blanks; ++i) {
-        leave.push_back(tiles_.BlankIndex());
-        leave_product *= tiles_.Prime(tiles_.BlankIndex());
-      }
+      // LOG(INFO) << "leave: " << tiles_.ToString(leave).value();
       const double leave_value = leaves_.Value(leave_product);
       const auto words =
           anagram_map_.Words(product * through_product, num_blanks);
@@ -341,9 +347,9 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
         }
         // LOG(INFO) << "played_tiles: " <<
         // tiles_.ToString(*played_tiles).value();
-        if (num_blanks == 0) {
-          Move move(direction, start_row, start_col, *played_tiles);
-          if (CheckHooks(board, move)) {
+        Move move(direction, start_row, start_col, *played_tiles);
+        if (CheckHooks(board, move)) {
+          if (num_blanks == 0) {
             const int word_score = WordScore(board, move, word_multiplier);
             const int score = word_score + through_score + hook_sum + bonus;
             move.SetScore(score);
@@ -351,19 +357,17 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
             move.SetLeaveValue(leave_value);
             move.ComputeEquity();
             moves.push_back(move);
-          }
-        } else {
-          const auto blankified = Blankify(letters, *played_tiles);
-          for (const auto& blank_word : blankified) {
-            Move move(direction, start_row, start_col, blank_word);
-            if (CheckHooks(board, move)) {
-              const int word_score = WordScore(board, move, word_multiplier);
+          } else {
+            const auto blankified = Blankify(letters, *played_tiles);
+            for (const auto& blank_word : blankified) {
+              Move blank_move(direction, start_row, start_col, blank_word);
+              const int word_score = WordScore(board, blank_move, word_multiplier);
               const int score = word_score + through_score + hook_sum + bonus;
-              move.SetScore(score);
-              move.SetLeave(leave);
-              move.SetLeaveValue(leave_value);
-              move.ComputeEquity();
-              moves.push_back(move);
+              blank_move.SetScore(score);
+              blank_move.SetLeave(leave);
+              blank_move.SetLeaveValue(leave_value);
+              blank_move.ComputeEquity();
+              moves.push_back(blank_move);
             }
           }
         }
@@ -669,7 +673,7 @@ std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
     const auto exchanges = FindExchanges(rack);
     if (record_mode == MoveFinder::RecordBest) {
       for (const Move& exchange : exchanges) {
-        if (moves.empty() || (exchange.Equity() > moves[0].Equity())) {
+        if (exchange.Equity() > moves[0].Equity()) {
           moves[0] = exchange;
         }
       }
@@ -678,19 +682,20 @@ std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
     }
   }
   const std::vector<MoveFinder::Spot> spots = FindSpots(rack, board);
+  // LOG(INFO) << "spots.size(): " << spots.size();
   for (const MoveFinder::Spot& spot : spots) {
     const auto words = FindWords(rack, board, spot.Direction(), spot.StartRow(),
                                  spot.StartCol(), spot.NumTiles());
+    // LOG(INFO) << "words.size(): " << words.size();
     if (record_mode == MoveFinder::RecordBest) {
       for (const Move& word : words) {
-        if (moves.empty() || (word.Equity() > moves[0].Equity())) {
+        if (word.Equity() > moves[0].Equity()) {
           moves[0] = word;
         }
       }
+    } else {
+      moves.insert(moves.end(), words.begin(), words.end());
     }
-      else {
-        moves.insert(moves.end(), words.begin(), words.end());
-      }
-    }
-    return moves;
   }
+  return moves;
+}

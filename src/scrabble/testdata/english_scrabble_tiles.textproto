@@ -290,7 +290,7 @@ tiles {
     natural_ascii: "?"
 
     tile_type: BLANK
-    
+    natural_fullwidth: "？"
     score: 0
     count: 2
 }
