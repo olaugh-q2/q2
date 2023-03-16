@@ -91,7 +91,7 @@ TEST_F(MoveFinderTest, Blankify) {
 TEST_F(MoveFinderTest, BlankifyAllBlanks) {
   const LetterString empty;
   const LetterString aa = tiles_->ToLetterString("AA").value();
-  
+
   EXPECT_THAT(move_finder_->Blankify(empty, aa), ElementsAre(LS("aa")));
 }
 
@@ -119,6 +119,7 @@ TEST_F(MoveFinderTest, FindExchanges3) {
 TEST_F(MoveFinderTest, FindWords) {
   Board board;
   const Rack rack(tiles_->ToLetterString("IIICFVV").value());
+  move_finder_->cross_map_.clear();
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 7, 7, 7);
   ExpectMoves(words, {"8H VIVIFIC (score = 94)"});
@@ -127,6 +128,7 @@ TEST_F(MoveFinderTest, FindWords) {
 TEST_F(MoveFinderTest, FindWords2) {
   Board board;
   const Rack rack(tiles_->ToLetterString("BANANAS").value());
+  move_finder_->cross_map_.clear();
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 7, 6, 2);
   ExpectMoves(words,
@@ -137,6 +139,7 @@ TEST_F(MoveFinderTest, FindWords2) {
 TEST_F(MoveFinderTest, FindWords3) {
   Board board;
   const Rack rack(tiles_->ToLetterString("AEURVY?").value());
+  move_finder_->cross_map_.clear();
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 7, 5, 7);
   ExpectMoves(words, {"8F qUAVERY (score = 82)"});
@@ -145,6 +148,7 @@ TEST_F(MoveFinderTest, FindWords3) {
 TEST_F(MoveFinderTest, FindWords4) {
   Board board;
   const Rack rack(tiles_->ToLetterString("SQIRT??").value());
+  move_finder_->cross_map_.clear();
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 7, 1, 7);
   ExpectMoves(words, {"8B QInTaRS (score = 78)", "8B QueRIST (score = 78)",
@@ -227,6 +231,7 @@ TEST_F(MoveFinderTest, PlayThroughWithBlanks) {
   const auto con = Move::Parse("8G CON", *tiles_);
   board.UnsafePlaceMove(con.value());
   const Rack rack(tiles_->ToLetterString("URATES?").value());
+  move_finder_->cross_map_.clear();
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 7, 4, 7);
   ExpectMoves(words,
@@ -247,6 +252,30 @@ TEST_F(MoveFinderTest, CrossAt) {
   const auto cross_7H = move_finder_->CrossAt(board, Move::Across, 6, 7, false);
   ASSERT_TRUE(cross_7H.has_value());
   EXPECT_EQ(*cross_7H, LS(".Y?"));
+}
+
+TEST_F(MoveFinderTest, MemoizedCrossAt) {
+  Board board;
+  const auto ky = Move::Parse("8G KY", *tiles_);
+  board.UnsafePlaceMove(ky.value());
+  const auto cross_7G =
+      move_finder_->MemoizedCrossAt(board, Move::Across, 6, 6, true);
+  ASSERT_TRUE(cross_7G.has_value());
+  EXPECT_EQ(*cross_7G, LS(".K"));
+
+  move_finder_->cross_map_.clear();
+  const auto oo = Move::Parse("9G oo", *tiles_);
+  board.UnsafePlaceMove(oo.value());
+  auto cross_7H =
+      move_finder_->MemoizedCrossAt(board, Move::Across, 6, 7, false);
+  ASSERT_TRUE(cross_7H.has_value());
+  EXPECT_EQ(*cross_7H, LS(".Y?"));
+
+  EXPECT_EQ(move_finder_->cross_map_.size(), 1);
+  cross_7H = move_finder_->MemoizedCrossAt(board, Move::Across, 6, 7, false);
+  ASSERT_TRUE(cross_7H.has_value());
+  EXPECT_EQ(*cross_7H, LS(".Y?"));
+  EXPECT_EQ(move_finder_->cross_map_.size(), 1);
 }
 
 TEST_F(MoveFinderTest, HookSum) {
@@ -271,18 +300,23 @@ TEST_F(MoveFinderTest, CheckHooks) {
   board.UnsafePlaceMove(aa.value());
 
   const auto hm = Move::Parse("7G HM", *tiles_);
+  move_finder_->cross_map_.clear();
   EXPECT_TRUE(move_finder_->CheckHooks(board, hm.value()));
 
   const auto ae = Move::Parse("7G AE", *tiles_);
+  move_finder_->cross_map_.clear();
   EXPECT_TRUE(move_finder_->CheckHooks(board, ae.value()));
 
   const auto faan = Move::Parse("7F FAAN", *tiles_);
+  move_finder_->cross_map_.clear();
   EXPECT_TRUE(move_finder_->CheckHooks(board, faan.value()));
 
   const auto qi = Move::Parse("7G QI", *tiles_);
+  move_finder_->cross_map_.clear();
   EXPECT_FALSE(move_finder_->CheckHooks(board, qi.value()));
 
   const auto ax = Move::Parse("7G AX", *tiles_);
+  move_finder_->cross_map_.clear();
   EXPECT_FALSE(move_finder_->CheckHooks(board, ax.value()));
 }
 
@@ -292,6 +326,7 @@ TEST_F(MoveFinderTest, SevenTileOverlap) {
   board.UnsafePlaceMove(airtime.value());
 
   const Rack rack(tiles_->ToLetterString("HEATER?").value());
+  move_finder_->cross_map_.clear();
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 6, 6, 7);
   ExpectMoves(words, {"7G tHEATER (score = 80)", "7G THEAtER (score = 82)"});
@@ -303,6 +338,7 @@ TEST_F(MoveFinderTest, NonHooks) {
   board.UnsafePlaceMove(vav.value());
 
   const Rack rack(tiles_->ToLetterString("Z??").value());
+  move_finder_->cross_map_.clear();
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 6, 6, 3);
   ExpectMoves(words, {});
@@ -314,6 +350,7 @@ TEST_F(MoveFinderTest, FrontExtension) {
   board.UnsafePlaceMove(airtime.value());
 
   const Rack rack(tiles_->ToLetterString("??UNTER").value());
+  move_finder_->cross_map_.clear();
   const auto words =
       move_finder_->FindWords(rack, board, Move::Across, 7, 0, 7);
   ExpectMoves(words, {"8A coUNTER....... (score = 101)"});
@@ -732,7 +769,6 @@ TEST_F(MoveFinderTest, RepeatedlyPlay1) {
   EXPECT_GE(moves_played, 30);
 }
 
-
 TEST_F(MoveFinderTest, RepeatedlyPlay2) {
   Board board;
   std::vector<Move> moves;
@@ -756,6 +792,7 @@ TEST_F(MoveFinderTest, RepeatedlyPlay2) {
   board_layout_->DisplayBoard(board, *tiles_, ss);
   LOG(INFO) << std::endl << ss.str();
   EXPECT_GE(moves_played, 30);
+  //EXPECT_TRUE(false);
 }
 
 TEST_F(MoveFinderTest, RepeatedlyPlay3) {
@@ -781,4 +818,14 @@ TEST_F(MoveFinderTest, RepeatedlyPlay3) {
   board_layout_->DisplayBoard(board, *tiles_, ss);
   LOG(INFO) << std::endl << ss.str();
   EXPECT_EQ(moves_played, 2);
+}
+
+TEST_F(MoveFinderTest, PlayThroughBlank) {
+  Board board;
+  const auto jetbead = Move::Parse("8D JeTBeAD", *tiles_);
+  board.UnsafePlaceMove(jetbead.value());
+  const Rack rack(tiles_->ToLetterString("OXAZPAM").value());
+  std::vector<Move> moves = move_finder_->FindMoves(rack, board, *empty_bag_,
+                                                      MoveFinder::RecordBest);
+  ExpectMoves(moves, {"E4 OXAZ.PAM (score = 158)"});
 }

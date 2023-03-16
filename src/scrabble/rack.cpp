@@ -8,7 +8,7 @@ void Rack::Display(const Tiles& tiles, std::ostream& os) const {
 
 namespace {
 void AddPowerSets(const Tiles& tiles, const std::array<int, 32>& counts,
-                  int index, int product, LetterString prefix,
+                  int index, absl::uint128 product, LetterString prefix,
                   absl::flat_hash_map<absl::uint128, LetterString>* subsets) {
   // LOG(INFO) << "index: " << index << " product: " << product
   //           << " prefix: " << tiles.ToString(prefix).value();

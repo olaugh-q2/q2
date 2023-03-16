@@ -11,7 +11,6 @@ class TilesTest : public testing::Test {
         "src/scrabble/testdata/english_scrabble_tiles.textproto");
   }
 
-
   Letter L(char c) { return tiles_->CharToNumber(c).value(); }
   LetterString LS(const std::string& s) {
     return tiles_->ToLetterString(s).value();
@@ -164,6 +163,13 @@ TEST_F(TilesTest, ToProduct) {
     expected_product *= p;
   }
   EXPECT_EQ(tiles_->ToProduct(ppvvwwyyjkqxz__), expected_product);
+
+  const LetterString aamopxz = tiles_->ToLetterString("AAMOPXZ").value();
+  EXPECT_EQ(tiles_->ToProduct(aamopxz),
+            tiles_->Prime(L('A')) * tiles_->Prime(L('A')) *
+                tiles_->Prime(L('M')) * tiles_->Prime(L('O')) *
+                tiles_->Prime(L('P')) * tiles_->Prime(L('X')) *
+                tiles_->Prime(L('Z')));       
 }
 
 TEST_F(TilesTest, LetterStringAssignable) {
@@ -200,9 +206,9 @@ TEST_F(TilesTest, FullWidth) {
   const char32_t fullwidth_a = 0xff21;
   EXPECT_EQ(tiles_->FullWidth(L('A')), fullwidth_a);
 
-const char32_t fullwidth_question_mark = 0xff1f;
-    EXPECT_EQ(tiles_->FullWidth(L('?')), fullwidth_question_mark);
+  const char32_t fullwidth_question_mark = 0xff1f;
+  EXPECT_EQ(tiles_->FullWidth(L('?')), fullwidth_question_mark);
 
   const char32_t fullwidth_lower_z = 0xff5a;
-    EXPECT_EQ(tiles_->FullWidth(L('z')), fullwidth_lower_z);
+  EXPECT_EQ(tiles_->FullWidth(L('z')), fullwidth_lower_z);
 }

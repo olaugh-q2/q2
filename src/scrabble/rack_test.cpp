@@ -99,6 +99,16 @@ TEST_F(RackTest, Subsets5) {
   EXPECT_EQ(subsets.size(), 40);
 }
 
+TEST_F(RackTest, Subsets6) {
+  Rack rack(tiles_->ToLetterString("AAMOPXZ").value());
+  const auto& subsets = rack.Subsets(*tiles_);
+  for (const auto& subset : subsets) {
+    LOG(INFO) << "subset: {" << subset.first << ", "
+              << tiles_->ToString(subset.second).value() << "}";
+  }
+  EXPECT_EQ(subsets.size(), 0);
+}
+
 TEST_F(RackTest, NumBlanks) {
   Rack no_blanks(tiles_->ToLetterString("RETAINS").value());
   Rack one_blank(tiles_->ToLetterString("RETAIN?").value());

@@ -10,6 +10,14 @@
 #include "src/scrabble/rack.h"
 #include "src/scrabble/tiles.h"
 
+typedef std::array<absl::optional<LetterString>, 15> CrossRow;
+typedef std::array<CrossRow, 15> CrossBoard;
+typedef std::array<CrossBoard, 2> CrossMemo;
+
+typedef std::array<int, 15> ScoreRow;
+typedef std::array<ScoreRow, 15> ScoreBoard;
+typedef std::array<ScoreBoard, 2> ScoreMemo;
+
 class MoveFinder {
  public:
   enum RecordMode { RecordAll, RecordBest, RecordBestK };
@@ -35,10 +43,13 @@ class MoveFinder {
 
   MoveFinder(const AnagramMap& anagram_map, const BoardLayout& board_layout,
              const Tiles& tiles, const Leaves& leaves)
-      : anagram_map_(anagram_map), board_layout_(board_layout), tiles_(tiles), leaves_(leaves) {}
+      : anagram_map_(anagram_map),
+        board_layout_(board_layout),
+        tiles_(tiles),
+        leaves_(leaves) {}
 
   std::vector<Move> FindMoves(const Rack& rack, const Board& board,
-                              const Bag& bag, RecordMode record_mode) const;
+                              const Bag& bag, RecordMode record_mode);
   std::vector<Move> FindExchanges(const Rack& rack) const;
 
  private:
@@ -54,6 +65,7 @@ class MoveFinder {
   FRIEND_TEST(MoveFinderTest, AbsorbThroughTiles);
   FRIEND_TEST(MoveFinderTest, AbsorbThroughTiles2);
   FRIEND_TEST(MoveFinderTest, CrossAt);
+  FRIEND_TEST(MoveFinderTest, MemoizedCrossAt);
   FRIEND_TEST(MoveFinderTest, CheckHooks);
   FRIEND_TEST(MoveFinderTest, SevenTileOverlap);
   FRIEND_TEST(MoveFinderTest, NonHooks);
@@ -95,6 +107,13 @@ class MoveFinder {
       const Board& board, Move::Dir direction, int start_row, int start_col,
       const LetterString& word) const;
 
+  void CacheCrossesAndMemos();
+  
+  absl::optional<LetterString> MemoizedCrossAt(const Board& board,
+                                               Move::Dir play_dir,
+                                               int square_row, int square_col,
+                                               bool unblank);
+
   // Returns nullopt if the square is unconstrained, otherwise returns a string
   // with a gap for this square's hooks which is a key to use with
   // anagram_map_.Hooks(). Set unblank to true for checking hook validity; set
@@ -102,7 +121,7 @@ class MoveFinder {
   absl::optional<LetterString> CrossAt(const Board& board, Move::Dir play_dir,
                                        int square_row, int square_col,
                                        bool unblank) const;
-  bool CheckHooks(const Board& board, const Move& move) const;
+  bool CheckHooks(const Board& board, const Move& move);
 
   // Word should only have played tiles (play-through is zeroed out).
   // Returns copies of the word with blanks designated to make legal plays.
@@ -111,12 +130,19 @@ class MoveFinder {
 
   std::vector<Move> FindWords(const Rack& rack, const Board& board,
                               Move::Dir direction, int start_row, int start_col,
-                              int num_tiles) const;
+                              int num_tiles);
 
   const AnagramMap& anagram_map_;
   const BoardLayout& board_layout_;
   const Tiles& tiles_;
   const Leaves& leaves_;
+
+  absl::flat_hash_map<std::tuple<Move::Dir, int, int, bool>,
+                      absl::optional<LetterString>>
+      cross_map_;
+  
+  CrossMemo cross_memo_;
+  ScoreMemo score_memo_;
 };
 
 inline bool operator==(const MoveFinder::Spot& a, const MoveFinder::Spot& b) {
