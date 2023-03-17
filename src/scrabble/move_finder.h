@@ -10,13 +10,13 @@
 #include "src/scrabble/rack.h"
 #include "src/scrabble/tiles.h"
 
-typedef std::array<absl::optional<LetterString>, 15> CrossRow;
-typedef std::array<CrossRow, 15> CrossBoard;
-typedef std::array<CrossBoard, 2> CrossMemo;
+typedef std::array<absl::optional<uint32_t>, 15> HookRow;
+typedef std::array<HookRow, 15> HookBoard;
+typedef std::array<HookBoard, 2> HookTable;
 
 typedef std::array<int, 15> ScoreRow;
 typedef std::array<ScoreRow, 15> ScoreBoard;
-typedef std::array<ScoreBoard, 2> ScoreMemo;
+typedef std::array<ScoreBoard, 2> ScoreTable;
 
 class MoveFinder {
  public:
@@ -97,7 +97,7 @@ class MoveFinder {
                    int start_col, int num_tiles) const;
 
   int WordScore(const Board& board, const Move& move,
-                int word_multiplier) const;
+                int word_multiplier);
 
   // "Zeroes out" the tiles on the board that are played through.
   // E.g. SHOESTRING played as SH(OESTRIN)G becomes SH.......G
@@ -108,7 +108,7 @@ class MoveFinder {
       const LetterString& word) const;
 
   void CacheCrossesAndMemos();
-  
+
   absl::optional<LetterString> MemoizedCrossAt(const Board& board,
                                                Move::Dir play_dir,
                                                int square_row, int square_col,
@@ -128,21 +128,26 @@ class MoveFinder {
   std::vector<LetterString> Blankify(const LetterString& rack_letters,
                                      const LetterString& word) const;
 
+  const std::vector<std::pair<absl::uint128, LetterString>>& Subracks(
+      const Rack& rack, int num_tiles);
+
   std::vector<Move> FindWords(const Rack& rack, const Board& board,
                               Move::Dir direction, int start_row, int start_col,
-                              int num_tiles);
+                              int num_tiles, RecordMode record_mode,
+                              double best_equity);
 
   const AnagramMap& anagram_map_;
   const BoardLayout& board_layout_;
   const Tiles& tiles_;
   const Leaves& leaves_;
+  std::vector<std::pair<absl::uint128, LetterString>> subracks_;
 
   absl::flat_hash_map<std::tuple<Move::Dir, int, int, bool>,
                       absl::optional<LetterString>>
       cross_map_;
-  
-  CrossMemo cross_memo_;
-  ScoreMemo score_memo_;
+
+  HookTable hook_table_;
+  ScoreTable score_table_;
 };
 
 inline bool operator==(const MoveFinder::Spot& a, const MoveFinder::Spot& b) {

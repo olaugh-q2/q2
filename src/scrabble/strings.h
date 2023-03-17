@@ -4,6 +4,7 @@
 #include <array>
 #include <iterator>
 #include <ostream>
+#include <string_view>
 
 #include "glog/logging.h"
 
@@ -127,9 +128,13 @@ inline bool operator!=(const LetterString& lhs, const LetterString& rhs) {
 
 template <typename H>
 H AbslHashValue(H h, const LetterString& m) {
+  const std::string_view s(&m.constData()[m.first_position()], m.size());
+  h = H::combine(std::move(h), s);
+  /*
   for (auto letter : m) {
     h = H::combine(std::move(h), letter);
   }
+  */
   return h;
 }
 
