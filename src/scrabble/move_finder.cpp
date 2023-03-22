@@ -323,10 +323,13 @@ const std::vector<std::pair<absl::uint128, LetterString>>& MoveFinder::Subracks(
 }
 
 std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
-                                        Move::Dir direction, int start_row,
-                                        int start_col, int num_tiles,
+                                        const Spot& spot,
                                         MoveFinder::RecordMode record_mode,
                                         double best_equity) {
+  const auto direction = spot.Direction();
+  const int start_row = spot.StartRow();
+  const int start_col = spot.StartCol();
+  const int num_tiles = spot.NumTiles();
   // LOG(INFO) << "FindWords(" << direction << ", " << start_row << ", "
   //           << start_col << ", " << num_tiles << ")";
   std::vector<Move> moves;
@@ -773,6 +776,23 @@ void MoveFinder::FindSpots(int rack_tiles, const Board& board,
   }
 }
 
+void MoveFinder::ComputeSpotMaxEquity(const Rack& rack, const Board& board,
+                                      Spot* spot) const {
+  const auto direction = spot->Direction();
+  const int start_row = spot->StartRow();
+  const int start_col = spot->StartCol();
+  const int num_tiles = spot->NumTiles();
+  int max_score = 0;
+  const int word_multiplier =
+      WordMultiplier(board, direction, start_row, start_col, num_tiles);
+  spot->SetWordMultiplier(word_multiplier);
+  const int hook_sum =
+      HookSum(board, direction, start_row, start_col, num_tiles);
+  const int through_score =
+      ThroughScore(board, direction, start_row, start_col, num_tiles) *
+      word_multiplier;
+}
+
 std::vector<MoveFinder::Spot> MoveFinder::FindSpots(const Rack& rack,
                                                     const Board& board) const {
   std::vector<MoveFinder::Spot> spots;
@@ -785,6 +805,9 @@ std::vector<MoveFinder::Spot> MoveFinder::FindSpots(const Rack& rack,
   } else {
     FindSpots(rack.NumTiles(), board, Move::Across, &spots);
     FindSpots(rack.NumTiles(), board, Move::Down, &spots);
+  }
+  for (auto& spot : spots) {
+    ComputeSpotMaxEquity(rack, board, &spot);
   }
   return spots;
 }
@@ -824,9 +847,7 @@ std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
     // <<
     // ", "
     //           << spot.StartCol() << ", " << spot.NumTiles();
-    const auto words =
-        FindWords(rack, board, spot.Direction(), spot.StartRow(),
-                  spot.StartCol(), spot.NumTiles(), record_mode, best_equity);
+    const auto words = FindWords(rack, board, spot, record_mode, best_equity);
     // LOG(INFO) << "words.size(): " << words.size();
     if (record_mode == MoveFinder::RecordBest) {
       for (const Move& word : words) {

@@ -35,16 +35,23 @@ class MoveFinder {
           start_col_(start_col),
           num_tiles_(num_tiles) {}
 
+    void SetWordMultiplier(int word_multiplier) {
+      word_multiplier_ = word_multiplier;
+    }
+    void SetMaxEquity(double max_equity) { max_equity_ = max_equity; }
     Move::Dir Direction() const { return direction_; }
     int StartRow() const { return start_row_; }
     int StartCol() const { return start_col_; }
     int NumTiles() const { return num_tiles_; }
+    double MaxEquity() const { return max_equity_; }
 
    private:
     Move::Dir direction_;
     int start_row_;
     int start_col_;
     int num_tiles_;
+    int word_multiplier_;
+    double max_equity_;
   };
 
   MoveFinder(const AnagramMap& anagram_map, const BoardLayout& board_layout,
@@ -85,6 +92,9 @@ class MoveFinder {
   FRIEND_TEST(MoveFinderTest, WordScore);
   FRIEND_TEST(MoveFinderTest, CacheCrossesAndScores);
 
+  void ComputeSpotMaxEquity(const Rack& rack, const Board& board,
+                            Spot* spot) const;
+
   void FindSpots(int rack_tiles, const Board& board, Move::Dir direction,
                  std::vector<MoveFinder::Spot>* spots) const;
 
@@ -110,9 +120,9 @@ class MoveFinder {
                                   int start_row, int start_col,
                                   const LetterString& word) const;
 
-  LetterString ZeroPlayedThroughTiles(
-      const Board& board, Move::Dir direction, int start_row, int start_col,
-      const LetterString& word) const;
+  LetterString ZeroPlayedThroughTiles(const Board& board, Move::Dir direction,
+                                      int start_row, int start_col,
+                                      const LetterString& word) const;
 
   void CacheCrossesAndScores(const Board& board);
 
@@ -139,8 +149,7 @@ class MoveFinder {
       const Rack& rack, int num_tiles);
 
   std::vector<Move> FindWords(const Rack& rack, const Board& board,
-                              Move::Dir direction, int start_row, int start_col,
-                              int num_tiles, RecordMode record_mode,
+                              const Spot& spot, RecordMode record_mode,
                               double best_equity);
 
   const AnagramMap& anagram_map_;

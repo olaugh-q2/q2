@@ -38,7 +38,7 @@ class LetterString {
   std::size_t length() const;
   LetterString substr(std::size_t pos, std::size_t n) const;
   bool empty() const { return length() == 0; }
-  std::size_t size() const { return length(); }
+  std::size_t size() const;
   void clear();
   void push_back(Letter c);
   void pop_back();
@@ -98,6 +98,14 @@ inline int LetterString::compare(const LetterString& s) const {
   return 0;
 }
 
+inline std::size_t LetterString::length() const {
+  return last_position_ - first_position_ + 1;
+}
+
+inline std::size_t LetterString::size() const {
+  return last_position_ - first_position_ + 1;
+}
+
 inline LetterString::const_iterator LetterString::begin() const {
   return data_ + first_position();
 }
@@ -136,6 +144,85 @@ H AbslHashValue(H h, const LetterString& m) {
   }
   */
   return h;
+}
+
+inline LetterString::LetterString() : first_position_(0), last_position_(-1) {}
+
+inline LetterString::LetterString(const char* s, std::size_t n)
+    : first_position_(0), last_position_(n - 1) {
+  if (n > FIXED_STRING_MAXIMUM_LENGTH) {
+    LOG(FATAL) << "String is too long";
+    return;
+  }
+  for (size_t i = 0; i < n; i++) {
+    data_[i] = s[i];
+  }
+}
+
+inline LetterString::LetterString(size_t n, Letter c) {
+  if (n > FIXED_STRING_MAXIMUM_LENGTH) {
+    LOG(FATAL) << "String is too long";
+    return;
+  }
+  for (size_t i = 0; i < n; i++) {
+    data_[i] = c;
+  }
+  first_position_ = 0;
+  last_position_ = n - 1;
+}
+
+inline LetterString::LetterString(const char* s) {
+  size_t sz = strlen(s);
+  if (sz > FIXED_STRING_MAXIMUM_LENGTH) {
+    LOG(FATAL) << "String is too long";
+  }
+  memcpy(data_, s, sz);
+  last_position_ = sz - 1;
+}
+
+inline LetterString::LetterString(const LetterString& s) {
+  //LOG(INFO) << "called copy constructor";
+  int sz = s.size();
+  memcpy(data_ + s.first_position(), s.data_ + s.first_position(), sz);
+  first_position_ = s.first_position();
+  last_position_ = s.last_position();
+}
+
+inline LetterString::LetterString(LetterString&& s) {
+  //LOG(INFO) << "called std::move constructor";
+  int sz = s.size();
+  memcpy(data_ + s.first_position(), s.data_ + s.first_position(), sz);
+  first_position_ = s.first_position();
+  last_position_ = s.last_position();
+}
+
+inline void LetterString::push_back(char c) {
+  if (last_position_ + 1 >= FIXED_STRING_MAXIMUM_LENGTH) {
+    LOG(FATAL) << "String is too long";
+    return;
+  }
+  data_[++last_position_] = c;
+}
+
+inline int LetterString::first_position() const { return first_position_; }
+inline int LetterString::last_position() const { return last_position_; }
+
+inline LetterString& LetterString::operator=(const LetterString& s) {
+  //LOG(INFO) << "called operator=";
+  int sz = s.size();
+  memcpy(data_, s.data_, sz);
+  first_position_ = s.first_position();
+  last_position_ = s.last_position();
+  return *this;
+}
+
+inline LetterString& LetterString::operator=(LetterString&& s) {
+  //LOG(INFO) << "called std::move operator=";
+  int sz = s.size();
+  memcpy(data_, s.data_, sz);
+  first_position_ = s.first_position();
+  last_position_ = s.last_position();
+  return *this;
 }
 
 #endif  // SRC_SCRABBLE_STRINGS_H_

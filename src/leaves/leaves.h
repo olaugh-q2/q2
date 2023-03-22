@@ -14,14 +14,7 @@ class Leaves {
       const Tiles& tiles, const std::string& filename);
   absl::Status WriteToBinaryFile(const std::string& filename) const;
 
-  float Value(uint64_t product) const {
-    const auto it = leave_map_.find(product);
-    if (it == leave_map_.end()) {
-      LOG(ERROR) << "No leave value for product " << product;
-      return 0.0;
-    }
-    return it->second;
-  }
+  float Value(uint64_t product) const;
 
  private:
   bool WriteToOstream(std::ostream& os) const;
@@ -29,4 +22,12 @@ class Leaves {
   absl::flat_hash_map<uint64_t, float> leave_map_;
 };
 
+inline float Leaves::Value(uint64_t product) const {
+  const auto it = leave_map_.find(product);
+  if (it == leave_map_.end()) {
+    LOG(ERROR) << "No leave value for product " << product;
+    return 0.0;
+  }
+  return it->second;
+}
 #endif  // SRC_LEAVES_LEAVES_H_
