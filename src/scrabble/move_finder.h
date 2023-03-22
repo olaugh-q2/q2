@@ -10,13 +10,19 @@
 #include "src/scrabble/rack.h"
 #include "src/scrabble/tiles.h"
 
-typedef std::array<absl::optional<uint32_t>, 15> HookRow;
+typedef std::array<uint32_t, 15> HookRow;
 typedef std::array<HookRow, 15> HookBoard;
 typedef std::array<HookBoard, 2> HookTable;
 
 typedef std::array<int, 15> ScoreRow;
 typedef std::array<ScoreRow, 15> ScoreBoard;
 typedef std::array<ScoreBoard, 2> ScoreTable;
+
+// Special value for a tile that is not touching any other tiles.
+// Distinct from a hypothetical hook spot that makes words with every letter,
+// because we need to know that using this square is not sufficient to attach
+// a word to the existing plays on the board.
+const uint32_t kNotTouching = 0xffffffff;
 
 class MoveFinder {
  public:
@@ -77,6 +83,7 @@ class MoveFinder {
   FRIEND_TEST(MoveFinderTest, HookSum);
   FRIEND_TEST(MoveFinderTest, ThroughScore);
   FRIEND_TEST(MoveFinderTest, WordScore);
+  FRIEND_TEST(MoveFinderTest, CacheCrossesAndScores);
 
   void FindSpots(int rack_tiles, const Board& board, Move::Dir direction,
                  std::vector<MoveFinder::Spot>* spots) const;
@@ -96,8 +103,7 @@ class MoveFinder {
   int ThroughScore(const Board& board, Move::Dir direction, int start_row,
                    int start_col, int num_tiles) const;
 
-  int WordScore(const Board& board, const Move& move,
-                int word_multiplier);
+  int WordScore(const Board& board, const Move& move, int word_multiplier);
 
   // "Zeroes out" the tiles on the board that are played through.
   // E.g. SHOESTRING played as SH(OESTRIN)G becomes SH.......G
@@ -107,7 +113,7 @@ class MoveFinder {
       const Board& board, Move::Dir direction, int start_row, int start_col,
       const LetterString& word) const;
 
-  void CacheCrossesAndMemos();
+  void CacheCrossesAndScores(const Board& board);
 
   absl::optional<LetterString> MemoizedCrossAt(const Board& board,
                                                Move::Dir play_dir,

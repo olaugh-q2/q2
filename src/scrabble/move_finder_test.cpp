@@ -1,6 +1,7 @@
 #include "src/scrabble/move_finder.h"
 
 #include <algorithm>
+#include <tuple>
 
 #include "absl/memory/memory.h"
 #include "glog/logging.h"
@@ -46,6 +47,20 @@ class MoveFinderTest : public testing::Test {
   Letter L(char c) { return tiles_->CharToNumber(c).value(); }
   LetterString LS(const std::string& s) {
     return tiles_->ToLetterString(s).value();
+  }
+  uint32_t H(const std::string& s) {
+    uint32_t ret = 0;
+    for (const Letter letter : LS(s)) {
+      ret |= 1 << letter;
+    }
+    return ret;
+  }
+  int Score(const std::string& s) {
+    int ret = 0;
+    for (const Letter letter : LS(s)) {
+      ret += tiles_->Score(letter);
+    }
+    return ret;
   }
 
   void ExpectMove(const Move& move, const std::string& expected) {
@@ -121,6 +136,7 @@ TEST_F(MoveFinderTest, FindWords) {
   const Rack rack(tiles_->ToLetterString("IIICFVV").value());
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
+  move_finder_->CacheCrossesAndScores(board);
   const auto words = move_finder_->FindWords(rack, board, Move::Across, 7, 7, 7,
                                              MoveFinder::RecordAll, 0);
   ExpectMoves(words, {"8H VIVIFIC (score = 94)"});
@@ -131,7 +147,7 @@ TEST_F(MoveFinderTest, FindWords2) {
   const Rack rack(tiles_->ToLetterString("BANANAS").value());
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
-
+  move_finder_->CacheCrossesAndScores(board);
   const auto words = move_finder_->FindWords(rack, board, Move::Across, 7, 6, 2,
                                              MoveFinder::RecordAll, 0);
   ExpectMoves(words,
@@ -144,7 +160,7 @@ TEST_F(MoveFinderTest, FindWords3) {
   const Rack rack(tiles_->ToLetterString("AEURVY?").value());
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
-
+  move_finder_->CacheCrossesAndScores(board);
   const auto words = move_finder_->FindWords(rack, board, Move::Across, 7, 5, 7,
                                              MoveFinder::RecordAll, 0);
   ExpectMoves(words, {"8F qUAVERY (score = 82)"});
@@ -155,7 +171,7 @@ TEST_F(MoveFinderTest, FindWords4) {
   const Rack rack(tiles_->ToLetterString("SQIRT??").value());
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
-
+  move_finder_->CacheCrossesAndScores(board);
   const auto words = move_finder_->FindWords(rack, board, Move::Across, 7, 1, 7,
                                              MoveFinder::RecordAll, 0);
   ExpectMoves(words, {"8B QInTaRS (score = 78)", "8B QueRIST (score = 78)",
@@ -240,6 +256,7 @@ TEST_F(MoveFinderTest, PlayThroughWithBlanks) {
   const Rack rack(tiles_->ToLetterString("URATES?").value());
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
+  move_finder_->CacheCrossesAndScores(board);
   const auto words = move_finder_->FindWords(rack, board, Move::Across, 7, 4, 7,
                                              MoveFinder::RecordAll, 0);
   ExpectMoves(words,
@@ -290,14 +307,17 @@ TEST_F(MoveFinderTest, HookSum) {
   Board board;
   const auto ky = Move::Parse("8G KY", *tiles_);
   board.UnsafePlaceMove(ky.value());
+  move_finder_->CacheCrossesAndScores(board);
   EXPECT_EQ(move_finder_->HookSum(board, Move::Across, 6, 6, 3), 9);
 
   const auto oo = Move::Parse("9G oo", *tiles_);
   board.UnsafePlaceMove(oo.value());
+  move_finder_->CacheCrossesAndScores(board);
   EXPECT_EQ(move_finder_->HookSum(board, Move::Across, 6, 6, 3), 9);
 
   const auto beau = Move::Parse("10E BEAU", *tiles_);
   board.UnsafePlaceMove(beau.value());
+  move_finder_->CacheCrossesAndScores(board);
   // 6 (Bx2) + 1 (E) + 6 (KoA) + 5 (YoU) = 19
   EXPECT_EQ(move_finder_->HookSum(board, Move::Across, 10, 0, 15), 18);
 }
@@ -335,7 +355,8 @@ TEST_F(MoveFinderTest, SevenTileOverlap) {
 
   const Rack rack(tiles_->ToLetterString("HEATER?").value());
   move_finder_->cross_map_.clear();
-    move_finder_->subracks_.clear();
+  move_finder_->subracks_.clear();
+  move_finder_->CacheCrossesAndScores(board);
   const auto words = move_finder_->FindWords(rack, board, Move::Across, 6, 6, 7,
                                              MoveFinder::RecordAll, 0);
   ExpectMoves(words, {"7G tHEATER (score = 80)", "7G THEAtER (score = 82)"});
@@ -348,6 +369,7 @@ TEST_F(MoveFinderTest, NonHooks) {
 
   const Rack rack(tiles_->ToLetterString("Z??").value());
   move_finder_->cross_map_.clear();
+  move_finder_->CacheCrossesAndScores(board);
   const auto words = move_finder_->FindWords(rack, board, Move::Across, 6, 6, 3,
                                              MoveFinder::RecordAll, 0);
   ExpectMoves(words, {});
@@ -360,7 +382,8 @@ TEST_F(MoveFinderTest, FrontExtension) {
 
   const Rack rack(tiles_->ToLetterString("??UNTER").value());
   move_finder_->cross_map_.clear();
-    move_finder_->subracks_.clear();
+  move_finder_->subracks_.clear();
+  move_finder_->CacheCrossesAndScores(board);
   const auto words = move_finder_->FindWords(rack, board, Move::Across, 7, 0, 7,
                                              MoveFinder::RecordAll, 0);
   ExpectMoves(words, {"8A coUNTER....... (score = 101)"});
@@ -841,4 +864,60 @@ TEST_F(MoveFinderTest, PlayThroughBlank) {
   std::vector<Move> moves =
       move_finder_->FindMoves(rack, board, *empty_bag_, MoveFinder::RecordBest);
   ExpectMoves(moves, {"E4 OXAZ.PAM (score = 158)"});
+}
+
+TEST_F(MoveFinderTest, CacheCrossesAndScores) {
+  Board board;
+  move_finder_->CacheCrossesAndScores(board);
+  for (int dir = 0; dir < 2; dir++) {
+    for (int row = 0; row < 15; row++) {
+      for (int col = 0; col < 15; col++) {
+        EXPECT_EQ(move_finder_->hook_table_[dir][row][col], kNotTouching);
+        EXPECT_EQ(move_finder_->score_table_[dir][row][col], 0);
+      }
+    }
+  }
+
+  const auto qi = Move::Parse("8H QI", *tiles_);
+  board.UnsafePlaceMove(qi.value());
+  move_finder_->CacheCrossesAndScores(board);
+  const int kAcross = 0;
+  const int kDown = 1;
+  for (int dir : {kAcross, kDown}) {
+    for (int row = 0; row < 15; row++) {
+      for (int col = 0; col < 15; col++) {
+        auto sq = std::make_tuple(dir, row, col);
+        // LOG(INFO) << "sq: " << dir << " " << row << " " << col;
+        if (sq == std::make_tuple(kAcross, 6, 7)) {
+          // _Q = {}
+          EXPECT_EQ(move_finder_->hook_table_[dir][row][col], 0);
+          EXPECT_EQ(move_finder_->score_table_[dir][row][col], Score("Q"));
+        } else if (sq == std::make_tuple(kAcross, 6, 8)) {
+          // _I = {ABDGHKLMPOQSTX}
+          EXPECT_EQ(move_finder_->hook_table_[dir][row][col],
+                    H("ABDGHKLMPOQSTX"));
+          EXPECT_EQ(move_finder_->score_table_[dir][row][col], Score("I"));
+        } else if (sq == std::make_tuple(kAcross, 8, 7)) {
+          // Q_ = {I}
+          EXPECT_EQ(move_finder_->hook_table_[dir][row][col], H("I"));
+          EXPECT_EQ(move_finder_->score_table_[dir][row][col], Score("Q"));
+        } else if (sq == std::make_tuple(kAcross, 8, 8)) {
+          // I_ = {DFNOST}
+          EXPECT_EQ(move_finder_->hook_table_[dir][row][col], H("DFNOST"));
+          EXPECT_EQ(move_finder_->score_table_[dir][row][col], Score("I"));
+        } else if (sq == std::make_tuple(kDown, 7, 6)) {
+          // _QI = {}
+          EXPECT_EQ(move_finder_->hook_table_[dir][row][col], 0);
+          EXPECT_EQ(move_finder_->score_table_[dir][row][col], Score("QI"));
+        } else if (sq == std::make_tuple(kDown, 7, 9)) {
+          // QI_ = {NS}
+          EXPECT_EQ(move_finder_->hook_table_[dir][row][col], H("NS"));
+          EXPECT_EQ(move_finder_->score_table_[dir][row][col], Score("QI"));
+        } else {
+          EXPECT_EQ(move_finder_->hook_table_[dir][row][col], kNotTouching);
+          EXPECT_EQ(move_finder_->score_table_[dir][row][col], 0);
+        }
+      }
+    }
+  }
 }
