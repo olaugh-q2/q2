@@ -218,13 +218,6 @@ int MoveFinder::HookSum(const Board& board, Move::Dir direction, int start_row,
   while (row < 15 && col < 15) {
     Letter sq = board.At(row, col);
     if (!sq) {
-      /*
-      const auto cross = CrossAt(board, direction, row, col, false);
-      if (cross.has_value()) {
-        const int score = tiles_.Score(cross.value());
-        ret += score * board_layout_.WordMultiplier(row, col);
-      }
-      */
       ret += score_table_[direction - 1][row][col];
       tiles_used++;
       if (tiles_used >= num_tiles) {
@@ -281,9 +274,8 @@ int MoveFinder::WordScore(const Board& board, const Move& move,
         const int letter_multiplier = board_layout_.LetterMultiplier(row, col);
         word += tile_score * letter_multiplier;
 
-        const auto cross =
-            MemoizedCrossAt(board, move.Direction(), row, col, false);
-        if (cross.has_value()) {
+        const auto cross = hook_table_[move.Direction() - 1][row][col];
+        if (cross != kNotTouching) {
           crossing += tile_score * letter_multiplier *
                       board_layout_.WordMultiplier(row, col);
         }

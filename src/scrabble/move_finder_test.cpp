@@ -658,24 +658,28 @@ TEST_F(MoveFinderTest, WordScore) {
   Board board;
   const auto cwm = Move::Parse("8G CWM", *tiles_);
   move_finder_->cross_map_.clear();
+  move_finder_->CacheCrossesAndScores(board);
   EXPECT_EQ(move_finder_->WordScore(board, cwm.value(), 1), 10);
 
   board.UnsafePlaceMove(cwm.value());
   const auto euoi = Move::Parse("7H EUOI", *tiles_);
   // 2 + 4 + 1 + 1 = 7
   move_finder_->cross_map_.clear();
+  move_finder_->CacheCrossesAndScores(board);
   EXPECT_EQ(move_finder_->WordScore(board, euoi.value(), 1), 8);
 
   board.UnsafePlaceMove(euoi.value());
   const auto zol = Move::Parse("6J ZOL", *tiles_);
   // 60 + 2 + 1 = 63
   move_finder_->cross_map_.clear();
+  move_finder_->CacheCrossesAndScores(board);
   EXPECT_EQ(move_finder_->WordScore(board, zol.value(), 1), 63);
 
   board.UnsafePlaceMove(zol.value());
   const auto aka = Move::Parse("5J AKA", *tiles_);
   // 7*2 + 1 + 5*2 + 1 = 26
   move_finder_->cross_map_.clear();
+  move_finder_->CacheCrossesAndScores(board);
   EXPECT_EQ(move_finder_->WordScore(board, aka.value(), 2), 26);
 }
 
