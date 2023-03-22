@@ -184,14 +184,14 @@ TEST_F(MoveFinderTest, ZeroPlayedThroughTiles) {
   const auto yag = Move::Parse("8G YAG", *tiles_);
   board.UnsafePlaceMove(yag.value());
   const auto before = tiles_->ToLetterString("SATYAGRAHA").value();
+  EXPECT_TRUE(move_finder_->FitsWithPlayedThroughTiles(board, Move::Across, 7,
+                                                       3, before));
   const auto after =
       move_finder_->ZeroPlayedThroughTiles(board, Move::Across, 7, 3, before);
-  EXPECT_TRUE(after.has_value());
-  EXPECT_EQ(*after, tiles_->ToLetterString("SAT...RAHA").value());
+  EXPECT_EQ(after, tiles_->ToLetterString("SAT...RAHA").value());
 
-  const auto after2 =
-      move_finder_->ZeroPlayedThroughTiles(board, Move::Across, 7, 4, before);
-  EXPECT_FALSE(after2.has_value());
+  EXPECT_FALSE(move_finder_->FitsWithPlayedThroughTiles(board, Move::Across, 7,
+                                                        4, before));
 }
 
 TEST_F(MoveFinderTest, AbsorbThroughTiles) {
@@ -239,14 +239,14 @@ TEST_F(MoveFinderTest, ZeroPlayedThroughTilesVertical) {
   const auto yag = Move::Parse("H7 YAG", *tiles_);
   board.UnsafePlaceMove(yag.value());
   const auto before = tiles_->ToLetterString("SATYAGRAHA").value();
+  EXPECT_TRUE(move_finder_->FitsWithPlayedThroughTiles(board, Move::Down, 3, 7,
+                                                       before));
   const auto after =
       move_finder_->ZeroPlayedThroughTiles(board, Move::Down, 3, 7, before);
-  EXPECT_TRUE(after.has_value());
-  EXPECT_EQ(*after, tiles_->ToLetterString("SAT...RAHA").value());
+  EXPECT_EQ(after, tiles_->ToLetterString("SAT...RAHA").value());
 
-  const auto after2 =
-      move_finder_->ZeroPlayedThroughTiles(board, Move::Down, 4, 7, before);
-  EXPECT_FALSE(after2.has_value());
+  EXPECT_FALSE(move_finder_->FitsWithPlayedThroughTiles(board, Move::Down, 4, 7,
+                                                       before));
 }
 
 TEST_F(MoveFinderTest, PlayThroughWithBlanks) {
@@ -409,8 +409,10 @@ TEST_F(MoveFinderTest, AcrossSpots) {
   Board board;
   const auto an = Move::Parse("8H AN", *tiles_);
   board.UnsafePlaceMove(an.value());
+  move_finder_->CacheCrossesAndScores(board);
   const auto ax = Move::Parse("9G AX", *tiles_);
   board.UnsafePlaceMove(ax.value());
+  move_finder_->CacheCrossesAndScores(board);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
    1＝　　＇　　　＝　　　＇　　＝
@@ -468,6 +470,7 @@ TEST_F(MoveFinderTest, AcrossSpots) {
   spots.clear();
   const auto am = Move::Parse("G9 .M", *tiles_);
   board.UnsafePlaceMove(am.value());
+  move_finder_->CacheCrossesAndScores(board);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
    1＝　　＇　　　＝　　　＇　　＝
@@ -498,6 +501,7 @@ TEST_F(MoveFinderTest, AcrossSpots) {
   spots.clear();
   const auto amp = Move::Parse("G9 .MP", *tiles_);
   board.UnsafePlaceMove(amp.value());
+  move_finder_->CacheCrossesAndScores(board);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
    1＝　　＇　　　＝　　　＇　　＝
@@ -532,8 +536,10 @@ TEST_F(MoveFinderTest, DownSpots) {
   Board board;
   const auto an = Move::Parse("8H AN", *tiles_);
   board.UnsafePlaceMove(an.value());
+  move_finder_->CacheCrossesAndScores(board);
   const auto ax = Move::Parse("9G AX", *tiles_);
   board.UnsafePlaceMove(ax.value());
+  move_finder_->CacheCrossesAndScores(board);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
    1＝　　＇　　　＝　　　＇　　＝
@@ -595,6 +601,7 @@ TEST_F(MoveFinderTest, DownSpots) {
   spots.clear();
   const auto am = Move::Parse("G9 .M", *tiles_);
   board.UnsafePlaceMove(am.value());
+  move_finder_->CacheCrossesAndScores(board);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
    1＝　　＇　　　＝　　　＇　　＝
@@ -807,7 +814,7 @@ TEST_F(MoveFinderTest, RepeatedlyPlay1) {
   std::stringstream ss;
   board_layout_->DisplayBoard(board, *tiles_, ss);
   LOG(INFO) << std::endl << ss.str();
-  EXPECT_EQ(moves_played, 42);
+  EXPECT_EQ(moves_played, 45);
 }
 
 TEST_F(MoveFinderTest, RepeatedlyPlay2) {

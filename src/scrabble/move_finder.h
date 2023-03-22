@@ -105,11 +105,12 @@ class MoveFinder {
 
   int WordScore(const Board& board, const Move& move, int word_multiplier);
 
-  // "Zeroes out" the tiles on the board that are played through.
-  // E.g. SHOESTRING played as SH(OESTRIN)G becomes SH.......G
-  // Returns nullopt if the word does not fit with the tiles already on the
-  // board.
-  absl::optional<LetterString> ZeroPlayedThroughTiles(
+  // Returns true iff the word fits with the tiles already on the board.
+  bool FitsWithPlayedThroughTiles(const Board& board, Move::Dir direction,
+                                  int start_row, int start_col,
+                                  const LetterString& word) const;
+
+  LetterString ZeroPlayedThroughTiles(
       const Board& board, Move::Dir direction, int start_row, int start_col,
       const LetterString& word) const;
 

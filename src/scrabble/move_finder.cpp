@@ -48,14 +48,14 @@ std::vector<Move> MoveFinder::FindExchanges(const Rack& rack) const {
   return moves;
 }
 
-absl::optional<LetterString> MoveFinder::ZeroPlayedThroughTiles(
-    const Board& board, Move::Dir direction, int start_row, int start_col,
-    const LetterString& word) const {
-  LetterString ret = word;
+bool MoveFinder::FitsWithPlayedThroughTiles(const Board& board,
+                                            Move::Dir direction, int start_row,
+                                            int start_col,
+                                            const LetterString& word) const {
   int row = start_row;
   int col = start_col;
   for (int i = 0; i < word.size(); ++i) {
-    const Letter word_letter = word[i];
+    const Letter& word_letter = word[i];
     Letter board_letter = board.At(row, col);
     if (direction == Move::Across) {
       col++;
@@ -68,10 +68,28 @@ absl::optional<LetterString> MoveFinder::ZeroPlayedThroughTiles(
     if (board_letter > tiles_.BlankIndex()) {
       board_letter -= tiles_.BlankIndex();
     }
-    if (board_letter == word_letter) {
-      ret[i] = 0;
+    if (board_letter != word_letter) {
+      return false;
+    }
+  }
+  return true;
+}
+
+LetterString MoveFinder::ZeroPlayedThroughTiles(
+    const Board& board, Move::Dir direction, int start_row, int start_col,
+    const LetterString& word) const {
+  LetterString ret = word;
+  int row = start_row;
+  int col = start_col;
+  for (int i = 0; i < ret.size(); ++i) {
+    Letter board_letter = board.At(row, col);
+    if (direction == Move::Across) {
+      col++;
     } else {
-      return absl::nullopt;
+      row++;
+    }
+    if (board_letter) {
+      ret[i] = 0;
     }
   }
   return ret;
@@ -356,18 +374,19 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
       auto span_join = words.Spans() | ranges::view::join;
       for (const auto& word : span_join) {
         // LOG(INFO) << "word: " << tiles_.ToString(word).value();
-        auto played_tiles = ZeroPlayedThroughTiles(board, direction, start_row,
-                                                   start_col, word);
-        if (!played_tiles) {
-          // LOG(INFO) << "  does not fit on board here";
+        if (!FitsWithPlayedThroughTiles(board, direction, start_row, start_col,
+                                        word)) {
+          // LOG(INFO) << "  does not fit with played through tiles";
           continue;
         }
-        // LOG(INFO) << "played_tiles: " <<
-        // tiles_.ToString(*played_tiles).value();
+        const LetterString played_tiles = ZeroPlayedThroughTiles(
+            board, direction, start_row, start_col, word);
+        // LOG(INFO) << "played_tiles (zeroed): " <<
+        // tiles_.ToString(played_tiles).value();
 
         // Score prospective move before checking its hooks or blankifying it.
         // If it can't possibly be best, continue.
-        Move move(direction, start_row, start_col, *played_tiles);
+        Move move(direction, start_row, start_col, played_tiles);
         const int word_score = WordScore(board, move, word_multiplier);
         const int score = word_score + through_score + hook_sum + bonus;
         move.SetScore(score);
@@ -383,7 +402,7 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
           if (num_blanks == 0) {
             moves.push_back(move);
           } else {
-            const auto blankified = Blankify(letters, *played_tiles);
+            const auto blankified = Blankify(letters, played_tiles);
             for (const auto& blank_word : blankified) {
               Move blank_move(direction, start_row, start_col, blank_word);
               const int word_score =
@@ -658,11 +677,11 @@ void MoveFinder::FindSpots(int rack_tiles, const Board& board,
           if (num_tiles > rack_tiles) {
             break;
           }
-          const auto cross = CrossAt(board, direction, sq_row, sq_col, true);
-          if (cross.has_value()) {
+          const auto cross = hook_table_[direction - 1][sq_row][sq_col];
+          if (cross != kNotTouching) {
             // LOG(INFO) << "cross: " << tiles_.ToString(*cross).value()
             //           << ", crossing = true";
-            if (anagram_map_.Hooks(*cross) == 0) {
+            if (cross == 0) {
               // Unhookable square interrupts the spots starting here.
               break;
             }
@@ -672,14 +691,14 @@ void MoveFinder::FindSpots(int rack_tiles, const Board& board,
 
         // LOG(INFO) << "num_tiles: " << num_tiles;
         if ((through || crossing) && recorded_num_tiles.count(num_tiles) == 0) {
-          absl::optional<LetterString> across_cross = absl::nullopt;
-          absl::optional<LetterString> down_cross = absl::nullopt;
+          auto across_hooks = kNotTouching;
+          auto down_hooks = kNotTouching;
           if (!sq) {
-            across_cross = CrossAt(board, Move::Across, sq_row, sq_col, true);
-            down_cross = CrossAt(board, Move::Down, sq_row, sq_col, true);
+            across_hooks = hook_table_[Move::Across - 1][sq_row][sq_col];
+            down_hooks = hook_table_[Move::Down - 1][sq_row][sq_col];
           }
-          if ((num_tiles == 1) && across_cross.has_value() &&
-              down_cross.has_value()) {
+          if ((num_tiles == 1) && (across_hooks != kNotTouching) &&
+              (down_hooks != kNotTouching)) {
             if (direction == Move::Across) {
               // LOG(INFO) << "across_cross: "
               //           << tiles_.ToString(*across_cross).value();
@@ -687,6 +706,10 @@ void MoveFinder::FindSpots(int rack_tiles, const Board& board,
               //           << tiles_.ToString(*down_cross).value();
               recorded_num_tiles.insert(num_tiles);
               int tiles_before_first_played_tile = 0;
+              const auto across_cross =
+                  CrossAt(board, Move::Across, sq_row, sq_col, true);
+              const auto down_cross =
+                  CrossAt(board, Move::Down, sq_row, sq_col, true);
               if (down_cross->length() >= across_cross->length()) {
                 for (Letter letter : down_cross.value()) {
                   if (letter) {
@@ -695,7 +718,8 @@ void MoveFinder::FindSpots(int rack_tiles, const Board& board,
                     break;
                   }
                 }
-                // LOG(INFO) << "pushing one tile play at " << sq_row << ", "
+                // LOG(INFO) << "pushing one tile play at " << sq_row << ",
+                // "
                 //           << sq_col << " as 'across'";
                 // LOG(INFO) << "start_row: " << sq_row << ", start_col: "
                 //           << sq_col - tiles_before_first_played_tile
@@ -713,7 +737,8 @@ void MoveFinder::FindSpots(int rack_tiles, const Board& board,
                     break;
                   }
                 }
-                // LOG(INFO) << "pushing one tile play at " << sq_row << ", "
+                // LOG(INFO) << "pushing one tile play at " << sq_row << ",
+                // "
                 //           << sq_col << " as 'down'";
                 // LOG(INFO) << "start_row: "
                 //           << sq_row - tiles_before_first_played_tile
@@ -795,7 +820,8 @@ std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
   // LOG(INFO) << "spots.size(): " << spots.size();
   double best_equity = moves[0].Equity();
   for (const MoveFinder::Spot& spot : spots) {
-    // LOG(INFO) << "spot: " << spot.Direction() << ", " << spot.StartRow() <<
+    // LOG(INFO) << "spot: " << spot.Direction() << ", " << spot.StartRow()
+    // <<
     // ", "
     //           << spot.StartCol() << ", " << spot.NumTiles();
     const auto words =
