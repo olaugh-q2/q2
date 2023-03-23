@@ -38,11 +38,16 @@ class MoveFinder {
     void SetWordMultiplier(int word_multiplier) {
       word_multiplier_ = word_multiplier;
     }
+    void SetExtraScore(int extra_score) { extra_score_ = extra_score; }
+    void SetMaxScore(int max_score) { max_score_ = max_score; }
     void SetMaxEquity(double max_equity) { max_equity_ = max_equity; }
     Move::Dir Direction() const { return direction_; }
     int StartRow() const { return start_row_; }
     int StartCol() const { return start_col_; }
     int NumTiles() const { return num_tiles_; }
+    int WordMultiplier() const { return word_multiplier_; }
+    int ExtraScore() const { return extra_score_; }
+    int MaxScore() const { return max_score_; }
     double MaxEquity() const { return max_equity_; }
 
    private:
@@ -51,6 +56,15 @@ class MoveFinder {
     int start_col_;
     int num_tiles_;
     int word_multiplier_;
+
+    // extra_score = through score + hook sum + bingo bonus
+    int extra_score_;
+
+    // highest score, leave not added on
+    int max_score_;
+
+    // For now this is the highest score in this spot + the best leave, even if
+    // they aren't compatible.
     double max_equity_;
   };
 
@@ -93,12 +107,12 @@ class MoveFinder {
   FRIEND_TEST(MoveFinderTest, CacheCrossesAndScores);
 
   void ComputeSpotMaxEquity(const Rack& rack, const Board& board,
-                            Spot* spot) const;
+                            Spot* spot);
 
   void FindSpots(int rack_tiles, const Board& board, Move::Dir direction,
-                 std::vector<MoveFinder::Spot>* spots) const;
+                 std::vector<MoveFinder::Spot>* spots);
 
-  std::vector<Spot> FindSpots(const Rack& rack, const Board& board) const;
+  std::vector<Spot> FindSpots(const Rack& rack, const Board& board);
 
   absl::uint128 AbsorbThroughTiles(const Board& board, Move::Dir direction,
                                    int start_row, int start_col,

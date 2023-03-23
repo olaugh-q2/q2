@@ -137,8 +137,10 @@ TEST_F(MoveFinderTest, FindWords) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
-  const auto words = move_finder_->FindWords(rack, board, {Move::Across, 7, 7, 7},
-                                             MoveFinder::RecordAll, 0);
+  MoveFinder::Spot spot(Move::Across, 7, 7, 7);
+  move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
+  const auto words =
+      move_finder_->FindWords(rack, board, spot, MoveFinder::RecordAll, 0);
   ExpectMoves(words, {"8H VIVIFIC (score = 94)"});
 }
 
@@ -148,8 +150,10 @@ TEST_F(MoveFinderTest, FindWords2) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
-  const auto words = move_finder_->FindWords(rack, board, {Move::Across, 7, 6, 2},
-                                             MoveFinder::RecordAll, 0);
+  MoveFinder::Spot spot(Move::Across, 7, 6, 2);
+  move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
+  const auto words =
+      move_finder_->FindWords(rack, board, spot, MoveFinder::RecordAll, 0);
   ExpectMoves(words,
               {"8G AA (score = 4)", "8G AB (score = 8)", "8G BA (score = 8)",
                "8G AN (score = 4)", "8G NA (score = 4)", "8G AS (score = 4)"});
@@ -161,8 +165,10 @@ TEST_F(MoveFinderTest, FindWords3) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
-  const auto words = move_finder_->FindWords(rack, board, {Move::Across, 7, 5, 7},
-                                             MoveFinder::RecordAll, 0);
+  MoveFinder::Spot spot(Move::Across, 7, 5, 7);
+  move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
+  const auto words =
+      move_finder_->FindWords(rack, board, spot, MoveFinder::RecordAll, 0);
   ExpectMoves(words, {"8F qUAVERY (score = 82)"});
 }
 
@@ -172,8 +178,10 @@ TEST_F(MoveFinderTest, FindWords4) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
-  const auto words = move_finder_->FindWords(rack, board, {Move::Across, 7, 1, 7},
-                                             MoveFinder::RecordAll, 0);
+  MoveFinder::Spot spot(Move::Across, 7, 1, 7);
+  move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
+  const auto words =
+      move_finder_->FindWords(rack, board, spot, MoveFinder::RecordAll, 0);
   ExpectMoves(words, {"8B QInTaRS (score = 78)", "8B QueRIST (score = 78)",
                       "8B ReQuITS (score = 98)", "8B SQuIRTs (score = 78)",
                       "8B sQuIRTS (score = 78)"});
@@ -246,7 +254,7 @@ TEST_F(MoveFinderTest, ZeroPlayedThroughTilesVertical) {
   EXPECT_EQ(after, tiles_->ToLetterString("SAT...RAHA").value());
 
   EXPECT_FALSE(move_finder_->FitsWithPlayedThroughTiles(board, Move::Down, 4, 7,
-                                                       before));
+                                                        before));
 }
 
 TEST_F(MoveFinderTest, PlayThroughWithBlanks) {
@@ -257,8 +265,10 @@ TEST_F(MoveFinderTest, PlayThroughWithBlanks) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
-  const auto words = move_finder_->FindWords(rack, board, {Move::Across, 7, 4, 7},
-                                             MoveFinder::RecordAll, 0);
+  MoveFinder::Spot spot(Move::Across, 7, 4, 7);
+  move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
+  const auto words =
+      move_finder_->FindWords(rack, board, spot, MoveFinder::RecordAll, 0);
   ExpectMoves(words,
               {"8E RA...TEUrS (score = 62)", "8E rA...TEURS (score = 62)",
                "8E RA...TEUSe (score = 62)", "8E RA...TeUSE (score = 62)"});
@@ -357,8 +367,10 @@ TEST_F(MoveFinderTest, SevenTileOverlap) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
-  const auto words = move_finder_->FindWords(rack, board, {Move::Across, 6, 6, 7},
-                                             MoveFinder::RecordAll, 0);
+  MoveFinder::Spot spot(Move::Across, 6, 6, 7);
+  move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
+  const auto words =
+      move_finder_->FindWords(rack, board, spot, MoveFinder::RecordAll, 0);
   ExpectMoves(words, {"7G tHEATER (score = 80)", "7G THEAtER (score = 82)"});
 }
 
@@ -370,8 +382,10 @@ TEST_F(MoveFinderTest, NonHooks) {
   const Rack rack(tiles_->ToLetterString("Z??").value());
   move_finder_->cross_map_.clear();
   move_finder_->CacheCrossesAndScores(board);
-  const auto words = move_finder_->FindWords(rack, board, {Move::Across, 6, 6, 3},
-                                             MoveFinder::RecordAll, 0);
+  MoveFinder::Spot spot(Move::Across, 6, 6, 3);
+  move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
+  const auto words =
+      move_finder_->FindWords(rack, board, spot, MoveFinder::RecordAll, 0);
   ExpectMoves(words, {});
 }
 
@@ -384,14 +398,18 @@ TEST_F(MoveFinderTest, FrontExtension) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
-  const auto words = move_finder_->FindWords(rack, board, {Move::Across, 7, 0, 7},
-                                             MoveFinder::RecordAll, 0);
+  MoveFinder::Spot spot(Move::Across, 7, 0, 7);
+  move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
+  const auto words =
+      move_finder_->FindWords(rack, board, spot, MoveFinder::RecordAll, 0);
   ExpectMoves(words, {"8A coUNTER....... (score = 101)"});
 }
 
 TEST_F(MoveFinderTest, EmptyBoardSpots) {
   Board board;
   const Rack rack(tiles_->ToLetterString("LULZ").value());
+  move_finder_->subracks_.clear();
+  move_finder_->CacheCrossesAndScores(board);
   const auto spots4 = move_finder_->FindSpots(rack, board);
   EXPECT_THAT(spots4,
               UnorderedElementsAre(MoveFinder::Spot(Move::Across, 7, 6, 2),
@@ -409,9 +427,9 @@ TEST_F(MoveFinderTest, AcrossSpots) {
   Board board;
   const auto an = Move::Parse("8H AN", *tiles_);
   board.UnsafePlaceMove(an.value());
-  move_finder_->CacheCrossesAndScores(board);
   const auto ax = Move::Parse("9G AX", *tiles_);
   board.UnsafePlaceMove(ax.value());
+  move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
@@ -470,6 +488,7 @@ TEST_F(MoveFinderTest, AcrossSpots) {
   spots.clear();
   const auto am = Move::Parse("G9 .M", *tiles_);
   board.UnsafePlaceMove(am.value());
+  move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
@@ -501,6 +520,7 @@ TEST_F(MoveFinderTest, AcrossSpots) {
   spots.clear();
   const auto amp = Move::Parse("G9 .MP", *tiles_);
   board.UnsafePlaceMove(amp.value());
+  move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
@@ -539,6 +559,7 @@ TEST_F(MoveFinderTest, DownSpots) {
   move_finder_->CacheCrossesAndScores(board);
   const auto ax = Move::Parse("9G AX", *tiles_);
   board.UnsafePlaceMove(ax.value());
+  move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
@@ -601,6 +622,7 @@ TEST_F(MoveFinderTest, DownSpots) {
   spots.clear();
   const auto am = Move::Parse("G9 .M", *tiles_);
   board.UnsafePlaceMove(am.value());
+  move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
@@ -931,4 +953,5 @@ TEST_F(MoveFinderTest, CacheCrossesAndScores) {
       }
     }
   }
+  //EXPECT_TRUE(false);
 }
