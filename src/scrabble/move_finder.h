@@ -187,6 +187,9 @@ class MoveFinder {
   const std::vector<std::pair<absl::uint128, LetterString>>& Subracks(
       const Rack& rack, int num_tiles);
 
+  int SpotMaxScore(const LetterString& letters, const Board& board,
+                   const Spot& spot) const;
+
   void CacheRackPartitions(const Rack& rack);
 
   std::vector<Move> FindWords(const Rack& rack, const Board& board,
@@ -206,8 +209,9 @@ class MoveFinder {
   HookTable hook_table_;
   ScoreTable score_table_;
 
-  // For each size from 0 to 7 tiles, a list of possible divisions of the rack into
-  // used and left tiles, with data needed for finding and evaluating moves. 
+  // For each size from 0 to 7 tiles, a list of possible divisions of the rack
+  // into used and left tiles, with data needed for finding and evaluating
+  // moves.
   std::array<std::vector<RackPartition>, 8> rack_partitions_;
 
   std::array<float, 8> best_leave_at_size_;

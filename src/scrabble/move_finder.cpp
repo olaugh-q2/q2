@@ -404,6 +404,9 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
           leave_product *= tiles_.Prime(letter);
         }
       }
+      for (int i = 0; i < num_blanks; ++i) {
+        letters.push_back(tiles_.BlankIndex());
+      }
       // LOG(INFO) << "leave: " << tiles_.ToString(leave).value();
       const float leave_value = leaves_.Value(leave_product);
       if (record_mode == MoveFinder::RecordBest) {
@@ -412,6 +415,13 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
           //           << subsets.size();
           continue;
         }
+        /*
+        const int max_word_score = SpotMaxScore(rack.Letters(), board, spot);
+        const float max_equity = spot.ExtraScore() + max_word_score + leave_value;
+        if (max_equity < best_equity) {
+          continue;
+        }
+        */
       }
       subsets_used++;
       const auto words =
@@ -466,6 +476,7 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
               blank_move.SetLeaveValue(leave_value);
               blank_move.ComputeEquity();
               CHECK_LE(blank_move.Equity(), leave_value + spot.MaxScore());
+              
               // std::stringstream ss;
               // blank_move.Display(tiles_, ss);
               // CHECK_GE(spot.MaxEquity(), blank_move.Equity())
@@ -831,22 +842,13 @@ void MoveFinder::FindSpots(int rack_tiles, const Board& board,
   }
 }
 
-void MoveFinder::ComputeSpotMaxEquity(const Rack& rack, const Board& board,
-                                      Spot* spot) {
-  const auto direction = spot->Direction();
-  const int start_row = spot->StartRow();
-  const int start_col = spot->StartCol();
-  const int num_tiles = spot->NumTiles();
-  const int word_multiplier =
-      WordMultiplier(board, direction, start_row, start_col, num_tiles);
-  spot->SetWordMultiplier(word_multiplier);
-  const int hook_sum =
-      HookSum(board, direction, start_row, start_col, num_tiles);
-  const int through_score =
-      ThroughScore(board, direction, start_row, start_col, num_tiles) *
-      word_multiplier;
-  const int bingo_bonus = num_tiles == 7 ? 50 : 0;
-  const int extra_score = through_score + bingo_bonus + hook_sum;
+int MoveFinder::SpotMaxScore(const LetterString& letters, const Board& board,
+                             const Spot& spot) const {
+  const auto direction = spot.Direction();
+  const int start_row = spot.StartRow();
+  const int start_col = spot.StartCol();
+  const int num_tiles = spot.NumTiles();
+  const int word_multiplier = spot.WordMultiplier();
 
   std::vector<int> tile_multipliers;
   tile_multipliers.reserve(num_tiles);
@@ -871,8 +873,8 @@ void MoveFinder::ComputeSpotMaxEquity(const Rack& rack, const Board& board,
     }
   }
   std::vector<int> tile_scores;
-  tile_scores.reserve(rack.NumTiles());
-  for (Letter letter : rack.Letters()) {
+  tile_scores.reserve(letters.size());
+  for (Letter letter : letters) {
     tile_scores.push_back(tiles_.Score(letter));
   }
   std::sort(tile_multipliers.begin(), tile_multipliers.end(),
@@ -885,7 +887,26 @@ void MoveFinder::ComputeSpotMaxEquity(const Rack& rack, const Board& board,
   for (int i = 0; i < num_tiles; i++) {
     max_word_score += tile_multipliers[i] * tile_scores[i];
   }
+  return max_word_score;
+}
 
+void MoveFinder::ComputeSpotMaxEquity(const Rack& rack, const Board& board,
+                                      Spot* spot) {
+  const auto direction = spot->Direction();
+  const int start_row = spot->StartRow();
+  const int start_col = spot->StartCol();
+  const int num_tiles = spot->NumTiles();
+  const int word_multiplier =
+      WordMultiplier(board, direction, start_row, start_col, num_tiles);
+  spot->SetWordMultiplier(word_multiplier);
+  const int hook_sum =
+      HookSum(board, direction, start_row, start_col, num_tiles);
+  const int through_score =
+      ThroughScore(board, direction, start_row, start_col, num_tiles) *
+      word_multiplier;
+  const int bingo_bonus = num_tiles == 7 ? 50 : 0;
+  const int extra_score = through_score + bingo_bonus + hook_sum;
+  const int max_word_score = SpotMaxScore(rack.Letters(), board, *spot);
   const int leave_size = rack.NumTiles() - num_tiles;
   float best_leave = best_leave_at_size_[leave_size];
 
