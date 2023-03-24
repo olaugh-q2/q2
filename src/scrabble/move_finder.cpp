@@ -334,13 +334,15 @@ void MoveFinder::CacheRackPartitions(const Rack& rack) {
   for (int blanks = 0; blanks <= rack_blanks; ++blanks) {
     for (const auto& subset : subsets) {
       const uint64_t used_product = static_cast<uint64_t>(subset.first);
-      const LetterString& used_letters = subset.second;
-      const int size = used_letters.size() + blanks;
+      LetterString used_letters = subset.second;
+      for (int i = 0; i < blanks; ++i) {
+        used_letters.push_back(tiles_.BlankIndex());
+      }
+      const int size = used_letters.size();
       auto leave_counts = rack_counts;
       for (Letter letter : used_letters) {
         leave_counts[letter]--;
       }
-      leave_counts[tiles_.BlankIndex()] -= rack_blanks - blanks;
       uint64_t leave_product = 1;
       LetterString leave;
       for (Letter letter = tiles_.FirstLetter(); letter <= tiles_.BlankIndex();
@@ -371,121 +373,99 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
   const int start_row = spot.StartRow();
   const int start_col = spot.StartCol();
   const int num_tiles = spot.NumTiles();
-  // LOG(INFO) << "FindWords(" << direction << ", " << start_row << ", "
-  //           << start_col << ", " << num_tiles << ")";
+  //LOG(INFO) << "FindWords(" << direction << ", " << start_row << ", "
+  //          << start_col << ", " << num_tiles << ")";
   std::vector<Move> moves;
-  // const auto subsets = rack.Subsets(tiles_);
-  const auto& subsets = Subracks(rack, num_tiles);
   const absl::uint128 through_product =
       AbsorbThroughTiles(board, direction, start_row, start_col, num_tiles);
   // LOG(INFO) << "through_product: " << through_product;
-  for (int num_blanks = 0; num_blanks <= rack.NumBlanks(tiles_); ++num_blanks) {
+  int partitions_used = 0;
+  const auto& partitions = rack_partitions_[num_tiles];
+  for (const auto& partition : partitions) {
+    const auto num_blanks = partition.NumBlanks();
     // LOG(INFO) << "num_blanks: " << num_blanks;
-    int subsets_used = 0;
-    for (const auto& subset : subsets) {
-      const absl::uint128& product = subset.first;
-      auto letters = subset.second;
-      if (letters.size() + num_blanks != num_tiles) {
+    const absl::uint128 product = partition.UsedProduct();
+    const auto& letters = partition.UsedLetters();
+    const auto& leave = partition.LeftLetters();
+    const auto leave_value = partition.LeaveValue();
+    //LOG(INFO) << "partition of " << tiles_.ToString(letters).value()
+    //          << " / " << tiles_.ToString(leave).value()
+    //          << " (" << leave_value << ")";
+    if (record_mode == MoveFinder::RecordBest) {
+      if (leave_value + spot.MaxScore() < best_equity) {
+        //LOG(INFO) << "Used " << partitions_used << " subsets out of "
+        //           << partitions.size();
         continue;
       }
-      // LOG(INFO) << "product: " << uint128ToString(product);
-      // LOG(INFO) << "letters: " << tiles_.ToString(letters).value();
-      auto leave_counts = rack.Counts();
-      for (Letter letter : letters) {
-        leave_counts[letter]--;
+      /*
+      const int max_word_score = SpotMaxScore(rack.Letters(), board, spot);
+      const float max_equity = spot.ExtraScore() + max_word_score + leave_value;
+      if (max_equity < best_equity) {
+        continue;
       }
-      leave_counts[tiles_.BlankIndex()] -= num_blanks;
-      uint64_t leave_product = 1;
-      LetterString leave;
-      for (Letter letter = tiles_.FirstLetter(); letter <= tiles_.BlankIndex();
-           ++letter) {
-        for (int i = 0; i < leave_counts[letter]; ++i) {
-          leave.push_back(letter);
-          leave_product *= tiles_.Prime(letter);
-        }
+      */
+    }
+    partitions_used++;
+    const auto words =
+        anagram_map_.Words(product * through_product, num_blanks);
+    auto span_join = words.Spans() | ranges::view::join;
+    for (const auto& word : span_join) {
+      //LOG(INFO) << "word: " << tiles_.ToString(word).value();
+      if (!FitsWithPlayedThroughTiles(board, direction, start_row, start_col,
+                                      word)) {
+        //LOG(INFO) << "  does not fit with played through tiles";
+        continue;
       }
-      for (int i = 0; i < num_blanks; ++i) {
-        letters.push_back(tiles_.BlankIndex());
-      }
-      // LOG(INFO) << "leave: " << tiles_.ToString(leave).value();
-      const float leave_value = leaves_.Value(leave_product);
-      if (record_mode == MoveFinder::RecordBest) {
-        if (leave_value + spot.MaxScore() < best_equity) {
-          // LOG(INFO) << "Used " << subsets_used << " subsets out of "
-          //           << subsets.size();
-          continue;
-        }
-        /*
-        const int max_word_score = SpotMaxScore(rack.Letters(), board, spot);
-        const float max_equity = spot.ExtraScore() + max_word_score + leave_value;
-        if (max_equity < best_equity) {
-          continue;
-        }
-        */
-      }
-      subsets_used++;
-      const auto words =
-          anagram_map_.Words(product * through_product, num_blanks);
-      auto span_join = words.Spans() | ranges::view::join;
-      for (const auto& word : span_join) {
-        // LOG(INFO) << "word: " << tiles_.ToString(word).value();
-        if (!FitsWithPlayedThroughTiles(board, direction, start_row, start_col,
-                                        word)) {
-          // LOG(INFO) << "  does not fit with played through tiles";
-          continue;
-        }
-        const LetterString played_tiles = ZeroPlayedThroughTiles(
-            board, direction, start_row, start_col, word);
-        // LOG(INFO) << "played_tiles (zeroed): " <<
-        // tiles_.ToString(played_tiles).value();
+      const LetterString played_tiles =
+          ZeroPlayedThroughTiles(board, direction, start_row, start_col, word);
+      //LOG(INFO) << "played_tiles (zeroed): " << tiles_.ToString(played_tiles).value();
 
-        // Score prospective move before checking its hooks or blankifying it.
-        // If it can't possibly be best, continue.
-        Move move(direction, start_row, start_col, played_tiles);
-        const int word_score = WordScore(board, move, spot.WordMultiplier());
-        const int score = spot.ExtraScore() + word_score;
-        // const int score = word_score + through_score + hook_sum + bonus;
-        // CHECK_EQ(score, spot.ExtraScore() + word_score);
-        move.SetScore(score);
-        move.SetLeave(leave);
-        move.SetLeaveValue(leave_value);
-        move.ComputeEquity();
-        if (record_mode == RecordMode::RecordBest &&
-            move.Equity() < best_equity) {
-          continue;
-        }
+      // Score prospective move before checking its hooks or blankifying it.
+      // If it can't possibly be best, continue.
+      Move move(direction, start_row, start_col, played_tiles);
+      const int word_score = WordScore(board, move, spot.WordMultiplier());
+      const int score = spot.ExtraScore() + word_score;
+      // const int score = word_score + through_score + hook_sum + bonus;
+      // CHECK_EQ(score, spot.ExtraScore() + word_score);
+      move.SetScore(score);
+      move.SetLeave(leave);
+      move.SetLeaveValue(leave_value);
+      move.ComputeEquity();
+      if (record_mode == RecordMode::RecordBest &&
+          move.Equity() < best_equity) {
+        continue;
+      }
 
-        if (CheckHooks(board, move)) {
-          if (num_blanks == 0) {
+      if (CheckHooks(board, move)) {
+        if (num_blanks == 0) {
+          // std::stringstream ss;
+          // move.Display(tiles_, ss);
+          // CHECK_GE(spot.MaxEquity(), move.Equity()) << ss.str();
+          CHECK_LE(move.Equity(), leave_value + spot.MaxScore() + 1e-5);
+          moves.push_back(move);
+        } else {
+          const auto blankified = Blankify(letters, played_tiles);
+          for (const auto& blank_word : blankified) {
+            Move blank_move(direction, start_row, start_col, blank_word);
+            const int word_score =
+                WordScore(board, blank_move, spot.WordMultiplier());
+            const int score = spot.ExtraScore() + word_score;
+            // const int score = word_score + through_score + hook_sum +
+            // bonus; CHECK_EQ(score, spot.ExtraScore() + word_score);
+            blank_move.SetScore(score);
+            blank_move.SetLeave(leave);
+            blank_move.SetLeaveValue(leave_value);
+            blank_move.ComputeEquity();
+            CHECK_LE(blank_move.Equity(), leave_value + spot.MaxScore());
+
             // std::stringstream ss;
-            // move.Display(tiles_, ss);
-            // CHECK_GE(spot.MaxEquity(), move.Equity()) << ss.str();
-            CHECK_LE(move.Equity(), leave_value + spot.MaxScore() + 1e-5);
-            moves.push_back(move);
-          } else {
-            const auto blankified = Blankify(letters, played_tiles);
-            for (const auto& blank_word : blankified) {
-              Move blank_move(direction, start_row, start_col, blank_word);
-              const int word_score =
-                  WordScore(board, blank_move, spot.WordMultiplier());
-              const int score = spot.ExtraScore() + word_score;
-              // const int score = word_score + through_score + hook_sum +
-              // bonus; CHECK_EQ(score, spot.ExtraScore() + word_score);
-              blank_move.SetScore(score);
-              blank_move.SetLeave(leave);
-              blank_move.SetLeaveValue(leave_value);
-              blank_move.ComputeEquity();
-              CHECK_LE(blank_move.Equity(), leave_value + spot.MaxScore());
-              
-              // std::stringstream ss;
-              // blank_move.Display(tiles_, ss);
-              // CHECK_GE(spot.MaxEquity(), blank_move.Equity())
-              //     << "move " << ss.str();
-              if (record_mode == RecordMode::RecordAll ||
-                  (record_mode == RecordMode::RecordBest &&
-                   blank_move.Equity() > best_equity)) {
-                moves.push_back(blank_move);
-              }
+            // blank_move.Display(tiles_, ss);
+            // CHECK_GE(spot.MaxEquity(), blank_move.Equity())
+            //     << "move " << ss.str();
+            if (record_mode == RecordMode::RecordAll ||
+                (record_mode == RecordMode::RecordBest &&
+                 blank_move.Equity() > best_equity)) {
+              moves.push_back(blank_move);
             }
           }
         }
