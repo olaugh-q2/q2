@@ -40,7 +40,7 @@ class MoveFinder {
     }
     void SetExtraScore(int extra_score) { extra_score_ = extra_score; }
     void SetMaxScore(int max_score) { max_score_ = max_score; }
-    void SetMaxEquity(double max_equity) { max_equity_ = max_equity; }
+    void SetMaxEquity(float max_equity) { max_equity_ = max_equity; }
     Move::Dir Direction() const { return direction_; }
     int StartRow() const { return start_row_; }
     int StartCol() const { return start_col_; }
@@ -48,7 +48,7 @@ class MoveFinder {
     int WordMultiplier() const { return word_multiplier_; }
     int ExtraScore() const { return extra_score_; }
     int MaxScore() const { return max_score_; }
-    double MaxEquity() const { return max_equity_; }
+    float MaxEquity() const { return max_equity_; }
 
    private:
     Move::Dir direction_;
@@ -65,7 +65,33 @@ class MoveFinder {
 
     // For now this is the highest score in this spot + the best leave, even if
     // they aren't compatible.
-    double max_equity_;
+    float max_equity_;
+  };
+
+  class RackPartition {
+   public:
+    RackPartition(uint64_t used_product, uint8_t num_blanks,
+                  const LetterString& used_letters,
+                  const LetterString& left_letters, float leave_value)
+        : used_product_(used_product),
+          num_blanks_(num_blanks),
+          used_letters_(used_letters),
+          left_letters_(left_letters),
+          leave_value_(leave_value) {}
+    uint64_t UsedProduct() const { return used_product_; }
+    uint8_t NumBlanks() const { return num_blanks_; }
+    const LetterString& UsedLetters() const { return used_letters_; }
+    const LetterString& LeftLetters() const { return left_letters_; }
+    float LeaveValue() const { return leave_value_; }
+
+   private:
+    // Prime product of the letters in used_letters_, not including blanks.
+    uint64_t used_product_;
+
+    uint8_t num_blanks_;
+    LetterString used_letters_;
+    LetterString left_letters_;
+    float leave_value_;
   };
 
   MoveFinder(const AnagramMap& anagram_map, const BoardLayout& board_layout,
@@ -106,8 +132,7 @@ class MoveFinder {
   FRIEND_TEST(MoveFinderTest, WordScore);
   FRIEND_TEST(MoveFinderTest, CacheCrossesAndScores);
 
-  void ComputeSpotMaxEquity(const Rack& rack, const Board& board,
-                            Spot* spot);
+  void ComputeSpotMaxEquity(const Rack& rack, const Board& board, Spot* spot);
 
   void FindSpots(int rack_tiles, const Board& board, Move::Dir direction,
                  std::vector<MoveFinder::Spot>* spots);
@@ -162,9 +187,11 @@ class MoveFinder {
   const std::vector<std::pair<absl::uint128, LetterString>>& Subracks(
       const Rack& rack, int num_tiles);
 
+  void CacheRackPartitions(const Rack& rack);
+
   std::vector<Move> FindWords(const Rack& rack, const Board& board,
                               const Spot& spot, RecordMode record_mode,
-                              double best_equity);
+                              float best_equity);
 
   const AnagramMap& anagram_map_;
   const BoardLayout& board_layout_;
@@ -178,6 +205,12 @@ class MoveFinder {
 
   HookTable hook_table_;
   ScoreTable score_table_;
+
+  // For each size from 0 to 7 tiles, a list of possible divisions of the rack into
+  // used and left tiles, with data needed for finding and evaluating moves. 
+  std::array<std::vector<RackPartition>, 8> rack_partitions_;
+
+  std::array<float, 8> best_leave_at_size_;
 };
 
 inline bool operator==(const MoveFinder::Spot& a, const MoveFinder::Spot& b) {

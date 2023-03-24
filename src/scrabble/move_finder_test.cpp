@@ -137,6 +137,7 @@ TEST_F(MoveFinderTest, FindWords) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 7, 7, 7);
   move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
   const auto words =
@@ -150,6 +151,7 @@ TEST_F(MoveFinderTest, FindWords2) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 7, 6, 2);
   move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
   const auto words =
@@ -165,6 +167,7 @@ TEST_F(MoveFinderTest, FindWords3) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 7, 5, 7);
   move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
   const auto words =
@@ -178,6 +181,7 @@ TEST_F(MoveFinderTest, FindWords4) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 7, 1, 7);
   move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
   const auto words =
@@ -265,6 +269,7 @@ TEST_F(MoveFinderTest, PlayThroughWithBlanks) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 7, 4, 7);
   move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
   const auto words =
@@ -367,6 +372,7 @@ TEST_F(MoveFinderTest, SevenTileOverlap) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 6, 6, 7);
   move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
   const auto words =
@@ -382,6 +388,7 @@ TEST_F(MoveFinderTest, NonHooks) {
   const Rack rack(tiles_->ToLetterString("Z??").value());
   move_finder_->cross_map_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 6, 6, 3);
   move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
   const auto words =
@@ -398,6 +405,7 @@ TEST_F(MoveFinderTest, FrontExtension) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 7, 0, 7);
   move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
   const auto words =
@@ -410,6 +418,7 @@ TEST_F(MoveFinderTest, EmptyBoardSpots) {
   const Rack rack(tiles_->ToLetterString("LULZ").value());
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheRackPartitions(rack);
   const auto spots4 = move_finder_->FindSpots(rack, board);
   EXPECT_THAT(spots4,
               UnorderedElementsAre(MoveFinder::Spot(Move::Across, 7, 6, 2),
@@ -425,12 +434,17 @@ TEST_F(MoveFinderTest, EmptyBoardSpots) {
 
 TEST_F(MoveFinderTest, AcrossSpots) {
   Board board;
+  // Doesn't actually matter what the rack is for what's being tested here, but
+  // FindSpots will want to compute equity bounds with something.
+  const Rack rack(tiles_->ToLetterString("WHATEVS").value());
+
   const auto an = Move::Parse("8H AN", *tiles_);
   board.UnsafePlaceMove(an.value());
   const auto ax = Move::Parse("9G AX", *tiles_);
   board.UnsafePlaceMove(ax.value());
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheRackPartitions(rack);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
    1＝　　＇　　　＝　　　＇　　＝
@@ -490,6 +504,7 @@ TEST_F(MoveFinderTest, AcrossSpots) {
   board.UnsafePlaceMove(am.value());
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheRackPartitions(rack);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
    1＝　　＇　　　＝　　　＇　　＝
@@ -522,6 +537,7 @@ TEST_F(MoveFinderTest, AcrossSpots) {
   board.UnsafePlaceMove(amp.value());
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheRackPartitions(rack);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
    1＝　　＇　　　＝　　　＇　　＝
@@ -554,6 +570,9 @@ TEST_F(MoveFinderTest, AcrossSpots) {
 
 TEST_F(MoveFinderTest, DownSpots) {
   Board board;
+  // Doesn't actually matter what the rack is for what's being tested here, but
+  // FindSpots will want to compute equity bounds with something.
+  const Rack rack(tiles_->ToLetterString("WHATEVS").value());
   const auto an = Move::Parse("8H AN", *tiles_);
   board.UnsafePlaceMove(an.value());
   move_finder_->CacheCrossesAndScores(board);
@@ -561,6 +580,7 @@ TEST_F(MoveFinderTest, DownSpots) {
   board.UnsafePlaceMove(ax.value());
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheRackPartitions(rack);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
    1＝　　＇　　　＝　　　＇　　＝
@@ -624,6 +644,7 @@ TEST_F(MoveFinderTest, DownSpots) {
   board.UnsafePlaceMove(am.value());
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheRackPartitions(rack);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
    1＝　　＇　　　＝　　　＇　　＝
@@ -953,5 +974,5 @@ TEST_F(MoveFinderTest, CacheCrossesAndScores) {
       }
     }
   }
-  //EXPECT_TRUE(false);
+  // EXPECT_TRUE(false);
 }

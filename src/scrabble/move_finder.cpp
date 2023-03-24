@@ -39,7 +39,7 @@ std::vector<Move> MoveFinder::FindExchanges(const Rack& rack) const {
       }
 
       Move move(letters);
-      const double leave_value = leaves_.Value(leave_product);
+      const float leave_value = leaves_.Value(leave_product);
       move.SetLeave(leave);
       move.SetLeaveValue(leave_value);
       move.ComputeEquity();
@@ -323,10 +323,50 @@ const std::vector<std::pair<absl::uint128, LetterString>>& MoveFinder::Subracks(
   return subracks_;
 }
 
+void MoveFinder::CacheRackPartitions(const Rack& rack) {
+  const int rack_blanks = rack.NumBlanks(tiles_);
+  auto subsets = rack.Subsets(tiles_);
+  const auto rack_counts = rack.Counts();
+  for (int i = 0; i <= 7; i++) {
+    rack_partitions_[i].clear();
+    best_leave_at_size_[i] = -999999;
+  }
+  for (int blanks = 0; blanks <= rack_blanks; ++blanks) {
+    for (const auto& subset : subsets) {
+      const uint64_t used_product = static_cast<uint64_t>(subset.first);
+      const LetterString& used_letters = subset.second;
+      const int size = used_letters.size() + blanks;
+      auto leave_counts = rack_counts;
+      for (Letter letter : used_letters) {
+        leave_counts[letter]--;
+      }
+      leave_counts[tiles_.BlankIndex()] -= rack_blanks - blanks;
+      uint64_t leave_product = 1;
+      LetterString leave;
+      for (Letter letter = tiles_.FirstLetter(); letter <= tiles_.BlankIndex();
+           ++letter) {
+        for (int i = 0; i < leave_counts[letter]; ++i) {
+          leave.push_back(letter);
+          leave_product *= tiles_.Prime(letter);
+        }
+      }
+      const int leave_size = leave.size();
+      const float leave_value =
+          (leave_size > 6) ? -999999 : leaves_.Value(leave_product);
+      const RackPartition rp(used_product, blanks, used_letters, leave,
+                             leave_value);
+      rack_partitions_[size].push_back(rp);
+      if (leave_value > best_leave_at_size_[leave_size]) {
+        best_leave_at_size_[leave_size] = leave_value;
+      }
+    }
+  }
+}
+
 std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
                                         const Spot& spot,
                                         MoveFinder::RecordMode record_mode,
-                                        double best_equity) {
+                                        float best_equity) {
   const auto direction = spot.Direction();
   const int start_row = spot.StartRow();
   const int start_col = spot.StartCol();
@@ -365,11 +405,11 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
         }
       }
       // LOG(INFO) << "leave: " << tiles_.ToString(leave).value();
-      const double leave_value = leaves_.Value(leave_product);
+      const float leave_value = leaves_.Value(leave_product);
       if (record_mode == MoveFinder::RecordBest) {
         if (leave_value + spot.MaxScore() < best_equity) {
-          //LOG(INFO) << "Used " << subsets_used << " subsets out of "
-          //          << subsets.size();
+          // LOG(INFO) << "Used " << subsets_used << " subsets out of "
+          //           << subsets.size();
           continue;
         }
       }
@@ -410,7 +450,7 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
             // std::stringstream ss;
             // move.Display(tiles_, ss);
             // CHECK_GE(spot.MaxEquity(), move.Equity()) << ss.str();
-            CHECK_LE(move.Equity(), leave_value + spot.MaxScore());
+            CHECK_LE(move.Equity(), leave_value + spot.MaxScore() + 1e-5);
             moves.push_back(move);
           } else {
             const auto blankified = Blankify(letters, played_tiles);
@@ -847,35 +887,7 @@ void MoveFinder::ComputeSpotMaxEquity(const Rack& rack, const Board& board,
   }
 
   const int leave_size = rack.NumTiles() - num_tiles;
-  const auto& subracks = Subracks(rack, leave_size);
-  double best_leave = -999999;
-  // LOG(INFO) << "rack.NumTiles(): " << rack.NumTiles()
-  //           << " num_tiles: " << num_tiles << ", leave_size: " << leave_size;
-  if (leave_size == 0) {
-    best_leave = 0;
-  } else {
-    for (int num_blanks = 0; num_blanks <= rack.NumBlanks(tiles_);
-         ++num_blanks) {
-      for (const auto& subrack : subracks) {
-        uint64_t product = static_cast<uint64_t>(subrack.first);
-        auto letters = subrack.second;
-        if (letters.size() + num_blanks != leave_size) {
-          continue;
-        }
-        for (int i = 0; i < num_blanks; ++i) {
-          product *= tiles_.Prime(tiles_.BlankIndex());
-          // letters.push_back(tiles_.BlankIndex());
-        }
-        auto leave = leaves_.Value(product);
-        // LOG(INFO) << "leave: " << tiles_.ToString(letters).value() << " = "
-        //           << leave;
-        if (leave > best_leave) {
-          best_leave = leave;
-        }
-      }
-    }
-  }
-  CHECK_GE(best_leave, -9999);
+  float best_leave = best_leave_at_size_[leave_size];
 
   spot->SetExtraScore(extra_score);
   spot->SetMaxScore(max_word_score + extra_score);
@@ -907,6 +919,7 @@ std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
                                         const Bag& bag,
                                         RecordMode record_mode) {
   CacheCrossesAndScores(board);
+  CacheRackPartitions(rack);
   cross_map_.clear();
   subracks_.clear();
   std::vector<Move> moves;
@@ -938,7 +951,7 @@ std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
                        return a.MaxEquity() > b.MaxEquity();
                      });
   }
-  double best_equity = moves[0].Equity();
+  float best_equity = moves[0].Equity();
   // int spots_checked = 0;
   for (const MoveFinder::Spot& spot : spots) {
     if (record_mode == MoveFinder::RecordBest) {
