@@ -273,7 +273,7 @@ TEST_F(AnagramMapTest, CreateFromBinaryFile) {
               UnorderedElementsAre(Pair(P(""), ElementsAre(LP('A', 'H'))),
                                    Pair(P("A"), ElementsAre(LP('H', 'M'))),
                                    Pair(P("H"), ElementsAre(LP('A', 'M'))),
-                                   Pair(P("M"), ElementsAre(LP('A', 'H')))));                                   
+                                   Pair(P("M"), ElementsAre(LP('A', 'H')))));
 }
 
 TEST_F(AnagramMapTest, CreateFromBinaryFile2) {
@@ -281,11 +281,21 @@ TEST_F(AnagramMapTest, CreateFromBinaryFile2) {
   auto anagram_map = AnagramMap::CreateFromBinaryFile(*tiles_, input_filepath);
   ASSERT_NE(anagram_map, nullptr);
   EXPECT_EQ(anagram_map->map_.size(), 247168);
+
+  auto it = anagram_map->WordIterator(P("AEIOUCNRT"), 0);
+  EXPECT_TRUE(anagram_map->HasWord(it));
+  EXPECT_TRUE(anagram_map->HasWord(P("AEIOUCNRT"), 0));
   const auto words = anagram_map->Words(P("AEIOUCNRT"));
   ASSERT_NE(words, nullptr);
   EXPECT_THAT(*words, ElementsAre(LS("AUTOCRINE"), LS("CAUTIONER"),
                                   LS("COINTREAU"), LS("RECAUTION")));
 
+  it = anagram_map->WordIterator(P("TAILERON"), 0);
+  EXPECT_TRUE(anagram_map->HasWord(it));
+  EXPECT_TRUE(anagram_map->HasWord(P("TAILERON"), 0));
+  it = anagram_map->WordIterator(P("TAILERON"), 1);
+  EXPECT_TRUE(anagram_map->HasWord(it));
+  EXPECT_TRUE(anagram_map->HasWord(P("TAILERON"), 1));
   const auto blanks = anagram_map->Blanks(P("TAILERON"));
   EXPECT_THAT(*blanks, ElementsAre(L('A'),  // ALIENATOR, RATIONALE
                                    L('C'),  // CLARIONET, CROTALINE
@@ -299,6 +309,15 @@ TEST_F(AnagramMapTest, CreateFromBinaryFile2) {
                                    L('U')   // OUTLINEAR
                                    ));
 
+  it = anagram_map->WordIterator(P("STRONCK"), 0);
+  EXPECT_FALSE(anagram_map->HasWord(it));
+  EXPECT_FALSE(anagram_map->HasWord(P("STRONCK"), 0));
+  it = anagram_map->WordIterator(P("STRONCK"), 1);
+  EXPECT_TRUE(anagram_map->HasWord(it));
+  EXPECT_TRUE(anagram_map->HasWord(P("STRONCK"), 1));  // CRONKEST
+  it = anagram_map->WordIterator(P("STRONCK"), 2);
+  EXPECT_TRUE(anagram_map->HasWord(it));
+  EXPECT_TRUE(anagram_map->HasWord(P("STRONCK"), 2));
   const auto double_blanks = anagram_map->DoubleBlanks(P("STRONCK"));
   EXPECT_THAT(*double_blanks, ElementsAre(LP('A', 'L'),  // CORNSTALK
                                           LP('C', 'U'),  // TURNCOCKS
@@ -315,12 +334,32 @@ TEST_F(AnagramMapTest, CreateFromBinaryFile2) {
       std::vector<LetterString>(span_join.begin(), span_join.end());
   EXPECT_THAT(range_words,
               ElementsAre(LS("FOILBORNE"), LS("ROOFLINES"), LS("SOLFERINO")));
+  it = anagram_map->WordIterator(P("ROOFLINE"), 1);
+  EXPECT_TRUE(anagram_map->HasWord(it));
+  const auto it_range = anagram_map->Words(it, P("ROOFLINE"));
+  EXPECT_EQ(it_range.Spans().size(), 2);
+  EXPECT_EQ(it_range.Spans()[0].size(), 1);
+  EXPECT_EQ(it_range.Spans()[1].size(), 2);
+  auto it_span_join = it_range.Spans() | ranges::view::join;
+  const auto it_range_words =
+      std::vector<LetterString>(it_span_join.begin(), it_span_join.end());
+  EXPECT_THAT(it_range_words,
+              ElementsAre(LS("FOILBORNE"), LS("ROOFLINES"), LS("SOLFERINO")));
 
   const auto range2 = anagram_map->Words(P("INTERNATIONAL"), 2);
   auto span_join2 = range2.Spans() | ranges::view::join;
   const auto range_words2 =
       std::vector<LetterString>(span_join2.begin(), span_join2.end());
   EXPECT_THAT(range_words2,
+              ElementsAre(LS("INTERLAMINATION"), LS("INTERNALISATION"),
+                          LS("INTERNALIZATION"), LS("INTERNATIONALLY")));
+  it = anagram_map->WordIterator(P("INTERNATIONAL"), 2);
+  EXPECT_TRUE(anagram_map->HasWord(it));
+  const auto it_range2 = anagram_map->Words(it, P("INTERNATIONAL"));
+  auto it_span_join2 = it_range2.Spans() | ranges::view::join;
+  const auto it_range_words2 =
+      std::vector<LetterString>(it_span_join2.begin(), it_span_join2.end());
+  EXPECT_THAT(it_range_words2,
               ElementsAre(LS("INTERLAMINATION"), LS("INTERNALISATION"),
                           LS("INTERNALIZATION"), LS("INTERNATIONALLY")));
 

@@ -27,6 +27,7 @@ const uint32_t kNotTouching = 0xffffffff;
 class MoveFinder {
  public:
   enum RecordMode { RecordAll, RecordBest, RecordBestK };
+  enum HasWordStatus { kHasWord, kNoWord, kUnchecked };
   class Spot {
    public:
     Spot(Move::Dir direction, int start_row, int start_col, int num_tiles)
@@ -83,6 +84,14 @@ class MoveFinder {
     const LetterString& UsedLetters() const { return used_letters_; }
     const LetterString& LeftLetters() const { return left_letters_; }
     float LeaveValue() const { return leave_value_; }
+    HasWordStatus GetHasWordStatus() const { return has_word_status_; }
+    void SetHasWordStatus(HasWordStatus has_word_status) {
+      has_word_status_ = has_word_status;
+    }
+    void SetWordIterator(AnagramMapIterator word_iterator) {
+      word_iterator_ = word_iterator;
+    }
+    const AnagramMapIterator& WordIterator() const { return word_iterator_; }
 
    private:
     // Prime product of the letters in used_letters_, not including blanks.
@@ -92,6 +101,8 @@ class MoveFinder {
     LetterString used_letters_;
     LetterString left_letters_;
     float leave_value_;
+    enum HasWordStatus has_word_status_;
+    AnagramMapIterator word_iterator_;
   };
 
   MoveFinder(const AnagramMap& anagram_map, const BoardLayout& board_layout,
@@ -118,7 +129,6 @@ class MoveFinder {
   FRIEND_TEST(MoveFinderTest, AbsorbThroughTiles);
   FRIEND_TEST(MoveFinderTest, AbsorbThroughTiles2);
   FRIEND_TEST(MoveFinderTest, CrossAt);
-  FRIEND_TEST(MoveFinderTest, MemoizedCrossAt);
   FRIEND_TEST(MoveFinderTest, CheckHooks);
   FRIEND_TEST(MoveFinderTest, SevenTileOverlap);
   FRIEND_TEST(MoveFinderTest, NonHooks);
@@ -132,6 +142,8 @@ class MoveFinder {
   FRIEND_TEST(MoveFinderTest, WordScore);
   FRIEND_TEST(MoveFinderTest, CacheCrossesAndScores);
 
+  void ComputeEmptyBoardSpotMaxEquity(const Rack& rack, const Board& board,
+                                      Spot* spot);
   void ComputeSpotMaxEquity(const Rack& rack, const Board& board, Spot* spot);
 
   void FindSpots(int rack_tiles, const Board& board, Move::Dir direction,
@@ -165,18 +177,11 @@ class MoveFinder {
 
   void CacheCrossesAndScores(const Board& board);
 
-  absl::optional<LetterString> MemoizedCrossAt(const Board& board,
-                                               Move::Dir play_dir,
-                                               int square_row, int square_col,
-                                               bool unblank);
-
   // Returns nullopt if the square is unconstrained, otherwise returns a string
-  // with a gap for this square's hooks which is a key to use with
-  // anagram_map_.Hooks(). Set unblank to true for checking hook validity; set
-  // it to false to get tiles for scoring.
+  // with a gap for this square's hooks which (after unblanking) is a key to use
+  // with anagram_map_.Hooks(). To use this for scoring, don't unblank.
   absl::optional<LetterString> CrossAt(const Board& board, Move::Dir play_dir,
-                                       int square_row, int square_col,
-                                       bool unblank) const;
+                                       int square_row, int square_col) const;
   bool CheckHooks(const Board& board, const Move& move);
 
   // Word should only have played tiles (play-through is zeroed out).
@@ -191,6 +196,23 @@ class MoveFinder {
                    const Spot& spot) const;
 
   void CacheRackPartitions(const Rack& rack);
+  bool HasWord(RackPartition* partition) const {
+    if (partition->GetHasWordStatus() == kHasWord) {
+      return true;
+    } else if (partition->GetHasWordStatus() == kNoWord) {
+      return false;
+    } else {
+      partition->SetWordIterator(anagram_map_.WordIterator(
+          partition->UsedProduct(), partition->NumBlanks()));
+      if (anagram_map_.HasWord(partition->WordIterator())) {
+        partition->SetHasWordStatus(kHasWord);
+        return true;
+      } else {
+        partition->SetHasWordStatus(kNoWord);
+        return false;
+      }
+    }
+  }
 
   std::vector<Move> FindWords(const Rack& rack, const Board& board,
                               const Spot& spot, RecordMode record_mode,
@@ -215,6 +237,7 @@ class MoveFinder {
   std::array<std::vector<RackPartition>, 8> rack_partitions_;
 
   std::array<float, 8> best_leave_at_size_;
+  std::array<bool, 8> rack_word_of_length_;
 };
 
 inline bool operator==(const MoveFinder::Spot& a, const MoveFinder::Spot& b) {

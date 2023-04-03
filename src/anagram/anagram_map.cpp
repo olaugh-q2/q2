@@ -389,9 +389,9 @@ AnagramMap::WordRange AnagramMap::Words(const absl::uint128& product,
     const auto* double_blanks = DoubleBlanks(product);
     if (double_blanks != nullptr) {
       for (const auto& blank_pair : *double_blanks) {
-        const absl::uint128 new_product = product *
-                                          tiles_.Prime(blank_pair.first) *
-                                          tiles_.Prime(blank_pair.second);
+        const absl::uint128 new_product =
+            product *
+            (tiles_.Prime(blank_pair.first) * tiles_.Prime(blank_pair.second));
         products.emplace_back(new_product);
       }
     }
@@ -402,13 +402,19 @@ AnagramMap::WordRange AnagramMap::Words(const absl::uint128& product,
   }
 }
 
-std::vector<absl::Span<const LetterString>> AnagramMap::WordRange::MakeSpans(
-    const absl::Span<const LetterString>* span) const {
-  if (span == nullptr) {
-    return {};
-  } else {
-    return {*span};
+void AnagramMap::BuildHookMap() {
+  for (const auto& pair : map_) {
+    const auto& words = pair.second;
+    for (const auto& word : words) {
+      for (int i = 0; i < word.length(); ++i) {
+        const Letter hook_letter = word[i];
+        auto key = word;
+        key[i] = 0;
+        hook_map_[key] |= 1 << hook_letter;
+      }
+    }
   }
+  LOG(INFO) << "Built hook map with " << hook_map_.size() << " entries";
 }
 
 std::vector<absl::Span<const LetterString>> AnagramMap::WordRange::MakeSpans(
@@ -425,46 +431,4 @@ std::vector<absl::Span<const LetterString>> AnagramMap::WordRange::MakeSpans(
     }
   }
   return spans;
-}
-
-const absl::Span<const LetterString>* AnagramMap::Words(
-    const absl::uint128& product) const {
-  const auto it = map_.find(product);
-  if (it == map_.end()) {
-    return nullptr;
-  }
-  return &it->second;
-}
-
-const absl::Span<const Letter>* AnagramMap::Blanks(
-    const absl::uint128& product) const {
-  const auto it = blank_map_.find(product);
-  if (it == blank_map_.end()) {
-    return nullptr;
-  }
-  return &it->second;
-}
-
-const absl::Span<const LetterPair>* AnagramMap::DoubleBlanks(
-    const absl::uint128& product) const {
-  const auto it = double_blank_map_.find(product);
-  if (it == double_blank_map_.end()) {
-    return nullptr;
-  }
-  return &it->second;
-}
-
-void AnagramMap::BuildHookMap() {
-  for (const auto& pair : map_) {
-    const auto& words = pair.second;
-    for (const auto& word : words) {
-      for (int i = 0; i < word.length(); ++i) {
-        const Letter hook_letter = word[i];
-        auto key = word;
-        key[i] = 0;
-        hook_map_[key] |= 1 << hook_letter;
-      }
-    }
-  }
-  LOG(INFO) << "Built hook map with " << hook_map_.size() << " entries";
 }

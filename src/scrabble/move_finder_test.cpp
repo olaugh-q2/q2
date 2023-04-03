@@ -283,39 +283,15 @@ TEST_F(MoveFinderTest, CrossAt) {
   Board board;
   const auto ky = Move::Parse("8G KY", *tiles_);
   board.UnsafePlaceMove(ky.value());
-  const auto cross_7G = move_finder_->CrossAt(board, Move::Across, 6, 6, true);
+  const auto cross_7G = move_finder_->CrossAt(board, Move::Across, 6, 6);
   ASSERT_TRUE(cross_7G.has_value());
   EXPECT_EQ(*cross_7G, LS(".K"));
 
   const auto oo = Move::Parse("9G oo", *tiles_);
   board.UnsafePlaceMove(oo.value());
-  const auto cross_7H = move_finder_->CrossAt(board, Move::Across, 6, 7, false);
+  const auto cross_7H = move_finder_->CrossAt(board, Move::Across, 6, 7);
   ASSERT_TRUE(cross_7H.has_value());
-  EXPECT_EQ(*cross_7H, LS(".Y?"));
-}
-
-TEST_F(MoveFinderTest, MemoizedCrossAt) {
-  Board board;
-  const auto ky = Move::Parse("8G KY", *tiles_);
-  board.UnsafePlaceMove(ky.value());
-  const auto cross_7G =
-      move_finder_->MemoizedCrossAt(board, Move::Across, 6, 6, true);
-  ASSERT_TRUE(cross_7G.has_value());
-  EXPECT_EQ(*cross_7G, LS(".K"));
-
-  move_finder_->cross_map_.clear();
-  const auto oo = Move::Parse("9G oo", *tiles_);
-  board.UnsafePlaceMove(oo.value());
-  auto cross_7H =
-      move_finder_->MemoizedCrossAt(board, Move::Across, 6, 7, false);
-  ASSERT_TRUE(cross_7H.has_value());
-  EXPECT_EQ(*cross_7H, LS(".Y?"));
-
-  EXPECT_EQ(move_finder_->cross_map_.size(), 1);
-  cross_7H = move_finder_->MemoizedCrossAt(board, Move::Across, 6, 7, false);
-  ASSERT_TRUE(cross_7H.has_value());
-  EXPECT_EQ(*cross_7H, LS(".Y?"));
-  EXPECT_EQ(move_finder_->cross_map_.size(), 1);
+  EXPECT_EQ(*cross_7H, LS(".Yo"));
 }
 
 TEST_F(MoveFinderTest, HookSum) {
@@ -343,23 +319,23 @@ TEST_F(MoveFinderTest, CheckHooks) {
   board.UnsafePlaceMove(aa.value());
 
   const auto hm = Move::Parse("7G HM", *tiles_);
-  move_finder_->cross_map_.clear();
+  move_finder_->CacheCrossesAndScores(board);
   EXPECT_TRUE(move_finder_->CheckHooks(board, hm.value()));
 
   const auto ae = Move::Parse("7G AE", *tiles_);
-  move_finder_->cross_map_.clear();
+  move_finder_->CacheCrossesAndScores(board);
   EXPECT_TRUE(move_finder_->CheckHooks(board, ae.value()));
 
   const auto faan = Move::Parse("7F FAAN", *tiles_);
-  move_finder_->cross_map_.clear();
+  move_finder_->CacheCrossesAndScores(board);
   EXPECT_TRUE(move_finder_->CheckHooks(board, faan.value()));
 
   const auto qi = Move::Parse("7G QI", *tiles_);
-  move_finder_->cross_map_.clear();
+  move_finder_->CacheCrossesAndScores(board);
   EXPECT_FALSE(move_finder_->CheckHooks(board, qi.value()));
 
   const auto ax = Move::Parse("7G AX", *tiles_);
-  move_finder_->cross_map_.clear();
+  move_finder_->CacheCrossesAndScores(board);
   EXPECT_FALSE(move_finder_->CheckHooks(board, ax.value()));
 }
 
@@ -857,7 +833,7 @@ TEST_F(MoveFinderTest, RepeatedlyPlay1) {
   std::stringstream ss;
   board_layout_->DisplayBoard(board, *tiles_, ss);
   LOG(INFO) << std::endl << ss.str();
-  EXPECT_EQ(moves_played, 45);
+  EXPECT_EQ(moves_played, 42);
 }
 
 TEST_F(MoveFinderTest, RepeatedlyPlay2) {
@@ -975,4 +951,24 @@ TEST_F(MoveFinderTest, CacheCrossesAndScores) {
     }
   }
   // EXPECT_TRUE(false);
+}
+
+TEST_F(MoveFinderTest, FindMissingMove) {
+  Board board;
+  const auto abaters = Move::Parse("8B abATERS", *tiles_);
+  board.UnsafePlaceMove(abaters.value());
+  const auto rabattes = Move::Parse("E4 RabA.TES", *tiles_);
+  board.UnsafePlaceMove(rabattes.value());
+  const auto gastreas = Move::Parse("H1 gaSTREA.", *tiles_);
+  board.UnsafePlaceMove(gastreas.value());
+  const auto erostrate = Move::Parse("4D e.oS.RATE", *tiles_);
+  board.UnsafePlaceMove(erostrate.value());
+  const auto tabarets = Move::Parse("K4 .abARETS", *tiles_);
+  board.UnsafePlaceMove(tabarets.value());
+  const auto aerates = Move::Parse("L7 aERATeS", *tiles_);
+  board.UnsafePlaceMove(aerates.value());
+  const Rack rack(tiles_->ToLetterString("RATES??").value());
+  std::vector<Move> moves =
+      move_finder_->FindMoves(rack, board, *empty_bag_, MoveFinder::RecordBest);
+  EXPECT_EQ(moves[0].Score(), 72);  // M5 mASTERy or wASTERy
 }
