@@ -28,6 +28,7 @@ void AddPowerSets(const Tiles& tiles, const std::array<int, 32>& counts,
 absl::flat_hash_map<absl::uint128, LetterString> PowerSet(
     const Tiles& tiles, const std::array<int, 32>& counts) {
   absl::flat_hash_map<absl::uint128, LetterString> subsets;
+  subsets.reserve(128);  // 2 ** 7
   LetterString prefix;
   AddPowerSets(tiles, counts, 0, 1, prefix, &subsets);
   return subsets;

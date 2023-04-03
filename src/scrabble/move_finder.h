@@ -189,9 +189,6 @@ class MoveFinder {
   std::vector<LetterString> Blankify(const LetterString& rack_letters,
                                      const LetterString& word) const;
 
-  const std::vector<std::pair<absl::uint128, LetterString>>& Subracks(
-      const Rack& rack, int num_tiles);
-
   int SpotMaxScore(const LetterString& letters, const Board& board,
                    const Spot& spot) const;
 
