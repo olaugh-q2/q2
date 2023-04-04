@@ -5,6 +5,7 @@ cc_library(
     name = "anagram_map",
     srcs = ["anagram_map.cpp"],
     hdrs = ["anagram_map.h"],
+    copts = ["-std=c++14"],
     visibility = ["//visibility:public"],
     deps = [
         ":anagram_map_cc_proto",
@@ -14,6 +15,7 @@ cc_library(
         "@com_google_absl//absl/status",
         "@com_google_protobuf//:protobuf",
         "@glog",
+        "@range-v3",
     ],
 )
 
@@ -21,7 +23,11 @@ cc_test(
     name = "anagram_map_test",
     srcs = ["anagram_map_test.cpp"],
     copts = ["-std=c++14"],
-    data = glob(["testdata/*.txt", "testdata/*.qam", "testdata/*.textproto"]),
+    data = glob([
+        "testdata/*.txt",
+        "testdata/*.qam",
+        "testdata/*.textproto",
+    ]),
     deps = [
         ":anagram_map",
         ":anagram_map_cc_proto",

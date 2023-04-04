@@ -178,7 +178,9 @@ inline AnagramMap::WordRange AnagramMap::Words(
       return WordRange(nullptr);
     } else {
       std::vector<absl::uint128> products;
-      for (const Letter letter : (*it)->second) {
+      const auto& blanks = (*it)->second;
+      products.reserve(blanks.size());
+      for (const Letter letter : blanks) {
         const absl::uint128 new_product = product * tiles_.Prime(letter);
         products.emplace_back(new_product);
       }
@@ -191,7 +193,9 @@ inline AnagramMap::WordRange AnagramMap::Words(
       return WordRange(nullptr);
     } else {
       std::vector<absl::uint128> products;
-      for (const auto& blank_pair : (*it)->second) {
+      const auto& double_blanks = (*it)->second;
+      products.reserve(double_blanks.size());
+      for (const auto& blank_pair : double_blanks) {
         const absl::uint128 new_product =
             product *
             (tiles_.Prime(blank_pair.first) * tiles_.Prime(blank_pair.second));

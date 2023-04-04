@@ -8,8 +8,8 @@ void Rack::Display(const Tiles& tiles, std::ostream& os) const {
 
 namespace {
 void AddPowerSets(const Tiles& tiles, const std::array<int, 32>& counts,
-                  int index, absl::uint128 product, LetterString prefix,
-                  absl::flat_hash_map<absl::uint128, LetterString>* subsets) {
+                  int index, uint64_t product, LetterString prefix,
+                  absl::flat_hash_map<uint64_t, LetterString>* subsets) {
   // LOG(INFO) << "index: " << index << " product: " << product
   //           << " prefix: " << tiles.ToString(prefix).value();
   if (index == tiles.BlankIndex()) {
@@ -25,9 +25,9 @@ void AddPowerSets(const Tiles& tiles, const std::array<int, 32>& counts,
   }
 }
 
-absl::flat_hash_map<absl::uint128, LetterString> PowerSet(
+absl::flat_hash_map<uint64_t, LetterString> PowerSet(
     const Tiles& tiles, const std::array<int, 32>& counts) {
-  absl::flat_hash_map<absl::uint128, LetterString> subsets;
+  absl::flat_hash_map<uint64_t, LetterString> subsets;
   subsets.reserve(128);  // 2 ** 7
   LetterString prefix;
   AddPowerSets(tiles, counts, 0, 1, prefix, &subsets);
@@ -37,7 +37,7 @@ absl::flat_hash_map<absl::uint128, LetterString> PowerSet(
 
 std::array<int, 32> Rack::Counts() const { return letters_.Counts(); }
 
-absl::flat_hash_map<absl::uint128, LetterString> Rack::Subsets(
+absl::flat_hash_map<uint64_t, LetterString> Rack::Subsets(
     const Tiles& tiles) const {
   Products products;
   const auto counts = Counts();

@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <range/v3/all.hpp>
 #include <sstream>
 #include <string>
 
@@ -378,6 +379,7 @@ AnagramMap::WordRange AnagramMap::Words(const absl::uint128& product,
     std::vector<absl::uint128> products;
     const auto* blanks = Blanks(product);
     if (blanks != nullptr) {
+      products.reserve(ranges::distance(*blanks));
       for (const Letter letter : *blanks) {
         const absl::uint128 new_product = product * tiles_.Prime(letter);
         products.emplace_back(new_product);
@@ -388,6 +390,7 @@ AnagramMap::WordRange AnagramMap::Words(const absl::uint128& product,
     std::vector<absl::uint128> products;
     const auto* double_blanks = DoubleBlanks(product);
     if (double_blanks != nullptr) {
+      products.reserve(ranges::distance(*double_blanks));
       for (const auto& blank_pair : *double_blanks) {
         const absl::uint128 new_product =
             product *

@@ -38,7 +38,7 @@ TEST_F(RackTest, Subsets) {
   EXPECT_EQ(subsets.size(), 8);
   for (const auto& subset : {"", "I", "Q", "S", "IQ", "IS", "QS", "IQS"}) {
     auto letters = tiles_->ToLetterString(subset).value();
-    auto product = tiles_->ToProduct(letters);
+    auto product = static_cast<uint64_t>(tiles_->ToProduct(letters));
     auto result = subsets.find(product);
     EXPECT_TRUE(result != subsets.end());
     EXPECT_EQ(result->second, letters);
@@ -55,7 +55,7 @@ TEST_F(RackTest, Subsets2) {
   EXPECT_EQ(subsets.size(), 6);
   for (const auto& subset : {"", "A", "B", "AA", "AB", "AAB"}) {
     auto letters = tiles_->ToLetterString(subset).value();
-    auto product = tiles_->ToProduct(letters);
+    auto product = static_cast<uint64_t>(tiles_->ToProduct(letters));
     auto result = subsets.find(product);
     EXPECT_TRUE(result != subsets.end());
     EXPECT_EQ(result->second, letters);
@@ -72,7 +72,7 @@ TEST_F(RackTest, Subsets3) {
   EXPECT_EQ(subsets.size(), 6);
   for (const auto& subset : {"", "A", "B", "AA", "AB", "AAB"}) {
     auto letters = tiles_->ToLetterString(subset).value();
-    auto product = tiles_->ToProduct(letters);
+    auto product = static_cast<uint64_t>(tiles_->ToProduct(letters));
     auto result = subsets.find(product);
     EXPECT_TRUE(result != subsets.end());
     EXPECT_EQ(result->second, letters);
@@ -106,7 +106,7 @@ TEST_F(RackTest, Subsets6) {
     LOG(INFO) << "subset: {" << subset.first << ", "
               << tiles_->ToString(subset.second).value() << "}";
   }
-  EXPECT_EQ(subsets.size(), 0);
+  EXPECT_EQ(subsets.size(), 96);
 }
 
 TEST_F(RackTest, NumBlanks) {

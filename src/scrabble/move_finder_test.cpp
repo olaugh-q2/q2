@@ -440,6 +440,7 @@ TEST_F(MoveFinderTest, AcrossSpots) {
   15＝　　＇　　　＝　　　＇　　＝
   */
   std::vector<MoveFinder::Spot> spots;
+  move_finder_->SetRackBits(rack);
   move_finder_->FindSpots(3, board, Move::Across, &spots);
   EXPECT_THAT(spots, UnorderedElementsAreArray(
                          {MoveFinder::Spot(Move::Across, 6, 5, 3),
@@ -499,6 +500,7 @@ TEST_F(MoveFinderTest, AcrossSpots) {
   14　－　　　＂　　　＂　　　－　
   15＝　　＇　　　＝　　　＇　　＝
   */
+  move_finder_->SetRackBits(rack);
   move_finder_->FindSpots(1, board, Move::Across, &spots);
   EXPECT_THAT(spots, UnorderedElementsAreArray(
                          {MoveFinder::Spot(Move::Across, 7, 6, 1),
@@ -532,6 +534,7 @@ TEST_F(MoveFinderTest, AcrossSpots) {
   14　－　　　＂　　　＂　　　－　
   15＝　　＇　　　＝　　　＇　　＝
   */
+   move_finder_->SetRackBits(rack);
   move_finder_->FindSpots(1, board, Move::Across, &spots);
   EXPECT_THAT(spots, UnorderedElementsAreArray(
                          {MoveFinder::Spot(Move::Down, 7, 6, 1),

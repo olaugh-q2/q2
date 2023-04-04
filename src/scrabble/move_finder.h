@@ -215,6 +215,7 @@ class MoveFinder {
                               const Spot& spot, RecordMode record_mode,
                               float best_equity);
 
+  void SetRackBits(const Rack& rack);
   const AnagramMap& anagram_map_;
   const BoardLayout& board_layout_;
   const Tiles& tiles_;
@@ -235,11 +236,32 @@ class MoveFinder {
 
   std::array<float, 8> best_leave_at_size_;
   std::array<bool, 8> rack_word_of_length_;
+  uint32_t rack_bits_;
+  uint32_t unique_rack_letter_bits_;
+  int num_blanks_;
 };
 
 inline bool operator==(const MoveFinder::Spot& a, const MoveFinder::Spot& b) {
   return a.Direction() == b.Direction() && a.StartRow() == b.StartRow() &&
          a.StartCol() == b.StartCol() && a.NumTiles() == b.NumTiles();
+}
+
+inline void MoveFinder::SetRackBits(const Rack& rack) {
+  rack_bits_ = 0;
+  num_blanks_ = 0;
+  for (const Letter letter : rack.Letters()) {
+    if (letter == tiles_.BlankIndex()) {
+      num_blanks_++;
+    } else {
+      uint32_t bit = 1 << letter;
+      if (rack_bits_ & bit) {
+        unique_rack_letter_bits_ &= ~bit;
+      } else {
+         unique_rack_letter_bits_ |= bit;
+      }
+      rack_bits_ |= bit;
+    }
+  }
 }
 
 #endif  // SRC_SCRABBLE_MOVE_FINDER_H_
