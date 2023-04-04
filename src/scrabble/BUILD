@@ -237,3 +237,50 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "player",
+    srcs = ["player.cpp"],
+    hdrs = ["player.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/strings",
+        "@glog",
+    ],
+)
+cc_test(
+    name = "player_test",
+    srcs = ["player_test.cpp"],
+    data = glob(["testdata/*.textproto"]),
+    deps = [
+        ":player",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+# cc_library(
+#     name = "game_position",
+#     srcs = ["game_position.cpp"],
+#     hdrs = ["game_position.h"],
+#     visibility = ["//visibility:public"],
+#     deps = [
+#         ":move",
+#         ":rack",
+#         "@glog",
+#     ]
+# )
+
+# cc_library(
+#     name = "game",
+#     srcs = ["game.cpp"],
+#     hdrs = ["game.h"],
+#     visibility = ["//visibility:public"],
+#     deps = [
+#         ":board",
+#         ":board_layout",
+#         ":game_position",
+#         ":player",
+#         ":tiles",
+#         "@glog",
+#     ]
+# )
