@@ -21,8 +21,52 @@ TEST_F(GamePositionTest, Display) {
   Rack rack(tiles_->ToLetterString("GOULASH").value());
   auto pos = absl::make_unique<GamePosition>(*layout_, board, 1, 2, rack, 0, 0,
                                              nullptr, *tiles_);
-  std::stringstream ss;
-  pos->Display(ss);
-  LOG(INFO) << std::endl << ss.str();
-  EXPECT_EQ(ss.str(), "  ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ");
+  std::stringstream ss1;
+  pos->Display(ss1);
+  LOG(INFO) << std::endl << ss1.str();
+  EXPECT_EQ(ss1.str(), R"(  ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
+ 1＝　　＇　　　＝　　　＇　　＝
+ 2　－　　　＂　　　＂　　　－　
+ 3　　－　　　＇　＇　　　－　　
+ 4＇　　－　　　＇　　　－　　＇
+ 5　　　　－　　　　　－　　　　
+ 6　＂　　　＂　　　＂　　　＂　
+ 7　　＇　　　＇　＇　　　＇　　
+ 8＝　　＇　　　－　　　＇　　＝
+ 9　　＇　　　＇　＇　　　＇　　
+10　＂　　　＂　　　＂　　　＂　
+11　　　　－　　　　　－　　　　
+12＇　　－　　　＇　　　－　　＇
+13　　－　　　＇　＇　　　－　　
+14　－　　　＂　　　＂　　　－　
+15＝　　＇　　　＝　　　＇　　＝
+Player 1 holds GOULASH on 0 to opp's 0
+Unseen: AAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGHIIIIIIIIIJKLLLMMNNNNNNOOOOOOOPPQRRRRRRSSSTTTTTTUUUVVWWXYYZ??
+)");
+
+  // The move's score isn't calculated in its creation, so it's not displayed.
+  const auto goulash = Move::Parse("8F GOULASH", *tiles_);
+  pos->CommitMove(goulash.value());
+  std::stringstream ss2;
+  pos->Display(ss2);
+  LOG(INFO) << std::endl << ss2.str();
+  EXPECT_EQ(ss2.str(), R"(  ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
+ 1＝　　＇　　　＝　　　＇　　＝
+ 2　－　　　＂　　　＂　　　－　
+ 3　　－　　　＇　＇　　　－　　
+ 4＇　　－　　　＇　　　－　　＇
+ 5　　　　－　　　　　－　　　　
+ 6　＂　　　＂　　　＂　　　＂　
+ 7　　＇　　　＇　＇　　　＇　　
+ 8＝　　＇　　　－　　　＇　　＝
+ 9　　＇　　　＇　＇　　　＇　　
+10　＂　　　＂　　　＂　　　＂　
+11　　　　－　　　　　－　　　　
+12＇　　－　　　＇　　　－　　＇
+13　　－　　　＇　＇　　　－　　
+14　－　　　＂　　　＂　　　－　
+15＝　　＇　　　＝　　　＇　　＝
+Player 1 holding GOULASH on 0 to opp's 0 plays 8F GOULASH
+Unseen (before drawing): AAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGHIIIIIIIIIJKLLLMMNNNNNNOOOOOOOPPQRRRRRRSSSTTTTTTUUUVVWWXYYZ??
+)");
 }
