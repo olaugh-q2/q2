@@ -7,6 +7,8 @@ cc_library(
     hdrs = ["bag.h"],
     visibility = ["//visibility:public"],
     deps = [
+        ":board",
+        ":rack",
         ":tiles",
         "@glog",
     ],
@@ -173,7 +175,7 @@ cc_library(
         ":rack",
         ":tiles",
         "//src/anagram:anagram_map",
-        "//src/leaves:leaves",
+        "//src/leaves",
         "@com_google_absl//absl/types:optional",
         "@glog",
         "@range-v3",
@@ -248,28 +250,46 @@ cc_library(
         "@glog",
     ],
 )
+
 cc_test(
     name = "player_test",
     srcs = ["player_test.cpp"],
-    data = glob(["testdata/*.textproto"]),
     deps = [
         ":player",
         "@com_google_googletest//:gtest_main",
     ],
 )
 
-# cc_library(
-#     name = "game_position",
-#     srcs = ["game_position.cpp"],
-#     hdrs = ["game_position.h"],
-#     visibility = ["//visibility:public"],
-#     deps = [
-#         ":move",
-#         ":rack",
-#         "@glog",
-#     ]
-# )
+cc_library(
+    name = "game_position",
+    srcs = ["game_position.cpp"],
+    hdrs = ["game_position.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":bag",
+        ":board",
+        ":board_layout",
+        ":move",
+        ":rack",
+        "@glog",
+    ],
+)
 
+cc_test(
+    name = "game_position_test",
+    srcs = ["game_position_test.cpp"],
+    data = glob(["testdata/*.textproto"]),
+    deps = [
+        ":game_position",
+        ":bag",
+        ":board",
+        ":board_layout",
+        ":move",
+        ":rack",
+        ":tiles",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
 # cc_library(
 #     name = "game",
 #     srcs = ["game.cpp"],

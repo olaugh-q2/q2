@@ -48,3 +48,13 @@ TEST_F(BagTest, Construction3) {
   EXPECT_EQ(ss.str(), "AB?");
   EXPECT_FALSE(bag.CanExchange());
 }
+
+TEST_F(BagTest, UnseenToPlayer) {
+  Board board;
+  const auto plumbum = Move::Parse("8D PLUMBUM", *tiles_);
+  board.UnsafePlaceMove(plumbum.value());
+  Rack rack(tiles_->ToLetterString("QUACKLE").value());
+  auto unseen = Bag::UnseenToPlayer(*tiles_, board, rack);
+  ASSERT_NE(unseen, nullptr);
+  EXPECT_EQ(unseen->Size(), 100-14);
+}
