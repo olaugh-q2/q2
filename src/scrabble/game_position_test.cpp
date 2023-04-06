@@ -18,9 +18,9 @@ class GamePositionTest : public ::testing::Test {
 
 TEST_F(GamePositionTest, Display) {
   Board board;
-  Rack rack(tiles_->ToLetterString("GOULASH").value());
+  Rack rack(tiles_->ToLetterString("OLAUGHS").value());
   auto pos = absl::make_unique<GamePosition>(*layout_, board, 1, 2, rack, 0, 0,
-                                             nullptr, *tiles_);
+                                             nullptr, absl::Minutes(25), *tiles_);
   std::stringstream ss1;
   pos->Display(ss1);
   LOG(INFO) << std::endl << ss1.str();
@@ -40,13 +40,13 @@ TEST_F(GamePositionTest, Display) {
 13　　－　　　＇　＇　　　－　　
 14　－　　　＂　　　＂　　　－　
 15＝　　＇　　　＝　　　＇　　＝
-Player 1 holds GOULASH on 0 to opp's 0
+Player 1 holds OLAUGHS on 0 to opp's 0 [25:00]
 Unseen: AAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGHIIIIIIIIIJKLLLMMNNNNNNOOOOOOOPPQRRRRRRSSSTTTTTTUUUVVWWXYYZ??
 )");
 
   // The move's score isn't calculated in its creation, so it's not displayed.
   const auto goulash = Move::Parse("8F GOULASH", *tiles_);
-  pos->CommitMove(goulash.value());
+  pos->CommitMove(goulash.value(), absl::Seconds(123));
   std::stringstream ss2;
   pos->Display(ss2);
   LOG(INFO) << std::endl << ss2.str();
@@ -66,7 +66,7 @@ Unseen: AAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGHIIIIIIIIIJKLLLMMNNNNNNOOOOOOOPPQRRRRRRS
 13　　－　　　＇　＇　　　－　　
 14　－　　　＂　　　＂　　　－　
 15＝　　＇　　　＝　　　＇　　＝
-Player 1 holding GOULASH on 0 to opp's 0 plays 8F GOULASH
+Player 1 holding OLAUGHS on 0 to opp's 0 plays 8F GOULASH [25:00 → 22:57]
 Unseen (before drawing): AAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGHIIIIIIIIIJKLLLMMNNNNNNOOOOOOOPPQRRRRRRSSSTTTTTTUUUVVWWXYYZ??
 )");
 }

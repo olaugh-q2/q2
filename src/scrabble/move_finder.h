@@ -1,5 +1,5 @@
-#ifndef SRC_SCRABBLE_MOVE_FINDER_H_
-#define SRC_SCRABBLE_MOVE_FINDER_H_
+#ifndef SRC_SCRABBLE_MOVE_FINDER_H
+#define SRC_SCRABBLE_MOVE_FINDER_H
 
 #include "src/anagram/anagram_map.h"
 #include "src/leaves/leaves.h"
@@ -257,11 +257,11 @@ inline void MoveFinder::SetRackBits(const Rack& rack) {
       if (rack_bits_ & bit) {
         unique_rack_letter_bits_ &= ~bit;
       } else {
-         unique_rack_letter_bits_ |= bit;
+        unique_rack_letter_bits_ |= bit;
       }
       rack_bits_ |= bit;
     }
   }
 }
 
-#endif  // SRC_SCRABBLE_MOVE_FINDER_H_
+#endif  // SRC_SCRABBLE_MOVE_FINDER_H

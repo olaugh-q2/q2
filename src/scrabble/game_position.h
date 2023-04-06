@@ -1,6 +1,7 @@
-#ifndef SRC_SCRABBLE_GAME_POSITION_H_
-#define SRC_SCRABBLE_GAME_POSITION_H_
+#ifndef SRC_SCRABBLE_GAME_POSITION_H
+#define SRC_SCRABBLE_GAME_POSITION_H
 
+#include "absl/time/time.h"
 #include "src/scrabble/bag.h"
 #include "src/scrabble/board.h"
 #include "src/scrabble/board_layout.h"
@@ -11,6 +12,7 @@ class GamePosition {
   GamePosition(const BoardLayout& layout, const Board& board, int on_turn_player_id,
                int opponent_player_id, const Rack& rack, int player_score,
                int opponent_score, const GamePosition* previous_position,
+               absl::Duration time_remaining_start,
                const Tiles& tiles)
       : layout_(layout),
         board_(board),
@@ -21,13 +23,20 @@ class GamePosition {
         opponent_score_(opponent_score),
         previous_position_(previous_position),
         unseen_to_player_(*Bag::UnseenToPlayer(tiles, board_, rack_)),
+        time_remaining_start_(time_remaining_start),
         tiles_(tiles) {}
 
-  void CommitMove(const Move& move) {
+  void CommitMove(const Move& move, const absl::Duration elapsed) {
     move_ = move;
+    CHECK_GE(elapsed, absl::ZeroDuration());
+    time_remaining_end_ = time_remaining_start_ - elapsed;
   }
 
   void Display(std::ostream& os) const;
+
+  const Board& GetBoard() const { return board_; }
+  const Rack& GetRack() const { return rack_; }
+  const Bag& GetUnseenToPlayer() const { return unseen_to_player_; }
 
  private:
   const BoardLayout& layout_;
@@ -51,7 +60,14 @@ class GamePosition {
   absl::optional<Move> move_;
 
   const Bag unseen_to_player_;
+
+  // Time left in game for player at start of turn (possibly negative)
+  const absl::Duration time_remaining_start_; 
+
+  // Time left in game for player at end of turn (possibly negative)
+  absl::Duration time_remaining_end_;
+
   const Tiles& tiles_;
 };
 
-#endif  // SRC_SCRABBLE_GAME_POSITION_H_
+#endif  // SRC_SCRABBLE_GAME_POSITION_H

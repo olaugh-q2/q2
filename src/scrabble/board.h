@@ -1,5 +1,5 @@
-#ifndef SRC_SCRABBLE_BOARD_H_
-#define SRC_SCRABBLE_BOARD_H_
+#ifndef SRC_SCRABBLE_BOARD_H
+#define SRC_SCRABBLE_BOARD_H
 
 #include <array>
 
@@ -22,4 +22,4 @@ class Board {
   bool is_empty_;
 };
 
-#endif  // SRC_SCRABBLE_BOARD_H_
+#endif  // SRC_SCRABBLE_BOARD_H

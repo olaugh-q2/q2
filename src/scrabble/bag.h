@@ -1,5 +1,5 @@
-#ifndef SRC_SCRABBLE_BAG_H_
-#define SRC_SCRABBLE_BAG_H_
+#ifndef SRC_SCRABBLE_BAG_H
+#define SRC_SCRABBLE_BAG_H
 
 #include "absl/random/bit_gen_ref.h"
 #include "src/scrabble/board.h"
@@ -26,4 +26,4 @@ class Bag {
   std::vector<Letter> letters_;
 };
 
-#endif  // SRC_SCRABBLE_BAG_H_
+#endif  // SRC_SCRABBLE_BAG_H

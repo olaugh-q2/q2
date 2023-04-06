@@ -263,6 +263,60 @@ cc_test(
 )
 
 cc_library(
+    name = "computer_player",
+    srcs = ["computer_player.cpp"],
+    hdrs = ["computer_player.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":game_position",
+        ":player",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time",
+        "@glog",
+    ],
+)
+
+cc_library(
+    name = "static_player",
+    srcs = ["static_player.cpp"],
+    hdrs = ["static_player.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":board_layout",
+        ":computer_player",
+        ":move",
+        ":move_finder",
+        ":tiles",
+        "//src/anagram:anagram_map",
+        "//src/leaves",
+        "@com_google_absl//absl/memory",
+        "@glog",
+    ],
+)
+
+cc_test(
+    name = "static_player_test",
+    srcs = ["static_player_test.cpp"],
+    data = glob([
+        "testdata/*.qam",
+        "testdata/*.qlv",
+        "testdata/*.textproto",
+    ]),
+    deps = [
+        ":board",
+        ":board_layout",
+        ":computer_player",
+        ":move",
+        ":move_finder",
+        ":rack",
+        ":tiles",
+        ":static_player",
+        "@com_google_absl//absl/memory",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "game_position",
     srcs = ["game_position.cpp"],
     hdrs = ["game_position.h"],
@@ -273,6 +327,7 @@ cc_library(
         ":board_layout",
         ":move",
         ":rack",
+        "@com_google_absl//absl/time",
         "@glog",
     ],
 )
@@ -282,10 +337,10 @@ cc_test(
     srcs = ["game_position_test.cpp"],
     data = glob(["testdata/*.textproto"]),
     deps = [
-        ":game_position",
         ":bag",
         ":board",
         ":board_layout",
+        ":game_position",
         ":move",
         ":rack",
         ":tiles",

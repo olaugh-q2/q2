@@ -1,5 +1,5 @@
-#ifndef SRC_ANAGRAM_ANAGRAM_MAP_H_
-#define SRC_ANAGRAM_ANAGRAM_MAP_H_
+#ifndef SRC_ANAGRAM_ANAGRAM_MAP_H
+#define SRC_ANAGRAM_ANAGRAM_MAP_H
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/numeric/int128.h"
@@ -234,4 +234,4 @@ inline const absl::Span<const LetterPair>* AnagramMap::DoubleBlanks(
   return &it->second;
 }
 
-#endif  // SRC_ANAGRAM_ANAGRAM_MAP_H_
+#endif  // SRC_ANAGRAM_ANAGRAM_MAP_H

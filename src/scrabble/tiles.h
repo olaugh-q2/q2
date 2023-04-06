@@ -1,5 +1,5 @@
-#ifndef SRC_SCRABBLE_TILES_H_
-#define SRC_SCRABBLE_TILES_H_
+#ifndef SRC_SCRABBLE_TILES_H
+#define SRC_SCRABBLE_TILES_H
 
 #include <array>
 #include <codecvt>
@@ -53,7 +53,7 @@ class Tiles {
                                       const std::array<int, 32>& indices);
 
   q2::proto::TilesSpec proto_;
-    const int blank_index_;
+  const int blank_index_;
   const std::array<char32_t, 64> fullwidth_symbols_;
   const std::array<int, 32> distribution_;
   const std::array<int, 32> scores_;
@@ -62,4 +62,4 @@ class Tiles {
 
 inline uint64_t Tiles::Prime(Letter letter) const { return primes_[letter]; }
 
-#endif  // SRC_SCRABBLE_TILES_H_
+#endif  // SRC_SCRABBLE_TILES_H

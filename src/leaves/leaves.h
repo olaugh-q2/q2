@@ -1,5 +1,5 @@
-#ifndef SRC_LEAVES_LEAVES_H_
-#define SRC_LEAVES_LEAVES_H_
+#ifndef SRC_LEAVES_LEAVES_H
+#define SRC_LEAVES_LEAVES_H
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
@@ -30,4 +30,4 @@ inline float Leaves::Value(uint64_t product) const {
   }
   return it->second;
 }
-#endif  // SRC_LEAVES_LEAVES_H_
+#endif  // SRC_LEAVES_LEAVES_H

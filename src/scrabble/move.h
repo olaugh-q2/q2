@@ -1,5 +1,5 @@
-#ifndef SRC_SCRABBLE_MOVE_H_
-#define SRC_SCRABBLE_MOVE_H_
+#ifndef SRC_SCRABBLE_MOVE_H
+#define SRC_SCRABBLE_MOVE_H
 
 #include "absl/status/statusor.h"
 #include "glog/logging.h"
@@ -147,4 +147,4 @@ class Move {
   absl::optional<double> equity_;
 };
 
-#endif  // SRC_SCRABBLE_MOVE_H_
+#endif  // SRC_SCRABBLE_MOVE_H

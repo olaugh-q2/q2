@@ -1,5 +1,5 @@
-#ifndef SRC_SCRABBLE_BOARD_LAYOUT_H_
-#define SRC_SCRABBLE_BOARD_LAYOUT_H_
+#ifndef SRC_SCRABBLE_BOARD_LAYOUT_H
+#define SRC_SCRABBLE_BOARD_LAYOUT_H
 
 #include <array>
 #include <codecvt>
@@ -53,4 +53,4 @@ class BoardLayout {
   const std::array<std::array<int, 15>, 15> word_multipliers_;
 };
 
-#endif  // SRC_SCRABBLE_BOARD_LAYOUT_H_
+#endif  // SRC_SCRABBLE_BOARD_LAYOUT_H

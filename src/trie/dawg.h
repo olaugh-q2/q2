@@ -1,5 +1,5 @@
-#ifndef SRC_TRIE_DAWG_H_
-#define SRC_TRIE_DAWG_H_
+#ifndef SRC_TRIE_DAWG_H
+#define SRC_TRIE_DAWG_H
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
@@ -72,4 +72,4 @@ class Dawg {
   std::vector<uint8_t> bytes_;
 };
 
-#endif  // SRC_TRIE_DAWG_H_
+#endif  // SRC_TRIE_DAWG_H

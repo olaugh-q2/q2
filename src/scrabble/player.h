@@ -6,7 +6,7 @@
 class Player {
  public:
   enum PlayerType { Human, Computer };
-  
+
   Player(const std::string& name, const std::string& nickname,
          PlayerType player_type, int id)
       : name_(name), nickname_(nickname), player_type_(player_type), id_(id) {}
