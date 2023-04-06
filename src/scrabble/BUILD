@@ -10,6 +10,7 @@ cc_library(
         ":board",
         ":rack",
         ":tiles",
+        "@com_google_absl//absl/random:bit_gen_ref",
         "@glog",
     ],
 )
@@ -22,6 +23,7 @@ cc_test(
         ":bag",
         ":tiles",
         "@com_google_absl//absl/memory",
+        "@com_google_absl//absl/random:mocking_bit_gen",
         "@com_google_googletest//:gtest_main",
     ],
 )

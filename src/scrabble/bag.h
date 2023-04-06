@@ -1,6 +1,7 @@
 #ifndef SRC_SCRABBLE_BAG_H_
 #define SRC_SCRABBLE_BAG_H_
 
+#include "absl/random/bit_gen_ref.h"
 #include "src/scrabble/board.h"
 #include "src/scrabble/rack.h"
 #include "src/scrabble/tiles.h"
@@ -16,6 +17,9 @@ class Bag {
   int Size() const { return letters_.size(); }
   bool CanExchange() const { return Size() >= 7; }
   void Display(std::ostream& os) const;
+  void Shuffle(absl::BitGenRef gen) {
+    std::shuffle(letters_.begin(), letters_.end(), gen);
+  }
 
  private:
   const Tiles& tiles_;

@@ -1,8 +1,13 @@
 #include "src/scrabble/bag.h"
 
+#include <limits>
+
 #include "absl/memory/memory.h"
+#include "absl/random/mocking_bit_gen.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
+using ::testing::Return;
 
 class BagTest : public testing::Test {
  protected:
@@ -56,5 +61,18 @@ TEST_F(BagTest, UnseenToPlayer) {
   Rack rack(tiles_->ToLetterString("QUACKLE").value());
   auto unseen = Bag::UnseenToPlayer(*tiles_, board, rack);
   ASSERT_NE(unseen, nullptr);
-  EXPECT_EQ(unseen->Size(), 100-14);
+  EXPECT_EQ(unseen->Size(), 100 - 14);
+}
+
+TEST_F(BagTest, Shuffle) {
+  Bag bag(*tiles_);
+  // I don't know how to make this deterministic :(
+  absl::MockingBitGen gen;
+  bag.Shuffle(gen);
+  EXPECT_EQ(bag.Size(), 100);
+  std::stringstream ss;
+  bag.Display(ss);
+  EXPECT_NE(ss.str(),
+            "AAAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGGHHIIIIIIIIIJKLLLL"
+            "MMNNNNNNOOOOOOOOPPQRRRRRRSSSSTTTTTTUUUUVVWWXYYZ??");
 }
