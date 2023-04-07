@@ -23,12 +23,16 @@ void Game::CreateInitialPosition(
   Board board;
   exchange_dividend_index_ = 0;
   exchange_insertion_dividends_ = exchange_insertion_dividends;
-  bags_.emplace_back(ordered_bag);
+  pregame_bag_.SetLetters(ordered_bag.Letters());
   LetterString empty;
   Rack player_rack(empty);
   Rack opponent_rack(empty);
+  Bag new_bag = ordered_bag;
+  new_bag.CompleteRack(&player_rack);
+  new_bag.CompleteRack(&opponent_rack);
   racks_.emplace_back(player_rack);
   racks_.emplace_back(opponent_rack);
+    bags_.emplace_back(new_bag);
   positions_.emplace_back(layout_, board, 0, 1, player_rack, 0, 0, nullptr,
                           initial_time_, tiles_);
 }

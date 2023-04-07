@@ -76,3 +76,37 @@ TEST_F(BagTest, Shuffle) {
             "AAAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGGHHIIIIIIIIIJKLLLL"
             "MMNNNNNNOOOOOOOOPPQRRRRRRSSSSTTTTTTUUUUVVWWXYYZ??");
 }
+
+TEST_F(BagTest, CompleteRack1) {
+  Bag bag(*tiles_);
+  Rack rack(tiles_->ToLetterString("").value());
+  bag.CompleteRack(&rack);
+  EXPECT_EQ(bag.Size(), 100 - 7);
+  EXPECT_EQ(rack.NumTiles(), 7);
+  std::stringstream ss;
+  rack.Display(*tiles_, ss);
+  // Popped off the end of our unshuffled bag.
+  EXPECT_EQ(ss.str(), "??ZYYXW");
+}
+
+TEST_F(BagTest, CompleteRack2) {
+  Bag bag(*tiles_);
+  // Nonsense and not removed from bag but doesn't matter.
+  Rack rack(tiles_->ToLetterString("QQQQ").value());
+  bag.CompleteRack(&rack);
+  EXPECT_EQ(bag.Size(), 100 - 3);
+  EXPECT_EQ(rack.NumTiles(), 7);
+  std::stringstream ss;
+  rack.Display(*tiles_, ss);
+  // Popped off the end of our unshuffled bag.
+  EXPECT_EQ(ss.str(), "QQQQ??Z");
+}
+
+TEST_F(BagTest, SetLetters) {
+  Bag bag(*tiles_);
+  bag.SetLetters({L('A'), L('B'), L('C')});
+  EXPECT_EQ(bag.Size(), 3);
+  std::stringstream ss;
+  bag.Display(ss);
+  EXPECT_EQ(ss.str(), "ABC");
+}

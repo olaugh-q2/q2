@@ -360,6 +360,7 @@ cc_library(
         ":player",
         ":tiles",
         "@com_google_absl//absl/random",
+        "@com_google_absl//absl/types:optional",
         "@glog",
     ],
 )

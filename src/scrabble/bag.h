@@ -9,6 +9,8 @@
 class Bag {
  public:
   explicit Bag(const Tiles& tiles);
+  Bag(const Bag&) = default;
+
   Bag(const Tiles& tiles, const std::vector<Letter>& letters)
       : tiles_(tiles), letters_(letters) {}
   static std::unique_ptr<Bag> UnseenToPlayer(const Tiles& tiles,
@@ -20,6 +22,9 @@ class Bag {
   void Shuffle(absl::BitGenRef gen) {
     std::shuffle(letters_.begin(), letters_.end(), gen);
   }
+  void CompleteRack(Rack* rack);
+  const std::vector<Letter>& Letters() const { return letters_; }
+  void SetLetters(const std::vector<Letter>& letters) { letters_ = letters; }
 
  private:
   const Tiles& tiles_;

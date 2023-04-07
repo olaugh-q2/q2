@@ -3,6 +3,7 @@
 
 #include "absl/random/random.h"
 #include "absl/time/time.h"
+#include "absl/types/optional.h"
 #include "src/scrabble/bag.h"
 #include "src/scrabble/board.h"
 #include "src/scrabble/board_layout.h"
@@ -18,7 +19,8 @@ class Game {
       : layout_(layout),
         players_(players),
         tiles_(tiles),
-        initial_time_(initial_time) {
+        initial_time_(initial_time),
+        pregame_bag_(Bag(tiles)) {
     CHECK(!players_.empty());
     CHECK_GE(initial_time, absl::ZeroDuration());
     CHECK_EQ(players_.size(), 2);
@@ -49,6 +51,10 @@ class Game {
 
   // racks_[(2 * a) + b] is the rack for player b on turn a.
   std::vector<Rack> racks_;
+
+  // Initialized with tiles_ but not ordered correctly until
+  // CreateInitialPosition is called.
+  Bag pregame_bag_;
 
   // Historical record of bag contents at each (half) turn.
   std::vector<Bag> bags_;

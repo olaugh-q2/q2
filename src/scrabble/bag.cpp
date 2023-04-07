@@ -46,3 +46,10 @@ void Bag::Display(std::ostream& os) const {
     os << tiles_.NumberToChar(letter).value();
   }
 }
+
+void Bag::CompleteRack(Rack* rack) {
+  while ((rack->NumTiles() < rack->Capacity()) && !letters_.empty()) {
+    rack->PushBack(letters_.back());
+    letters_.pop_back();
+  }
+}

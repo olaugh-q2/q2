@@ -134,3 +134,11 @@ TEST_F(RackTest, Counts2) {
     EXPECT_EQ(counts[letter], 0);
   }
 }
+
+TEST_F(RackTest, PushBack) {
+  Rack rack(tiles_->ToLetterString("SATINE").value());
+  rack.PushBack(L('Y'));
+  std::stringstream ss;
+  rack.Display(*tiles_, ss);
+  EXPECT_EQ(ss.str(), "SATINEY");
+}

@@ -14,6 +14,7 @@ class Rack {
   Rack(const LetterString& letters) : letters_(letters) {}
   LetterString Letters() const { return letters_; }
   int NumTiles() const { return letters_.size(); }
+  int Capacity() const { return 7; }
   std::array<int, 32> Counts() const;
   absl::flat_hash_map<uint64_t, LetterString> Subsets(
       const Tiles& tiles) const;
@@ -21,6 +22,11 @@ class Rack {
   int NumBlanks(const Tiles& tiles) const;
 
   void Display(const Tiles& tiles, std::ostream& os) const;
+
+  void PushBack(Letter letter) {
+    CHECK(NumTiles() < Capacity());
+    letters_.push_back(letter);
+  }
 
  private:
   LetterString letters_;
