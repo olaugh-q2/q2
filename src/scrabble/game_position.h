@@ -37,7 +37,7 @@ class GamePosition {
   const Board& GetBoard() const { return board_; }
   const Rack& GetRack() const { return rack_; }
   const Bag& GetUnseenToPlayer() const { return unseen_to_player_; }
-
+  const absl::optional<Move>& GetMove() const { return move_; }
  private:
   const BoardLayout& layout_;
   Board board_;

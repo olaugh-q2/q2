@@ -309,8 +309,8 @@ cc_test(
         ":move",
         ":move_finder",
         ":rack",
-        ":tiles",
         ":static_player",
+        ":tiles",
         "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
@@ -347,17 +347,42 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
-# cc_library(
-#     name = "game",
-#     srcs = ["game.cpp"],
-#     hdrs = ["game.h"],
-#     visibility = ["//visibility:public"],
-#     deps = [
-#         ":board",
-#         ":board_layout",
-#         ":game_position",
-#         ":player",
-#         ":tiles",
-#         "@glog",
-#     ]
-# )
+
+cc_library(
+    name = "game",
+    srcs = ["game.cpp"],
+    hdrs = ["game.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":board",
+        ":board_layout",
+        ":game_position",
+        ":player",
+        ":tiles",
+        "@com_google_absl//absl/random",
+        "@glog",
+    ],
+)
+
+cc_test(
+    name = "game_test",
+    srcs = ["game_test.cpp"],
+    data = glob([
+        "testdata/*.qam",
+        "testdata/*.qlv",
+        "testdata/*.textproto",
+    ]),
+    deps = [
+        ":bag",
+        ":board_layout",
+        ":computer_player",
+        ":game",
+        ":game_position",
+        ":static_player",
+        "//src/anagram:anagram_map",
+        "//src/leaves",
+        "@com_google_absl//absl/memory",
+        "@com_google_absl//absl/time",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

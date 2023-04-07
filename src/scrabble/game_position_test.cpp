@@ -6,6 +6,7 @@
 
 std::unique_ptr<Tiles> tiles_;
 std::unique_ptr<BoardLayout> layout_;
+
 class GamePositionTest : public ::testing::Test {
  protected:
   void SetUp() override {

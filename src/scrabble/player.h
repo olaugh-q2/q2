@@ -19,8 +19,8 @@ class Player {
  private:
   std::string name_;
   std::string nickname_;
-  PlayerType player_type_;
-  int id_;
+  const PlayerType player_type_;
+  const int id_;
 };
 
 #endif  // SRC_SCRABBLE_PLAYER_H
