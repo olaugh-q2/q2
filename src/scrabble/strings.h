@@ -39,7 +39,7 @@ class LetterString {
   LetterString substr(std::size_t pos, std::size_t n) const;
   bool empty() const { return length() == 0; }
   std::size_t size() const;
-  void clear();
+  void clear() { first_position_ = 0; last_position_ = -1; }
   void push_back(Letter c);
   void pop_back();
   const Letter* constData() const { return data_; }

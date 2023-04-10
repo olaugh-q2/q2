@@ -59,9 +59,9 @@ TEST_F(BagTest, UnseenToPlayer) {
   const auto plumbum = Move::Parse("8D PLUMBUM", *tiles_);
   board.UnsafePlaceMove(plumbum.value());
   Rack rack(tiles_->ToLetterString("QUACKLE").value());
-  auto unseen = Bag::UnseenToPlayer(*tiles_, board, rack);
-  ASSERT_NE(unseen, nullptr);
-  EXPECT_EQ(unseen->Size(), 100 - 14);
+  const Bag bag(*tiles_);
+  auto unseen = bag.UnseenToPlayer(board, rack);
+  EXPECT_EQ(unseen.Size(), 100 - 14);
 }
 
 TEST_F(BagTest, Shuffle) {
@@ -109,4 +109,22 @@ TEST_F(BagTest, SetLetters) {
   std::stringstream ss;
   bag.Display(ss);
   EXPECT_EQ(ss.str(), "ABC");
+}
+
+TEST_F(BagTest, InsertTiles) {
+  Bag bag(*tiles_);
+  bag.SetLetters({L('A'), L('B'), L('C')});
+  EXPECT_EQ(bag.Size(), 3);
+  const std::vector<uint64_t> dividends = {0, 7, 1};
+  std::size_t idx = 0;
+  const LetterString tiles = LS("JQXZ");
+  bag.InsertTiles(tiles, dividends, &idx);
+  std::stringstream ss;
+  bag.Display(ss);
+  //         0       7        1        0
+  //        (modulo size plus one)
+  //     -> [0]     [2]      [1]      [0]
+  // ABC -> JABC -> JAQBC -> JXAQBC ->ZJXAQBC
+  EXPECT_EQ(ss.str(), "ZJXAQBC");
+  EXPECT_EQ(idx, 1);
 }

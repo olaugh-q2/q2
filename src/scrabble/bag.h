@@ -13,9 +13,7 @@ class Bag {
 
   Bag(const Tiles& tiles, const std::vector<Letter>& letters)
       : tiles_(tiles), letters_(letters) {}
-  static std::unique_ptr<Bag> UnseenToPlayer(const Tiles& tiles,
-                                             const Board& board,
-                                             const Rack& rack);
+  Bag UnseenToPlayer(const Board& board, const Rack& rack) const;
   int Size() const { return letters_.size(); }
   bool CanExchange() const { return Size() >= 7; }
   void Display(std::ostream& os) const;
@@ -25,6 +23,9 @@ class Bag {
   void CompleteRack(Rack* rack);
   const std::vector<Letter>& Letters() const { return letters_; }
   void SetLetters(const std::vector<Letter>& letters) { letters_ = letters; }
+  void InsertTiles(const LetterString& tiles,
+                   const std::vector<uint64_t>& exchange_insertion_dividends,
+                   std::size_t* exchange_insertion_index);
 
  private:
   const Tiles& tiles_;

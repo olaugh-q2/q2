@@ -20,7 +20,7 @@ class Game {
         players_(players),
         tiles_(tiles),
         initial_time_(initial_time),
-        pregame_bag_(Bag(tiles)) {
+        pregame_bag_(Bag(tiles_)) {
     CHECK(!players_.empty());
     CHECK_GE(initial_time, absl::ZeroDuration());
     CHECK_EQ(players_.size(), 2);
@@ -34,6 +34,15 @@ class Game {
   void CreateInitialPosition(
       const Bag& ordered_bag,
       const std::vector<uint64_t>& exchange_insertion_dividends);
+
+  const GamePosition* TwoPositionsAgo() const {
+    if (positions_.size() < 2) {
+      return nullptr;
+    }
+    return &(positions_[positions_.size() - 2]);
+  }
+
+  void AddNextPosition(const Move& move, absl::Duration time_elapsed);
 
   void Display(std::ostream& os) const;
 
@@ -63,7 +72,7 @@ class Game {
 
   std::vector<uint64_t> exchange_insertion_dividends_;
 
-  int exchange_dividend_index_;
+  std::size_t exchange_dividend_index_;
 };
 
 #endif  // SRC_SCRABBLE_GAME_H

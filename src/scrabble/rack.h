@@ -27,6 +27,8 @@ class Rack {
     CHECK(NumTiles() < Capacity());
     letters_.push_back(letter);
   }
+  
+  void RemoveTiles(const LetterString& tiles);
 
  private:
   LetterString letters_;

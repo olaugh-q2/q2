@@ -98,9 +98,7 @@ absl::StatusOr<Move> Move::Parse(const std::string& move_string,
   if (upcase_string.substr(0, 4) == "PASS") {
     LetterString empty;
     Move pass(empty);
-    LOG(INFO) << "constructed pass move.";
     Move ret = std::move(pass);
-    LOG(INFO) << "std::moved pass move.";
     return ret;
   }
   if (upcase_string.substr(0, 5) == "EXCH ") {

@@ -15,7 +15,8 @@ class Player {
   std::string Nickname() const { return nickname_; }
   PlayerType GetPlayerType() const { return player_type_; }
   void Display(std::ostream& os) const;
-
+  int Id() const { return id_; }
+  
  private:
   std::string name_;
   std::string nickname_;

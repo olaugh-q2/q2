@@ -53,3 +53,18 @@ int Rack::NumBlanks(const Tiles& tiles) const {
   }
   return ret;
 }
+
+void Rack::RemoveTiles(const LetterString& tiles) {
+  auto counts = Counts();
+  for (const auto& tile : tiles) {
+    const auto i = static_cast<size_t>(tile);
+    CHECK_GE(counts[i], 1);
+    counts[i]--;
+  }
+  letters_.clear();
+  for (int i = 0; i < 32; ++i) {
+    for (int j = 0; j < counts[i]; ++j) {
+      letters_.push_back(i);
+    }
+  }
+}
