@@ -264,7 +264,7 @@ TEST_F(GameTest, SixPassGame) {
 
 TEST_F(GameTest, StaticPlayerPlays) {
   StaticPlayer a(1, *anagram_map_, *layout_, *tiles_, *leaves_);
-  StaticPlayer b(1, *anagram_map_, *layout_, *tiles_, *leaves_);
+  StaticPlayer b(2, *anagram_map_, *layout_, *tiles_, *leaves_);
   std::vector<Player*> players = {&a, &b};
   for (int i = 0; i < 10; i++) {
     Game game(*layout_, players, *tiles_, absl::Minutes(25));
