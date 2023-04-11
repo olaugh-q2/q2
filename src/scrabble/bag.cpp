@@ -19,9 +19,12 @@ Bag Bag::UnseenToPlayer(const Board& board, const Rack& rack) const {
   }
   for (int row = 0; row < 15; ++row) {
     for (int col = 0; col < 15; ++col) {
-      if (const Letter letter = board.At(row, col)) {
+      if (Letter letter = board.At(row, col)) {
+        if (letter >= tiles_.BlankIndex()) {
+          letter = tiles_.BlankIndex();
+        }
         counts[letter]--;
-        CHECK_GE(counts[letter], 0);
+        CHECK_GE(counts[letter], 0) << "negative count of letter: " << tiles_.NumberToChar(letter).value();
       }
     }
   }

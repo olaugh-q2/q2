@@ -39,7 +39,13 @@ TEST_F(StaticPlayerTest, ChooseBestMove) {
   const Board board;
   const Rack rack(tiles_->ToLetterString("OLAUGHS").value());
   auto pos = absl::make_unique<GamePosition>(
-      *layout_, board, 1, 2, rack, 0, 0, nullptr, absl::Minutes(25), *tiles_);
-  const auto move = player.ChooseBestMove(*pos);
+      *layout_, board, 1, 2, rack, 0, 0, 0, absl::Minutes(25), 0, *tiles_);
+  // This is just figuring out for myself how the casting works with the virtual
+  // function ChooseBestMove which exists in ComputerPlayer (but not Player) and is
+  // overridden by StaticPlayer.      
+  Player* player_ptr = &player;
+  auto* computer_player = static_cast<ComputerPlayer*>(player_ptr);
+  //ComputerPlayer* computer_player = static_cast<ComputerPlayer*>(player_ptr);
+  const auto move = computer_player->ChooseBestMove(*pos);
   ExpectMove(move, "8F GOULASH (score = 80)");
 }

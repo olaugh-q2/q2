@@ -58,6 +58,11 @@ void Rack::RemoveTiles(const LetterString& tiles) {
   auto counts = Counts();
   for (const auto& tile : tiles) {
     const auto i = static_cast<size_t>(tile);
+    if (i == 0) {
+      // Playthrough tile already on board.
+      continue;
+    }
+    //LOG(INFO) << "counts[" << i << "] = " << counts[i];
     CHECK_GE(counts[i], 1);
     counts[i]--;
   }

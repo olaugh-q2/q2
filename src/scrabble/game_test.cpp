@@ -7,9 +7,13 @@
 #include "src/anagram/anagram_map.h"
 #include "src/leaves/leaves.h"
 #include "src/scrabble/board_layout.h"
+#include "src/scrabble/computer_player.h"
 #include "src/scrabble/move_finder.h"
 #include "src/scrabble/player.h"
+#include "src/scrabble/static_player.h"
 #include "src/scrabble/tiles.h"
+
+using ::testing::ElementsAre;
 
 std::unique_ptr<Tiles> tiles_;
 std::unique_ptr<Leaves> leaves_;
@@ -41,10 +45,40 @@ class GameTest : public ::testing::Test {
   }
 };
 
+class TestHumanPlayer : public Player {
+ public:
+  TestHumanPlayer(std::string name, std::string nickname, int id)
+      : Player(name, nickname, Player::Human, id) {}
+
+  Move ChooseBestMove(const GamePosition& position) override;
+};
+
+Move TestHumanPlayer::ChooseBestMove(const GamePosition& position) {
+  CHECK(false) << "TestHumanPlayer::ChooseBestMove(..) not implemented, should "
+                  "not be called";
+  Move move;
+  return move;
+}
+
+class PassingPlayer : public ComputerPlayer {
+ public:
+  PassingPlayer(int id) : ComputerPlayer("Passing Player", "passer", id) {}
+
+  Move ChooseBestMove(const GamePosition& position) override;
+};
+
+Move PassingPlayer::ChooseBestMove(const GamePosition& position) {
+  LOG(INFO) << "PassingPlayer::ChooseBestMove(..)";
+  SetStartOfTurnTime();
+  Move move;
+  move.SetScore(0);
+  return move;
+}
+
 TEST_F(GameTest, ConstructAndDisplay) {
-  const Player a("Alice", "A", Player::PlayerType::Human, 1);
-  const Player b("Bob", "B", Player::PlayerType::Human, 2);
-  const std::vector<Player> players = {a, b};
+  TestHumanPlayer a("Alice", "A", 1);
+  TestHumanPlayer b("Bob", "B", 2);
+  const std::vector<Player*> players = {&a, &b};
   Game game(*layout_, players, *tiles_, absl::Minutes(25));
   std::stringstream ss;
   game.Display(ss);
@@ -57,9 +91,9 @@ No positions.
 }
 
 TEST_F(GameTest, CreateInitialPosition) {
-  const Player a("Alice", "A", Player::PlayerType::Human, 1);
-  const Player b("Bob", "B", Player::PlayerType::Human, 2);
-  const std::vector<Player> players = {a, b};
+  TestHumanPlayer a("Alice", "A", 1);
+  TestHumanPlayer b("Bob", "B", 2);
+  const std::vector<Player*> players = {&a, &b};
   Game game1(*layout_, players, *tiles_, absl::Minutes(25));
   const Bag bag(*tiles_);
   const std::vector<uint64_t> dividends = {1, 10, 150};
@@ -102,9 +136,11 @@ Unseen: AAAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGGHHIIIIIIIIIJKLLLLMMNNNNNNOOOOOOOOPPQRR
 }
 
 TEST_F(GameTest, AddNextPosition) {
-  const Player a("Alice", "A", Player::PlayerType::Human, 3);
-  const Player b("Bob", "B", Player::PlayerType::Human, 4);
-  const std::vector<Player> players = {a, b};
+  // Setting these to 3 and 4 just to make it clear that we're using ids and not
+  // indices.
+  TestHumanPlayer a("Alice", "A", 3);
+  TestHumanPlayer b("Bob", "B", 4);
+  std::vector<Player*> players = {&a, &b};
   Game game(*layout_, players, *tiles_, absl::Minutes(25));
   Bag bag(*tiles_);
   bag.SetLetters({L('I'), L('I'), L('I'), L('I'), L('I'), L('I'), L('I'),
@@ -183,7 +219,7 @@ Unseen: AAAAAAAIIIIIII
   std::stringstream ss3;
   game.Display(ss3);
   LOG(INFO) << ss3.str();
-  //EXPECT_TRUE(false);
+  // EXPECT_TRUE(false);
   EXPECT_EQ(ss3.str(), R"(Player 3: Alice (human)
 Player 4: Bob (human)
 
@@ -212,4 +248,31 @@ Current position:
 Player 3 holds AAAAAAA on 80 to opp's 0 [24:00]
 Unseen: EEEEEEEIIIIIII
 )");
+}
+
+TEST_F(GameTest, SixPassGame) {
+  PassingPlayer a(1);
+  PassingPlayer b(2);
+  std::vector<Player*> players = {&a, &b};
+  Game game(*layout_, players, *tiles_, absl::Minutes(25));
+  game.CreateInitialPosition();
+  game.FinishWithComputerPlayers();
+  EXPECT_THAT(game.Scores(), ElementsAre(0, 0));
+  EXPECT_EQ(game.Positions().size(), 7);
+  EXPECT_EQ(game.Positions()[6].ScorelessTurns(), 6);
+}
+
+TEST_F(GameTest, StaticPlayerPlays) {
+  StaticPlayer a(1, *anagram_map_, *layout_, *tiles_, *leaves_);
+  StaticPlayer b(1, *anagram_map_, *layout_, *tiles_, *leaves_);
+  std::vector<Player*> players = {&a, &b};
+  for (int i = 0; i < 10; i++) {
+    Game game(*layout_, players, *tiles_, absl::Minutes(25));
+    game.CreateInitialPosition();
+    game.FinishWithComputerPlayers();
+    std::stringstream ss;
+    game.Display(ss);
+    LOG(INFO) << ss.str();
+    EXPECT_GE(game.Positions().size(), 7);
+  }
 }

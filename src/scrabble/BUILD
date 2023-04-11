@@ -248,6 +248,8 @@ cc_library(
     hdrs = ["player.h"],
     visibility = ["//visibility:public"],
     deps = [
+        ":game_position",
+        ":move",
         "@com_google_absl//absl/strings",
         "@glog",
     ],
@@ -356,6 +358,7 @@ cc_library(
     deps = [
         ":board",
         ":board_layout",
+        ":computer_player",
         ":game_position",
         ":player",
         ":tiles",
@@ -379,6 +382,7 @@ cc_test(
         ":computer_player",
         ":game",
         ":game_position",
+        ":player",
         ":static_player",
         "//src/anagram:anagram_map",
         "//src/leaves",

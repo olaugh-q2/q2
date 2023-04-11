@@ -14,7 +14,7 @@
 
 class Game {
  public:
-  Game(const BoardLayout& layout, const std::vector<Player>& players,
+  Game(const BoardLayout& layout, const std::vector<Player*>& players,
        const Tiles& tiles, absl::Duration initial_time)
       : layout_(layout),
         players_(players),
@@ -46,11 +46,27 @@ class Game {
 
   void Display(std::ostream& os) const;
 
+  void FinishWithComputerPlayers();
+
+  std::vector<int> Scores() const {
+    std::vector<int> scores;
+    scores.reserve(players_.size());
+    if (positions_.size() % 2 == 0) {
+      return {positions_.back().PlayerScore(),
+              positions_.back().OpponentScore()};
+    } else {
+      return {positions_.back().OpponentScore(),
+              positions_.back().PlayerScore()};
+    }
+  }
+
+  const std::vector<GamePosition>& Positions() const { return positions_; }
+  
  private:
   const BoardLayout& layout_;
 
   // In turn order.
-  const std::vector<Player>& players_;
+  const std::vector<Player*>& players_;
 
   const Tiles& tiles_;
 

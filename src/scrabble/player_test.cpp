@@ -12,8 +12,23 @@ class PlayerTest : public ::testing::Test {
   void TearDown() override {}
 };
 
+class TestHumanPlayer : public Player {
+ public:
+  TestHumanPlayer(std::string name, std::string nickname, int id)
+      : Player(name, nickname, Player::Human, id) {}
+
+  Move ChooseBestMove(const GamePosition& position) override;
+};
+
+Move TestHumanPlayer::ChooseBestMove(const GamePosition& position) {
+  CHECK(false) << "TestHumanPlayer::ChooseBestMove(..) not implemented, should "
+                  "not be called";
+  Move move;
+  return move;
+}
+
 TEST_F(PlayerTest, Display) {
-  Player player("John O'Laughlin", "olaugh", Player::PlayerType::Human, 1);
+  TestHumanPlayer player("John O'Laughlin", "olaugh", 1);
   std::stringstream ss;
   player.Display(ss);
   EXPECT_EQ(ss.str(), "Player 1: John O'Laughlin (human)");

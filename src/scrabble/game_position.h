@@ -52,6 +52,14 @@ class GamePosition {
   std::size_t PositionIndex() const { return position_index_; }
   absl::Duration TimeRemainingEnd() const { return time_remaining_end_; }
   int ScorelessTurns() const { return scoreless_turns_; }
+  bool IsGameOver() const {
+    LOG(INFO) << "scoreless_turns_: " << scoreless_turns_;
+    if (scoreless_turns_ >= 6) {
+      return true;
+    }
+    // TODO: Handle outplay case
+    return false;
+  }
 
  private:
   const BoardLayout& layout_;
@@ -83,7 +91,6 @@ class GamePosition {
   const int scoreless_turns_;
 
   const Tiles& tiles_;
-
 };
 
 #endif  // SRC_SCRABBLE_GAME_POSITION_H

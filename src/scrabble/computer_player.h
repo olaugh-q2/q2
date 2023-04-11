@@ -8,14 +8,11 @@
 
 class ComputerPlayer : public Player {
  public:
-  ComputerPlayer(const std::string& name, const std::string& nickname,
-                 int id)
+  ComputerPlayer(std::string name, std::string nickname, int id)
       : Player(name, nickname, Player::Computer, id) {}
-  ~ComputerPlayer() {}
+  virtual ~ComputerPlayer() = 0;
 
- virtual Move ChooseBestMove(const GamePosition& position) = 0;
-
- void SetStartOfTurnTime();
+  void SetStartOfTurnTime();
 
  private:
   absl::Time start_of_turn_time_;
