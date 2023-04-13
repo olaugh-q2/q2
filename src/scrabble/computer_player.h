@@ -11,7 +11,6 @@ class ComputerPlayer : public Player {
   ComputerPlayer(std::string name, std::string nickname, int id)
       : Player(name, nickname, Player::Computer, id) {}
   virtual ~ComputerPlayer() = 0;
-
   void SetStartOfTurnTime();
 
  private:

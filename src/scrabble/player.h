@@ -10,10 +10,9 @@ class Player {
  public:
   enum PlayerType { Human, Computer };
 
-  Player(std::string& name, std::string& nickname,
-         PlayerType player_type, int id)
+  Player(std::string& name, std::string& nickname, PlayerType player_type,
+         int id)
       : name_(name), nickname_(nickname), player_type_(player_type), id_(id) {}
-
   virtual Move ChooseBestMove(const GamePosition& position) = 0;
 
   std::string Name() const { return name_; }

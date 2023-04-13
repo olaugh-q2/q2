@@ -9,6 +9,7 @@
 #include "src/scrabble/board_layout.h"
 #include "src/scrabble/computer_player.h"
 #include "src/scrabble/move_finder.h"
+#include "src/scrabble/passing_player.h"
 #include "src/scrabble/player.h"
 #include "src/scrabble/static_player.h"
 #include "src/scrabble/tiles.h"
@@ -57,21 +58,6 @@ Move TestHumanPlayer::ChooseBestMove(const GamePosition& position) {
   CHECK(false) << "TestHumanPlayer::ChooseBestMove(..) not implemented, should "
                   "not be called";
   Move move;
-  return move;
-}
-
-class PassingPlayer : public ComputerPlayer {
- public:
-  PassingPlayer(int id) : ComputerPlayer("Passing Player", "passer", id) {}
-
-  Move ChooseBestMove(const GamePosition& position) override;
-};
-
-Move PassingPlayer::ChooseBestMove(const GamePosition& position) {
-  LOG(INFO) << "PassingPlayer::ChooseBestMove(..)";
-  SetStartOfTurnTime();
-  Move move;
-  move.SetScore(0);
   return move;
 }
 

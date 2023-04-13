@@ -2,7 +2,4 @@
 
 ComputerPlayer::~ComputerPlayer() {}
 
-void ComputerPlayer::SetStartOfTurnTime() {
-   start_of_turn_time_ = absl::Now();
-}
-
+void ComputerPlayer::SetStartOfTurnTime() { start_of_turn_time_ = absl::Now(); }

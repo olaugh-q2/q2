@@ -48,6 +48,11 @@ proto_library(
     srcs = ["board_spec.proto"],
 )
 
+cc_proto_library(
+    name = "board_spec_cc_proto",
+    deps = [":board_spec_proto"],
+)
+
 cc_test(
     name = "board_layout_test",
     srcs = ["board_layout_test.cpp"],
@@ -56,11 +61,6 @@ cc_test(
         ":board_layout",
         "@com_google_googletest//:gtest_main",
     ],
-)
-
-cc_proto_library(
-    name = "board_spec_cc_proto",
-    deps = [":board_spec_proto"],
 )
 
 cc_library(
@@ -279,12 +279,28 @@ cc_library(
 )
 
 cc_library(
+    name = "passing_player",
+    srcs = ["passing_player.cpp"],
+    hdrs = ["passing_player.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":component_factory",
+        ":computer_player",
+        ":computer_players_cc_proto",
+        ":game_position",
+        ":move",
+        "@glog",
+    ],
+)
+
+cc_library(
     name = "static_player",
     srcs = ["static_player.cpp"],
     hdrs = ["static_player.h"],
     visibility = ["//visibility:public"],
     deps = [
         ":board_layout",
+        ":component_factory",
         ":computer_player",
         ":move",
         ":move_finder",
@@ -382,6 +398,7 @@ cc_test(
         ":computer_player",
         ":game",
         ":game_position",
+        ":passing_player",
         ":player",
         ":static_player",
         "//src/anagram:anagram_map",
@@ -391,3 +408,87 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "component_factory",
+    srcs = ["component_factory.cpp"],
+    hdrs = ["component_factory.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":computer_player",
+        "@com_google_protobuf//:protobuf",
+        "@com_google_protobuf//:protoc",
+    ],
+)
+
+cc_test(
+    name = "component_factory_test",
+    srcs = ["component_factory_test.cpp"],
+    deps = [
+        ":component_factory",
+        ":computer_players_cc_proto",
+        ":passing_player",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+proto_library(
+    name = "computer_players_proto",
+    srcs = ["computer_players.proto"],
+)
+
+cc_proto_library(
+    name = "computer_players_cc_proto",
+    deps = [":computer_players_proto"],
+)
+
+cc_library(
+    name = "data_manager",
+    srcs = ["data_manager.cpp"],
+    hdrs = ["data_manager.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":board_layout",
+        ":computer_players_cc_proto",
+        ":tiles",
+        "//src/anagram:anagram_map",
+        "//src/leaves",
+        "@com_google_protobuf//:protobuf",
+        "@com_google_protobuf//:protoc",
+        "@glog",
+    ],
+)
+
+cc_test(
+    name = "data_manager_test",
+    srcs = ["data_manager_test.cpp"],
+    data = glob([
+        "testdata/*.qam",
+        "testdata/*.qlv",
+        "testdata/*.textproto",
+    ]),
+    deps = [
+        ":board_layout",
+        ":computer_players_cc_proto",
+        ":data_manager",
+        ":tiles",
+        "//src/anagram:anagram_map",
+        "//src/leaves",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+# cc_library(
+#     name = "tournament_runner",
+#     srcs = ["tournament_runner.cpp"],
+#     hdrs = ["tournament_runner.h"],
+#     visibility = ["//visibility:public"],
+#     deps = [
+#         ":component_factory",
+#         ":computer_players_cc_proto",
+#         ":game",
+#         "@com_google_protobuf//:protobuf",
+#         "@com_google_protobuf//:protoc",
+#         "@glog",
+#     ],
+# )

@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package q2.proto;
+
+message ComputerPlayerConfig {
+    oneof player {
+        PassingPlayerConfig passing_player_config = 1;
+        StaticPlayerConfig static_player_config = 2;
+    }
+}
+
+message PassingPlayerConfig {
+    string name = 1;
+    string nickname = 2;
+    int32 id = 3;
+}
+
+message StaticPlayerConfig {
+    string name = 1;
+    string nickname = 2;
+    int32 id = 3;
+    string anagram_map_filename = 4;
+    string board_layout_file = 5;
+    string tiles_file = 6;
+    string leaves_file = 7;
+}
+
+message ComputerPlayerCollection {
+    repeated ComputerPlayerConfig players = 1;
+}
+
+message AnagramMapFileSpec {
+    string anagram_map_filename = 1;
+    string tiles_filename = 2;
+}
+
+message LeavesFileSpecs {
+    string leaves_filename = 1;
+    string tiles_filename = 2;
+}
+
+message DataCollection {
+    repeated string tiles_files = 1;
+    repeated AnagramMapFileSpec anagram_map_file_specs = 2;
+    repeated string board_files = 3;
+    repeated LeavesFileSpecs leaves_file_specs = 4;
+}
+
+message TournamentSpec {
+    DataCollection data_collection = 1;
+    repeated ComputerPlayerConfig players = 2;
+    enum TournamentFormat {
+        HEADS_UP_ALTERNATING_FIRSTS = 0;
+    }
+    TournamentFormat format = 3;
+    int64 number_of_rounds = 4;
+}
