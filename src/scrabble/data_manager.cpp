@@ -1,9 +1,15 @@
 #include "src/scrabble/data_manager.h"
 
 void DataManager::LoadData(const q2::proto::DataCollection& data_collection) {
+  LOG(INFO) << "Loading data from " << data_collection.DebugString();
   for (const std::string& filename : data_collection.tiles_files()) {
     auto tiles = absl::make_unique<Tiles>(filename);
     tiles_.emplace(filename, std::move(tiles));
+  }
+  for (const auto& spec : data_collection.leaves_file_specs()) {
+    auto tiles = GetTiles(spec.tiles_filename());
+    auto leaves = Leaves::CreateFromBinaryFile(*tiles, spec.leaves_filename());
+    leaves_.emplace(spec.leaves_filename(), std::move(leaves));
   }
   for (const std::string& filename : data_collection.board_files()) {
     auto board_layout = absl::make_unique<BoardLayout>(filename);

@@ -147,6 +147,20 @@ TEST_F(MoveTest, ParsePlaythrough) {
   EXPECT_EQ(ss.str(), "O8 ..IPLAPS");
 }
 
+TEST_F(MoveTest, Deadwood) {
+  Move bonus(Move::OppDeadwoodBonus, tiles_->ToLetterString("BNOSU").value(),
+             14);
+  std::stringstream ss1;
+  bonus.Display(*tiles_, ss1);
+  EXPECT_EQ(ss1.str(), "{BNOSU} (score = 14)");
+
+  Move penalty(Move::OwnDeadwoodPenalty,
+               tiles_->ToLetterString("AELNPTY").value(), -12);
+  std::stringstream ss2;
+  penalty.Display(*tiles_, ss2);
+  EXPECT_EQ(ss2.str(), "[AELNPTY] (score = -12)");
+}
+
 TEST_F(MoveTest, WithScore) {
   Move quackle(Move::Across, 7, 3, tiles_->ToLetterString("QuACKLe").value(),
                110);
@@ -201,9 +215,8 @@ TEST_F(MoveTest, Sortable) {
        Move(Move::Across, 0, 0, tiles_->ToLetterString("XX").value(), 2),
        Move(Move::Across, 0, 0, tiles_->ToLetterString("XX").value(), 3),
        Move(Move::Across, 0, 0, tiles_->ToLetterString("XX").value(), 9)});
-  std::sort(moves.begin(), moves.end(), [](const Move &a, const Move &b) {
-    return a.Score() > b.Score();
-  });
+  std::sort(moves.begin(), moves.end(),
+            [](const Move &a, const Move &b) { return a.Score() > b.Score(); });
   EXPECT_EQ(moves[0].Score(), 9);
   EXPECT_EQ(moves[1].Score(), 4);
   EXPECT_EQ(moves[2].Score(), 3);

@@ -5,6 +5,7 @@
 #include "src/scrabble/bag.h"
 #include "src/scrabble/board.h"
 #include "src/scrabble/board_layout.h"
+#include "src/scrabble/computer_players.pb.h"
 #include "src/scrabble/rack.h"
 
 class GamePosition {
@@ -53,14 +54,17 @@ class GamePosition {
   absl::Duration TimeRemainingEnd() const { return time_remaining_end_; }
   int ScorelessTurns() const { return scoreless_turns_; }
   bool IsGameOver() const {
-    LOG(INFO) << "scoreless_turns_: " << scoreless_turns_;
+    //LOG(INFO) << "scoreless_turns_: " << scoreless_turns_;
     if (scoreless_turns_ >= 6) {
       return true;
     }
     // TODO: Handle outplay case
+    if (GetUnseenToPlayer().Size() == 0) {
+      return true;
+    }
     return false;
   }
-
+  void WriteProto(q2::proto::GamePosition* proto) const;
  private:
   const BoardLayout& layout_;
   Board board_;

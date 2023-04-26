@@ -17,6 +17,7 @@ class Bag {
   int Size() const { return letters_.size(); }
   bool CanExchange() const { return Size() >= 7; }
   void Display(std::ostream& os) const;
+  std::string ToString() const;
   void Shuffle(absl::BitGenRef gen) {
     std::shuffle(letters_.begin(), letters_.end(), gen);
   }

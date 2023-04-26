@@ -63,6 +63,7 @@ std::unique_ptr<Leaves> Leaves::CreateFromCsv(const Tiles& tiles,
 
 std::unique_ptr<Leaves> Leaves::CreateFromBinaryFile(
     const Tiles& tiles, const std::string& filename) {
+  LOG(INFO) << "CreateFromBinaryFile(...) filename: " << filename;
   auto leaves = absl::make_unique<Leaves>();
   std::ifstream file(filename, std::ios::in | std::ios::binary);
   if (!file.is_open()) {
@@ -90,6 +91,7 @@ std::unique_ptr<Leaves> Leaves::CreateFromBinaryFile(
     leaves->leave_map_[product] = value;
   }
   leaves->leave_map_[1] = 0.0;  // add empty leave in case it's missing
+  LOG(INFO) << "Loaded " << leaves->leave_map_.size() << " leaves.";
   return leaves;
 }
 

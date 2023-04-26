@@ -145,7 +145,7 @@ TEST_F(RackTest, PushBack) {
 
 TEST_F(RackTest, RemoveTiles) {
   Rack rack(tiles_->ToLetterString("INCONNU").value());
-  rack.RemoveTiles(tiles_->ToLetterString("NNN").value());
+  rack.RemoveTiles(tiles_->ToLetterString("NNN").value(), *tiles_);
   std::stringstream ss;
   rack.Display(*tiles_, ss);
   EXPECT_EQ(ss.str(), "CIOU");

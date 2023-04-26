@@ -54,13 +54,17 @@ int Rack::NumBlanks(const Tiles& tiles) const {
   return ret;
 }
 
-void Rack::RemoveTiles(const LetterString& tiles) {
+void Rack::RemoveTiles(const LetterString& letters,
+                       const Tiles& tiles) {
   auto counts = Counts();
-  for (const auto& tile : tiles) {
-    const auto i = static_cast<size_t>(tile);
+  for (const auto& letter : letters) {
+    auto i = static_cast<size_t>(letter);
     if (i == 0) {
       // Playthrough tile already on board.
       continue;
+    }
+    if (i >= tiles.BlankIndex()) {
+      i = tiles.BlankIndex();
     }
     //LOG(INFO) << "counts[" << i << "] = " << counts[i];
     CHECK_GE(counts[i], 1);

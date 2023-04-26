@@ -60,5 +60,21 @@ bool GamePosition::IsScorelessTurn() const {
   CHECK(move_.has_value())
       << "Should not call IsScorelessTurn() before move is committed.";
   // Move::Exchange includes passes
-  return move_->Action() == Move::Exchange;
+  return move_->GetAction() == Move::Exchange;
+}
+
+void GamePosition::WriteProto(q2::proto::GamePosition* proto) const {
+  proto->set_on_turn_player_id(on_turn_player_id_);
+  proto->set_opponent_player_id(opponent_player_id_);
+  proto->set_rack(tiles_.ToString(rack_.Letters()).value());
+  proto->set_player_score(player_score_);
+  proto->set_opponent_score(opponent_score_);
+  proto->set_position_index(position_index_);
+  proto->set_time_remaining_start_micros(
+      absl::ToInt64Microseconds(time_remaining_start_));
+  proto->set_scoreless_turns(scoreless_turns_);
+  if (move_.has_value()) {
+    move_->WriteProto(tiles_, proto->mutable_move());
+    board_.WriteMoveWords(*move_, tiles_, proto->mutable_move());
+  }
 }

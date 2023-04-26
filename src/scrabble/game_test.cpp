@@ -15,6 +15,7 @@
 #include "src/scrabble/tiles.h"
 
 using ::testing::ElementsAre;
+using ::testing::Le;
 
 std::unique_ptr<Tiles> tiles_;
 std::unique_ptr<Leaves> leaves_;
@@ -243,9 +244,15 @@ TEST_F(GameTest, SixPassGame) {
   Game game(*layout_, players, *tiles_, absl::Minutes(25));
   game.CreateInitialPosition();
   game.FinishWithComputerPlayers();
-  EXPECT_THAT(game.Scores(), ElementsAre(0, 0));
-  EXPECT_EQ(game.Positions().size(), 7);
+  // Both players lose the value of their rack, lowest scoring rack being five
+  // one-point tiles and two blanks.
+  EXPECT_THAT(game.Scores(), ElementsAre(Le(-5), Le(-5)));
+  EXPECT_EQ(game.Positions().size(), 9);
   EXPECT_EQ(game.Positions()[6].ScorelessTurns(), 6);
+  EXPECT_EQ(game.Positions()[6].GetMove()->GetAction(),
+            Move::OwnDeadwoodPenalty);
+  EXPECT_EQ(game.Positions()[7].GetMove()->GetAction(),
+            Move::OwnDeadwoodPenalty);
 }
 
 TEST_F(GameTest, StaticPlayerPlays) {
@@ -259,6 +266,6 @@ TEST_F(GameTest, StaticPlayerPlays) {
     std::stringstream ss;
     game.Display(ss);
     LOG(INFO) << ss.str();
-    EXPECT_GE(game.Positions().size(), 7);
+    EXPECT_GE(game.Positions().size(), 8);
   }
 }

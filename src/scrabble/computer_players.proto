@@ -2,6 +2,17 @@ syntax = "proto3";
 
 package q2.proto;
 
+message PredicateConfig {
+    oneof predicate {
+        UnseenTilesPredicateConfig unseen_tiles_predicate_config = 1;
+    }
+}
+
+message UnseenTilesPredicateConfig {
+    int32 min_unseen_tiles = 1;
+    int32 max_unseen_tiles = 2;
+}
+
 message ComputerPlayerConfig {
     oneof player {
         PassingPlayerConfig passing_player_config = 1;
@@ -19,7 +30,7 @@ message StaticPlayerConfig {
     string name = 1;
     string nickname = 2;
     int32 id = 3;
-    string anagram_map_filename = 4;
+    string anagram_map_file = 4;
     string board_layout_file = 5;
     string tiles_file = 6;
     string leaves_file = 7;
@@ -46,12 +57,97 @@ message DataCollection {
     repeated LeavesFileSpecs leaves_file_specs = 4;
 }
 
+message Square {
+    int32 row = 1;
+    int32 column = 2;
+}
+
+message Move {
+  enum Action {
+    PLACE = 0;
+    EXCHANGE = 1;
+    PASS = 2;
+    OWN_DEADWOOD_PENALTY = 3;
+    OPP_DEADWOOD_BONUS = 4;
+  }
+  enum Direction {
+    NONE = 0;
+    ACROSS = 1;
+    DOWN = 2;
+  }
+  // If action is EXCHANGE, letters is the tiles exchanged.
+  // If action is PLACE, letters has tiles placed on the board, with a '.'
+  // corresponding to tiles already on the board and placed blank tiles
+  // designated using lowercase letters.
+  string letters = 1;
+  string as_string = 2;
+  Square start_square = 3;
+  Square end_square = 4;
+  Action action = 5;
+  Direction direction = 6;
+  int32 num_tiles = 7;
+  repeated string all_words_formed = 8;
+  int32 score = 9;
+  float equity = 10;
+  string leave = 11;
+}
+
+message GamePosition {
+  int32 on_turn_player_id = 1;
+  int32 opponent_player_id = 2;
+  string rack = 3;
+  int32 player_score = 4;
+  int32 opponent_score = 5;
+  int32 position_index = 6;
+  int64 time_remaining_start_micros = 7;
+  int32 scoreless_turns = 8;
+  Move move = 9;
+}
+
+message GameResult {
+    repeated int32 player_ids = 1;
+    repeated int32 player_scores = 2;
+    repeated string bags = 3;
+    repeated string racks = 4;
+    repeated GamePosition game_positions = 5;
+}
+
+message MirroredGamePair {
+    repeated GameResult mirrored_games = 1;
+}
+
 message TournamentSpec {
     DataCollection data_collection = 1;
     repeated ComputerPlayerConfig players = 2;
     enum TournamentFormat {
-        HEADS_UP_ALTERNATING_FIRSTS = 0;
+        HEADS_UP_MIRRORED_PAIRS = 0;
     }
     TournamentFormat format = 3;
     int64 number_of_rounds = 4;
+    int32 number_of_threads = 5;
+}
+
+message PlayerResults {
+    int32 player_id = 1;
+    int64 num_wins = 2;
+    int64 num_losses = 3;
+    int64 num_draws = 4;
+    int64 total_score = 5;
+    int64 total_opponent_score = 6;
+    int64 score_difference_sum_of_squares = 7;
+    int64 total_time_used_micros = 8;
+    int64 total_time_remaining = 9;
+
+    int64 mirrored_sweeps = 10;
+    int64 mirrored_3quart = 11;
+    int64 mirrored_splits = 12;
+    int64 mirrored_1quart = 13;
+    int64 mirrored_sombreros = 14;
+    int64 mirrored_score_difference_sum_of_squares = 15;
+}
+
+message TournamentResults {
+    repeated GameResult game_results = 1;
+    repeated MirroredGamePair mirrored_game_results = 2;
+    repeated PlayerResults player_results = 3;
 }

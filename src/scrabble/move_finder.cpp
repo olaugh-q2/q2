@@ -484,7 +484,7 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
             blank_move.SetLeave(leave);
             blank_move.SetLeaveValue(leave_value);
             blank_move.ComputeEquity();
-            CHECK_LE(blank_move.Equity(), leave_value + spot.MaxScore());
+            CHECK_LE(blank_move.Equity(), leave_value + spot.MaxScore() + 1e-5);
 
             // std::stringstream ss;
             // blank_move.Display(tiles_, ss);

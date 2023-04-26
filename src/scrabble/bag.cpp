@@ -49,6 +49,12 @@ void Bag::Display(std::ostream& os) const {
   }
 }
 
+std::string Bag::ToString() const {
+  std::ostringstream os;
+  Display(os);
+  return os.str();
+}
+
 void Bag::CompleteRack(Rack* rack) {
   while ((rack->NumTiles() < rack->Capacity()) && !letters_.empty()) {
     rack->PushBack(letters_.back());

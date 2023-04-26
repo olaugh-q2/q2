@@ -7,6 +7,7 @@
 #include "src/scrabble/bag.h"
 #include "src/scrabble/board.h"
 #include "src/scrabble/board_layout.h"
+#include "src/scrabble/computer_players.pb.h"
 #include "src/scrabble/game_position.h"
 #include "src/scrabble/player.h"
 #include "src/scrabble/rack.h"
@@ -48,6 +49,8 @@ class Game {
 
   void FinishWithComputerPlayers();
 
+  void AdjustGameEndScores();
+
   std::vector<int> Scores() const {
     std::vector<int> scores;
     scores.reserve(players_.size());
@@ -61,7 +64,9 @@ class Game {
   }
 
   const std::vector<GamePosition>& Positions() const { return positions_; }
-  
+
+  void WriteProto(q2::proto::GameResult* result) const;
+
  private:
   const BoardLayout& layout_;
 

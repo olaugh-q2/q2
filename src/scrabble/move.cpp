@@ -22,7 +22,11 @@ std::string Move::StartingSquare() const {
 
 void Move::Display(const Tiles& tiles, std::ostream& os) const {
   // LOG(INFO) << "Displaying move";
-  if (action_ == Move::Exchange) {
+  if (action_ == Move::OwnDeadwoodPenalty) {
+    os << "[" << tiles.ToString(letters_).value() << "]";
+  } else if (action_ == Move::OppDeadwoodBonus) {
+    os << "{" << tiles.ToString(letters_).value() << "}";
+  } else if (action_ == Move::Exchange) {
     // LOG(INFO) << "letters_.size() = " << letters_.size();
     if (letters_.empty()) {
       std::string pass("PASS 0");
@@ -148,4 +152,52 @@ absl::StatusOr<Move> Move::Parse(const std::string& move_string,
                                       move_string);
   }
   return Move(direction, start_row, start_col, letters.value());
+}
+
+void Move::WriteProto(const Tiles& tiles, q2::proto::Move* proto) const {
+  switch (action_) {
+    case Move::Place:
+      proto->set_action(q2::proto::Move::PLACE);
+      break;
+    case Move::Exchange:
+      if (letters_.empty()) {
+        proto->set_action(q2::proto::Move::PASS);
+      } else {
+        proto->set_action(q2::proto::Move::EXCHANGE);
+      }
+      break;
+    case Move::OppDeadwoodBonus:
+      proto->set_action(q2::proto::Move::OPP_DEADWOOD_BONUS);
+      break;
+    case Move::OwnDeadwoodPenalty:
+      proto->set_action(q2::proto::Move::OWN_DEADWOOD_PENALTY);
+      break;
+  }
+  if (action_ == Move::Place) {
+    proto->mutable_start_square()->set_row(start_row_);
+    proto->mutable_start_square()->set_column(start_col_);
+    if (direction_ == Move::Across) {
+      proto->set_direction(q2::proto::Move::ACROSS);
+      proto->mutable_start_square()->set_row(start_row_);
+      proto->mutable_start_square()->set_column(start_col_ + letters_.size() -
+                                                1);
+    } else {
+      proto->set_direction(q2::proto::Move::DOWN);
+      proto->mutable_start_square()->set_row(start_row_ + letters_.size() - 1);
+      proto->mutable_start_square()->set_column(start_col_);
+    }
+  }
+  proto->set_letters(tiles.ToString(letters_).value());
+  if (leave_) {
+    proto->set_leave(tiles.ToString(*leave_).value());
+  }
+  std::stringstream ss;
+  Display(tiles, ss);
+  proto->set_as_string(ss.str());
+  /*
+  const std::vector<std::string> cross_words = CrossWords(board, tiles);
+  for (const auto& word : cross_words) {
+    proto->add_words(word);
+  }
+  */
 }

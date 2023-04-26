@@ -69,6 +69,7 @@ cc_library(
     hdrs = ["board.h"],
     visibility = ["//visibility:public"],
     deps = [
+        ":computer_players_cc_proto",
         ":move",
         ":primes",
         ":strings",
@@ -146,6 +147,7 @@ cc_library(
     hdrs = ["move.h"],
     visibility = ["//visibility:public"],
     deps = [
+        ":computer_players_cc_proto",
         ":tiles",
         "@com_google_absl//absl/status:statusor",
         "@glog",
@@ -265,6 +267,51 @@ cc_test(
 )
 
 cc_library(
+    name = "predicate",
+    srcs = ["predicate.cpp"],
+    hdrs = ["predicate.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":game_position",
+        "@glog",
+    ],
+)
+
+cc_library(
+    name = "unseen_tiles_predicate",
+    srcs = ["unseen_tiles_predicate.cpp"],
+    hdrs = ["unseen_tiles_predicate.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":component_factory",
+        ":computer_players_cc_proto",
+        ":game_position",
+        ":predicate",
+        "@glog",
+    ],
+)
+
+cc_test(
+    name = "unseen_tiles_predicate_test",
+    srcs = ["unseen_tiles_predicate_test.cpp"],
+    data = glob([
+        "testdata/*.qam",
+        "testdata/*.qlv",
+        "testdata/*.textproto",
+    ]),
+    deps = [
+        ":bag",
+        ":board_layout",
+        ":computer_player",
+        ":game",
+        ":game_position",
+        ":passing_player",
+        ":unseen_tiles_predicate",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "computer_player",
     srcs = ["computer_player.cpp"],
     hdrs = ["computer_player.h"],
@@ -302,6 +349,8 @@ cc_library(
         ":board_layout",
         ":component_factory",
         ":computer_player",
+        ":computer_players_cc_proto",
+        ":data_manager",
         ":move",
         ":move_finder",
         ":tiles",
@@ -343,6 +392,7 @@ cc_library(
         ":bag",
         ":board",
         ":board_layout",
+        ":computer_players_cc_proto",
         ":move",
         ":rack",
         "@com_google_absl//absl/time",
@@ -375,6 +425,7 @@ cc_library(
         ":board",
         ":board_layout",
         ":computer_player",
+        ":computer_players_cc_proto",
         ":game_position",
         ":player",
         ":tiles",
@@ -416,6 +467,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":computer_player",
+        ":predicate",
         "@com_google_protobuf//:protobuf",
         "@com_google_protobuf//:protoc",
     ],
@@ -428,6 +480,7 @@ cc_test(
         ":component_factory",
         ":computer_players_cc_proto",
         ":passing_player",
+        ":unseen_tiles_predicate",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -478,17 +531,39 @@ cc_test(
     ],
 )
 
-# cc_library(
-#     name = "tournament_runner",
-#     srcs = ["tournament_runner.cpp"],
-#     hdrs = ["tournament_runner.h"],
-#     visibility = ["//visibility:public"],
-#     deps = [
-#         ":component_factory",
-#         ":computer_players_cc_proto",
-#         ":game",
-#         "@com_google_protobuf//:protobuf",
-#         "@com_google_protobuf//:protoc",
-#         "@glog",
-#     ],
-# )
+cc_library(
+    name = "tournament_runner",
+    srcs = ["tournament_runner.cpp"],
+    hdrs = ["tournament_runner.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":component_factory",
+        ":computer_player",
+        ":computer_players_cc_proto",
+        ":data_manager",
+        ":game",
+        ":passing_player",
+        ":player",
+        ":static_player",
+        "@com_google_protobuf//:protobuf",
+        "@com_google_protobuf//:protoc",
+        "@glog",
+    ],
+)
+
+cc_test(
+    name = "tournament_runner_test",
+    srcs = ["tournament_runner_test.cpp"],
+    data = glob([
+        "testdata/*.qam",
+        "testdata/*.qlv",
+        "testdata/*.textproto",
+    ]),
+    deps = [
+        ":computer_players_cc_proto",
+        ":passing_player",
+        ":static_player",
+        ":tournament_runner",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

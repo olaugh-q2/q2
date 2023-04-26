@@ -3,12 +3,13 @@
 
 #include "absl/status/statusor.h"
 #include "glog/logging.h"
+#include "src/scrabble/computer_players.pb.h"
 #include "src/scrabble/strings.h"
 #include "src/scrabble/tiles.h"
 
 class Move {
  public:
-  enum Action { Exchange, Place };
+  enum Action { Exchange, Place, OppDeadwoodBonus, OwnDeadwoodPenalty };
   enum Dir { None, Across, Down };
 
   Move() : action_(Move::Exchange) {}
@@ -20,7 +21,8 @@ class Move {
         direction_(direction),
         start_row_(start_row),
         start_col_(start_col),
-        letters_(letters), score_(absl::nullopt) {}
+        letters_(letters),
+        score_(absl::nullopt) {}
 
   Move(Dir direction, int start_row, int start_col, const LetterString& letters,
        int score)
@@ -30,6 +32,9 @@ class Move {
         start_col_(start_col),
         letters_(letters),
         score_(score) {}
+
+  Move(Action action, const LetterString& letters, int score)
+      : action_(action), letters_(letters), score_(score) {}
 
   explicit Move(const LetterString& letters)
       : action_(Move::Exchange), letters_(letters), score_(0) {}
@@ -91,7 +96,7 @@ class Move {
   static absl::StatusOr<Move> Parse(const std::string& move_string,
                                     const Tiles& tiles);
 
-  Action Action() const { return action_; }
+  Action GetAction() const { return action_; }
 
   LetterString Letters() const { return letters_; }
 
@@ -133,9 +138,11 @@ class Move {
     return equity_.value();
   }
 
+  void WriteProto(const Tiles& tiles,
+                  q2::proto::Move* result) const;
+
  private:
   std::string StartingSquare() const;
-
   enum Action action_;
   enum Dir direction_;
   int start_row_;

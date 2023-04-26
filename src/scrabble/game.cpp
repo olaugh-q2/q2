@@ -21,7 +21,7 @@ void Game::CreateInitialPosition() {
 void Game::CreateInitialPosition(
     const Bag& ordered_bag,
     const std::vector<uint64_t>& exchange_insertion_dividends) {
-  LOG(INFO) << "CreateInitialPosition";
+  //LOG(INFO) << "CreateInitialPosition";
   Board board;
   exchange_dividend_index_ = 0;
   exchange_insertion_dividends_ = exchange_insertion_dividends;
@@ -40,54 +40,57 @@ void Game::CreateInitialPosition(
 }
 
 void Game::AddNextPosition(const Move& move, absl::Duration time_elapsed) {
-  LOG(INFO) << "AddNextPosition(...) elapsed: " << time_elapsed;
+  //LOG(INFO) << "AddNextPosition(...) elapsed: " << time_elapsed;
   CHECK(!positions_.empty());
   positions_.back().CommitMove(move, time_elapsed);
   Board board = positions_.back().GetBoard();
-  if (move.Action() == Move::Place) {
+  if (move.GetAction() == Move::Place) {
     board.UnsafePlaceMove(move);
   }
   CHECK_GE(racks_.size(), 2);
   Rack rack = racks_[racks_.size() - 2];
   std::stringstream ss;
   rack.Display(tiles_, ss);
-  LOG(INFO) << "rack (before removal): " << ss.str();
-  LOG(INFO) << "rack.Size() = " << rack.NumTiles();
+  //LOG(INFO) << "rack (before removal): " << ss.str();
+  //LOG(INFO) << "rack.Size() = " << rack.NumTiles();
   std::stringstream ss_move;
   move.Display(tiles_, ss_move);
-  LOG(INFO) << "move: " << ss_move.str();
+  //LOG(INFO) << "move: " << ss_move.str();
   LetterString move_tiles = move.Letters();
   for (auto& tile : move_tiles) {
     if (tile >= tiles_.BlankIndex()) {
       tile = tiles_.BlankIndex();
     }
   }
-  rack.RemoveTiles(move_tiles);
-  LOG(INFO) << "rack.Size() = " << rack.NumTiles();
+  int scoreless_turns = 0;
   Bag bag = bags_.back();
-  std::stringstream ss1;
-  bag.Display(ss1);
-  LOG(INFO) << "bag (before completion): " << ss1.str();
-  bag.CompleteRack(&rack);
-  std::stringstream ss2;
-  bag.Display(ss2);
-  LOG(INFO) << "bag (after completion): " << ss2.str();
-  if (move.Action() == Move::Exchange) {
-    bag.InsertTiles(move.Letters(), exchange_insertion_dividends_,
-                    &exchange_dividend_index_);
-  }
-  std::stringstream ss3;
-  bag.Display(ss3);
-  LOG(INFO) << "bag (after insertion): " << ss3.str();
-
   absl::Duration time_remaining = initial_time_;
   if (const GamePosition* two_positions_ago = TwoPositionsAgo()) {
     time_remaining = two_positions_ago->TimeRemainingEnd();
   }
+  // No bag manipulation is needed for deadwood.
+  if (move.GetAction() == Move::Exchange || move.GetAction() == Move::Place) {
+    move_tiles = move.Letters();
+    rack.RemoveTiles(move_tiles, tiles_);
+    //LOG(INFO) << "rack.Size() = " << rack.NumTiles();
+    std::stringstream ss1;
+    bag.Display(ss1);
+    //LOG(INFO) << "bag (before completion): " << ss1.str();
+    bag.CompleteRack(&rack);
+    std::stringstream ss2;
+    bag.Display(ss2);
+    //LOG(INFO) << "bag (after completion): " << ss2.str();
+    if (move.GetAction() == Move::Exchange) {
+      bag.InsertTiles(move.Letters(), exchange_insertion_dividends_,
+                      &exchange_dividend_index_);
+    }
+    std::stringstream ss3;
+    bag.Display(ss3);
+    //LOG(INFO) << "bag (after insertion): " << ss3.str();
 
-  int scoreless_turns = 0;
-  if (positions_.back().IsScorelessTurn()) {
-    scoreless_turns = positions_.back().ScorelessTurns() + 1;
+    if (positions_.back().IsScorelessTurn()) {
+      scoreless_turns = positions_.back().ScorelessTurns() + 1;
+    }
   }
   positions_.emplace_back(layout_, board, positions_.back().OpponentPlayerId(),
                           positions_.back().OnTurnPlayerId(), racks_.back(),
@@ -96,19 +99,23 @@ void Game::AddNextPosition(const Move& move, absl::Duration time_elapsed) {
                           positions_.back().PositionIndex() + 1, time_remaining,
                           scoreless_turns, tiles_);
   bags_.emplace_back(bag);
+  /*
   LOG(INFO) << "Bags:";
   for (const auto& bag : bags_) {
     std::stringstream ss;
     bag.Display(ss);
     LOG(INFO) << ss.str();
   }
+  */
   racks_.emplace_back(rack);
+  /*
   LOG(INFO) << "Racks:";
   for (const auto& rack : racks_) {
     std::stringstream ss;
     rack.Display(tiles_, ss);
     LOG(INFO) << ss.str();
   }
+  */
 }
 
 void Game::Display(std::ostream& os) const {
@@ -141,25 +148,73 @@ void Game::Display(std::ostream& os) const {
   }
 }
 
+void Game::AdjustGameEndScores() {
+  //LOG(INFO) << "AdjustGameEndScores()";
+  // Assumed that this is only called when the game is over.
+  CHECK(positions_.back().IsGameOver());
+  // This only makes sense for 2 player games.
+  CHECK(players_.size() == 2);
+  if (positions_.back().ScorelessTurns() >= 6) {
+    for (int i = 0; i < 2; i++) {
+      const LetterString& letters = positions_.back().GetRack().Letters();
+      int penalty = -1 * tiles_.Score(letters);
+      Move move(Move::OwnDeadwoodPenalty, letters, penalty);
+      AddNextPosition(move, absl::ZeroDuration());
+    }
+  } else {
+    // The "on-turn" player is the one stuck with letters. We commit a pass for
+    // them and give their tiles for the bonus to the other player, who must
+    // have played out.
+    const LetterString& letters = positions_.back().GetRack().Letters();
+    const LetterString empty;
+    Move pass(Move::Exchange, empty, 0);
+    AddNextPosition(pass, absl::ZeroDuration());
+    int bonus = 2 * tiles_.Score(letters);
+    Move move(Move::OppDeadwoodBonus, letters, bonus);
+    AddNextPosition(move, absl::ZeroDuration());
+  }
+}
+
 void Game::FinishWithComputerPlayers() {
-  LOG(INFO) << "FinishWithComputerPlayers()";
+  //LOG(INFO) << "FinishWithComputerPlayers()";
   CHECK(!positions_.empty());
   CHECK(players_.size() == 2);
   CHECK(players_[0]->GetPlayerType() == Player::Computer);
   CHECK(players_[1]->GetPlayerType() == Player::Computer);
   while (!positions_.back().IsGameOver()) {
     const int player_index = positions_.back().PositionIndex() % 2;
-    LOG(INFO) << "Player index: " << player_index;
+    //LOG(INFO) << "Player index: " << player_index;
     Player* player_ptr = players_[player_index];
     ComputerPlayer* computer_player = dynamic_cast<ComputerPlayer*>(player_ptr);
-    LOG(INFO) << "Player: " << computer_player->Id();
+    //LOG(INFO) << "Player: " << computer_player->Id();
     const auto start_time = absl::Now();
-    LOG(INFO) << "start_time: " << start_time;
+    //LOG(INFO) << "start_time: " << start_time;
     std::stringstream ss;
     positions_.back().Display(ss);
     computer_player->Display(ss);
-    LOG(INFO) << "positions_.back(): " << std::endl << ss.str() << std::endl;
+    //LOG(INFO) << "positions_.back(): " << std::endl << ss.str() << std::endl;
     const auto move = computer_player->ChooseBestMove(positions_.back());
     AddNextPosition(move, absl::Now() - start_time);
+  }
+  AdjustGameEndScores();
+}
+
+void Game::WriteProto(q2::proto::GameResult* result) const {
+  for (const Player* player : players_) {
+    result->add_player_ids(player->Id());
+    if (positions_.back().OnTurnPlayerId() == player->Id()) {
+      result->add_player_scores(positions_.back().PlayerScore());
+    } else {
+      result->add_player_scores(positions_.back().OpponentScore());
+    }
+  }
+  for (const auto& rack : racks_) {
+    result->add_racks(tiles_.ToString(rack.Letters()).value());
+  }
+  for (const auto& bag : bags_) {
+    result->add_bags(bag.ToString());
+  }
+  for (const auto& position : positions_) {
+    position.WriteProto(result->add_game_positions());
   }
 }

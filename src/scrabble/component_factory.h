@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include "src/scrabble/computer_player.h"
+#include "src/scrabble/predicate.h"
 
 class ComponentFactory {
  public:
@@ -23,12 +24,25 @@ class ComponentFactory {
                                   const google::protobuf::Message&)>
                                   creator);
 
+  std::unique_ptr<Predicate> CreatePredicate(
+      const google::protobuf::Message& message) const;
+
+  void RegisterPredicate(const google::protobuf::Descriptor* descriptor,
+                         std::function<std::unique_ptr<Predicate>(
+                             const google::protobuf::Message&)>
+                             creator);
+
  private:
   ComponentFactory() = default;
   std::unordered_map<const google::protobuf::Descriptor*,
                      std::function<std::unique_ptr<ComputerPlayer>(
                          const google::protobuf::Message&)>>
       computer_player_creators_;
+
+  std::unordered_map<const google::protobuf::Descriptor*,
+                     std::function<std::unique_ptr<Predicate>(
+                         const google::protobuf::Message&)>>
+      predicate_creators_;
 };
 
 #endif  // SRC_SCRABBLE_COMPONENT_FACTORY_H

@@ -28,7 +28,8 @@ class Rack {
     letters_.push_back(letter);
   }
   
-  void RemoveTiles(const LetterString& tiles);
+  void RemoveTiles(const LetterString& letters,
+                   const Tiles& tiles);
 
  private:
   LetterString letters_;
