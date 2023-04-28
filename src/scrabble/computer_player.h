@@ -12,7 +12,7 @@ class ComputerPlayer : public Player {
       : Player(name, nickname, Player::Computer, id) {}
   virtual ~ComputerPlayer() = 0;
   void SetStartOfTurnTime();
-
+  
  private:
   absl::Time start_of_turn_time_;
 };

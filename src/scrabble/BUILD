@@ -384,6 +384,48 @@ cc_test(
 )
 
 cc_library(
+    name = "specializing_player",
+    srcs = ["specializing_player.cpp"],
+    hdrs = ["specializing_player.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":component_factory",
+        ":computer_player",
+        ":computer_players_cc_proto",
+        ":predicate",
+        "@com_google_absl//absl/memory",
+        "@glog",
+    ],
+)
+
+cc_test(
+    name = "specializing_player_test",
+    srcs = ["specializing_player_test.cpp"],
+    data = glob([
+        "testdata/*.qam",
+        "testdata/*.qlv",
+        "testdata/*.textproto",
+    ]),
+    deps = [
+        ":board",
+        ":board_layout",
+        ":component_factory",
+        ":computer_player",
+        ":computer_players_cc_proto",
+        ":move",
+        ":move_finder",
+        ":passing_player",
+        ":rack",
+        ":specializing_player",
+        ":static_player",
+        ":tiles",
+        ":unseen_tiles_predicate",
+        "@com_google_absl//absl/memory",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "game_position",
     srcs = ["game_position.cpp"],
     hdrs = ["game_position.h"],
@@ -562,8 +604,10 @@ cc_test(
     deps = [
         ":computer_players_cc_proto",
         ":passing_player",
+        ":specializing_player",
         ":static_player",
         ":tournament_runner",
+        ":unseen_tiles_predicate",
         "@com_google_googletest//:gtest_main",
     ],
 )

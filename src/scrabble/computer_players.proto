@@ -17,6 +17,7 @@ message ComputerPlayerConfig {
     oneof player {
         PassingPlayerConfig passing_player_config = 1;
         StaticPlayerConfig static_player_config = 2;
+        SpecializingPlayerConfig specializing_player_config = 3;
     }
 }
 
@@ -34,6 +35,18 @@ message StaticPlayerConfig {
     string board_layout_file = 5;
     string tiles_file = 6;
     string leaves_file = 7;
+}
+
+message ConditionalPlayer {
+    PredicateConfig predicate = 1;
+    ComputerPlayerConfig player = 2;
+}
+
+message SpecializingPlayerConfig {
+    string name = 1;
+    string nickname = 2;
+    int32 id = 3;
+    repeated ConditionalPlayer conditional_players = 4;
 }
 
 message ComputerPlayerCollection {
@@ -127,6 +140,17 @@ message TournamentSpec {
     int32 number_of_threads = 5;
 }
 
+message PlayerAverages {
+    int32 player_id = 1;
+    float average_score = 2;
+    float average_opponent_score = 3;
+    float average_score_difference = 4;
+    float score_difference_sd = 5;
+    float average_time_used_micros = 6;
+    float average_time_remaining = 7;
+    float mirrored_score_difference_sd = 8;
+}
+
 message PlayerResults {
     int32 player_id = 1;
     int64 num_wins = 2;
@@ -150,4 +174,5 @@ message TournamentResults {
     repeated GameResult game_results = 1;
     repeated MirroredGamePair mirrored_game_results = 2;
     repeated PlayerResults player_results = 3;
+    repeated PlayerAverages player_averages = 4;
 }

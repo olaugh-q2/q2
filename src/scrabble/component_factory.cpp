@@ -46,3 +46,39 @@ std::unique_ptr<Predicate> ComponentFactory::CreatePredicate(
   }
   return it->second(message);
 }
+
+std::unique_ptr<ComputerPlayer> ComponentFactory::CreatePlayerFromConfig(
+    const q2::proto::ComputerPlayerConfig& config) {
+  switch (config.player_case()) {
+    case q2::proto::ComputerPlayerConfig::kPassingPlayerConfig:
+      return ComponentFactory::GetInstance()->CreateComputerPlayer(
+          config.passing_player_config());
+      break;
+    case q2::proto::ComputerPlayerConfig::kStaticPlayerConfig:
+      return ComponentFactory::GetInstance()->CreateComputerPlayer(
+          config.static_player_config());
+      break;
+    case q2::proto::ComputerPlayerConfig::kSpecializingPlayerConfig:
+      return ComponentFactory::GetInstance()->CreateComputerPlayer(
+          config.specializing_player_config());
+      break;  
+    case q2::proto::ComputerPlayerConfig::PLAYER_NOT_SET:
+      LOG(ERROR) << "No player type specified for player "
+                 << config.DebugString();
+      return nullptr;
+  }
+}
+
+std::unique_ptr<Predicate> ComponentFactory::CreatePredicateFromConfig(
+    const q2::proto::PredicateConfig& config) {
+  switch (config.predicate_case()) {
+    case q2::proto::PredicateConfig::kUnseenTilesPredicateConfig:
+      return ComponentFactory::GetInstance()->CreatePredicate(
+          config.unseen_tiles_predicate_config());
+      break;
+    case q2::proto::PredicateConfig::PREDICATE_NOT_SET:
+      LOG(ERROR) << "No predicate type specified for predicate "
+                 << config.DebugString();
+      return nullptr;
+  }
+}

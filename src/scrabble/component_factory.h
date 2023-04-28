@@ -32,6 +32,12 @@ class ComponentFactory {
                              const google::protobuf::Message&)>
                              creator);
 
+  static std::unique_ptr<ComputerPlayer> CreatePlayerFromConfig(
+      const q2::proto::ComputerPlayerConfig& config);
+
+  static std::unique_ptr<Predicate> CreatePredicateFromConfig(
+      const q2::proto::PredicateConfig& config);
+
  private:
   ComponentFactory() = default;
   std::unordered_map<const google::protobuf::Descriptor*,

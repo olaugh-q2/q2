@@ -5,7 +5,9 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "src/scrabble/passing_player.h"
+#include "src/scrabble/specializing_player.h"
 #include "src/scrabble/static_player.h"
+#include "src/scrabble/unseen_tiles_predicate.h"
 
 using ::google::protobuf::Arena;
 
@@ -14,6 +16,8 @@ class TournamentRunnerTest : public ::testing::Test {
   void SetUp() override {
     PassingPlayer::Register();
     StaticPlayer::Register();
+    SpecializingPlayer::Register();
+    UnseenTilesPredicate::Register();
   }
 };
 
@@ -44,7 +48,8 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredPassing) {
     )",
                                                 spec);
   TournamentRunner runner(*spec);
-  runner.Run();
+  auto results = Arena::CreateMessage<q2::proto::TournamentResults>(&arena);
+  runner.Run(results);
 }
 
 TEST_F(TournamentRunnerTest, HeadsUpMirroredStatic) {
@@ -91,7 +96,8 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredStatic) {
     )",
                                                 spec);
   TournamentRunner runner(*spec);
-  runner.Run();
+  auto results = Arena::CreateMessage<q2::proto::TournamentResults>(&arena);
+  runner.Run(results);
 }
 
 TEST_F(TournamentRunnerTest, HeadsUpMirroredStaticVsScore) {
@@ -142,7 +148,8 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredStaticVsScore) {
     )",
                                                 spec);
   TournamentRunner runner(*spec);
-  runner.Run();
+  auto results = Arena::CreateMessage<q2::proto::TournamentResults>(&arena);
+  runner.Run(results);
 }
 
 TEST_F(TournamentRunnerTest, HeadsUpMirroredMacondoVsQuackle) {
@@ -193,5 +200,95 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredMacondoVsQuackle) {
     )",
                                                 spec);
   TournamentRunner runner(*spec);
-  runner.Run();
+  auto results = Arena::CreateMessage<q2::proto::TournamentResults>(&arena);
+  runner.Run(results);
+}
+
+TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializing) {
+  Arena arena;
+  auto spec = Arena::CreateMessage<q2::proto::TournamentSpec>(&arena);
+  google::protobuf::TextFormat::ParseFromString(R"(
+        data_collection {
+          tiles_files: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+          board_files: "src/scrabble/testdata/scrabble_board.textproto"
+          anagram_map_file_specs {
+            anagram_map_filename: "src/scrabble/testdata/csw21.qam"
+            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+          }
+          leaves_file_specs {
+            leaves_filename: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+          }
+          leaves_file_specs {
+            leaves_filename: "src/scrabble/testdata/zeroes.qlv"
+            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+          }
+        }
+        number_of_rounds: 24000
+        number_of_threads: 24
+        format: HEADS_UP_MIRRORED_PAIRS
+        players {
+          specializing_player_config {
+            id: 1
+            name: "Macondo + High Score Endgame"
+            nickname: "MHSE"
+            conditional_players {
+              predicate {
+                unseen_tiles_predicate_config {
+                  min_unseen_tiles: 8
+                  max_unseen_tiles: 10000
+                }
+              }
+              player {
+                static_player_config {
+                  id: 101
+                  name: "Macondo Leaves"
+                  nickname: "M"
+                  anagram_map_file: "src/scrabble/testdata/csw21.qam"
+                  board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
+                  tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+                  leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+                }
+              }
+            }
+            conditional_players {
+              predicate {
+                unseen_tiles_predicate_config {
+                  min_unseen_tiles: 0
+                  max_unseen_tiles: 7
+                }
+              }
+              player {
+                static_player_config {
+                  id: 102
+                  name: "High Score Endgame"
+                  nickname: "HSE"
+                  anagram_map_file: "src/scrabble/testdata/csw21.qam"
+                  board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
+                  tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+                  leaves_file: "src/scrabble/testdata/zeroes.qlv"
+                }
+              }
+            }
+          }            
+        }
+        players {
+          static_player_config {
+            id: 2
+            name: "All Macondo"
+            nickname: "Macondo"
+            anagram_map_file: "src/scrabble/testdata/csw21.qam"
+            board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
+            tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+            leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+          }
+        }
+    )",
+                                                spec);                                                
+  TournamentRunner runner(*spec);
+  auto results = Arena::CreateMessage<q2::proto::TournamentResults>(&arena);
+  runner.Run(results);
+  for (const auto& a : results->player_averages()) {
+    LOG(INFO) << "player_averages: " << std::endl << a.DebugString();
+  }
 }

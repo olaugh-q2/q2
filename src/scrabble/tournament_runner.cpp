@@ -118,7 +118,7 @@ void DoPairStats(
   }
 }
 }  // namespace
-void TournamentRunner::Run() {
+void TournamentRunner::Run(q2::proto::TournamentResults* tournament_results) {
   LOG(INFO) << "Run()";
 
   const auto& data = spec_.data_collection();
@@ -140,21 +140,9 @@ void TournamentRunner::Run() {
   DataManager::GetInstance()->LoadData(data);
   for (int i = 0; i < spec_.number_of_threads(); ++i) {
     for (const auto& player_spec : spec_.players()) {
-      switch (player_spec.player_case()) {
-        case q2::proto::ComputerPlayerConfig::kPassingPlayerConfig:
-          players_.push_back(
-              ComponentFactory::GetInstance()->CreateComputerPlayer(
-                  player_spec.passing_player_config()));
-          break;
-        case q2::proto::ComputerPlayerConfig::kStaticPlayerConfig:
-          players_.push_back(
-              ComponentFactory::GetInstance()->CreateComputerPlayer(
-                  player_spec.static_player_config()));
-          break;
-        case q2::proto::ComputerPlayerConfig::PLAYER_NOT_SET:
-          LOG(ERROR) << "No player type specified for player "
-                     << player_spec.DebugString();
-      }
+      auto player = ComponentFactory::CreatePlayerFromConfig(player_spec);
+      CHECK(player != nullptr);
+      players_.push_back(std::move(player));
     }
   }
   const auto& board_layout =
@@ -190,8 +178,6 @@ void TournamentRunner::Run() {
   // }
   LOG(INFO) << "Got " << results.size() << " results";
   Arena arena;
-  auto tournament_results =
-      Arena::CreateMessage<q2::proto::TournamentResults>(&arena);
   absl::flat_hash_map<int, std::unique_ptr<q2::proto::PlayerResults>>
       player_results;
   player_results.reserve(players_.size());
@@ -212,5 +198,27 @@ void TournamentRunner::Run() {
   }
   for (const auto& player_result : player_results) {
     LOG(INFO) << "player_result: " << player_result.second->DebugString();
+  }
+  std::vector<std::unique_ptr<q2::proto::PlayerResults>> player_results_vec;
+  for (int i = 0; i < spec_.players_size(); ++i) {
+    player_results_vec.push_back(std::move(player_results[players_[i]->Id()]));
+  }
+  std::vector<std::unique_ptr<q2::proto::PlayerAverages>> averages;
+  ComputeAverages(player_results_vec, &averages);
+  for (const auto& average : averages) {
+    tournament_results->add_player_averages()->CopyFrom(*average);
+  }
+}
+
+void TournamentRunner::ComputeAverages(const std::vector<std::unique_ptr<q2::proto::PlayerResults>>& results,
+        std::vector<std::unique_ptr<q2::proto::PlayerAverages>>* averages)
+        const {
+  averages->reserve(results.size());
+  for (const auto& result : results) {
+    averages->emplace_back(absl::make_unique<q2::proto::PlayerAverages>());
+    auto& a = averages->back();
+    a->set_player_id(result->player_id());
+    const int num_games = result->num_wins() + result->num_losses() + result->num_draws();
+    a->set_average_score(static_cast<float>(result->total_score()) / num_games);
   }
 }
