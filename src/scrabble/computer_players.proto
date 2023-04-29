@@ -123,10 +123,18 @@ message GameResult {
     repeated string bags = 3;
     repeated string racks = 4;
     repeated GamePosition game_positions = 5;
+    repeated int64 micros_used = 6;
+    repeated int64 micros_remaining = 7;
 }
 
 message MirroredGamePair {
     repeated GameResult mirrored_games = 1;
+}
+
+message OutputSpec {
+    bool record_bags = 1;
+    bool record_racks = 2;
+    bool record_game_positions = 3;
 }
 
 message TournamentSpec {
@@ -138,6 +146,9 @@ message TournamentSpec {
     TournamentFormat format = 3;
     int64 number_of_rounds = 4;
     int32 number_of_threads = 5;
+
+    // TODO: omit unrecorded data, dropping it as early as possible.
+    OutputSpec output_spec = 6;  // ignored
 }
 
 message PlayerAverages {
@@ -147,8 +158,10 @@ message PlayerAverages {
     float average_score_difference = 4;
     float score_difference_sd = 5;
     float average_time_used_micros = 6;
-    float average_time_remaining = 7;
+    float average_time_remaining_micros = 7;
     float mirrored_score_difference_sd = 8;
+    float mirrored_confidence_lower_bound = 9;
+    float mirrored_confidence_upper_bound = 10;
 }
 
 message PlayerResults {
@@ -160,14 +173,16 @@ message PlayerResults {
     int64 total_opponent_score = 6;
     int64 score_difference_sum_of_squares = 7;
     int64 total_time_used_micros = 8;
-    int64 total_time_remaining = 9;
+    int64 total_time_remaining_micros = 9;
 
+    int64 total_mirrored_difference = 17;
     int64 mirrored_sweeps = 10;
     int64 mirrored_3quart = 11;
     int64 mirrored_splits = 12;
     int64 mirrored_1quart = 13;
     int64 mirrored_sombreros = 14;
-    int64 mirrored_score_difference_sum_of_squares = 15;
+    int64 mirrored_with_difference = 15;
+    int64 mirrored_score_difference_sum_of_squares = 16;
 }
 
 message TournamentResults {

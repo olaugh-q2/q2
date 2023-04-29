@@ -78,7 +78,16 @@ void DoGameStats(
     r0->set_num_draws(r0->num_draws() + 1);
     r1->set_num_draws(r1->num_draws() + 1);
   }
+  r0->set_total_time_used_micros(r0->total_time_used_micros() +
+                                 game->micros_used(0));
+  r1->set_total_time_used_micros(r1->total_time_used_micros() +
+                                 game->micros_used(1));
+  r0->set_total_time_remaining_micros(r0->total_time_remaining_micros() +
+                                 game->micros_remaining(0));
+  r1->set_total_time_remaining_micros(r1->total_time_remaining_micros() +
+                                 game->micros_remaining(1));
 }
+
 void DoPairStats(
     const q2::proto::GameResult* g0, const q2::proto::GameResult* g1,
     absl::flat_hash_map<int, std::unique_ptr<q2::proto::PlayerResults>>*
@@ -116,6 +125,18 @@ void DoPairStats(
     r0->set_mirrored_sombreros(r0->mirrored_sombreros() + 1);
     r1->set_mirrored_sweeps(r1->mirrored_sweeps() + 1);
   }
+  int p0diff = g0->player_scores(0) - g0->player_scores(1) +
+               g1->player_scores(1) - g1->player_scores(0);
+  if (p0diff != 0) {
+    r0->set_total_mirrored_difference(r0->total_mirrored_difference() + p0diff);
+    r1->set_total_mirrored_difference(r1->total_mirrored_difference() - p0diff);
+    r0->set_mirrored_with_difference(r0->mirrored_with_difference() + 1);
+    r1->set_mirrored_with_difference(r1->mirrored_with_difference() + 1);
+  }
+  r0->set_mirrored_score_difference_sum_of_squares(
+      r0->mirrored_score_difference_sum_of_squares() + p0diff * p0diff);
+  r1->set_mirrored_score_difference_sum_of_squares(
+      r1->mirrored_score_difference_sum_of_squares() + p0diff * p0diff);
 }
 }  // namespace
 void TournamentRunner::Run(q2::proto::TournamentResults* tournament_results) {
@@ -210,15 +231,48 @@ void TournamentRunner::Run(q2::proto::TournamentResults* tournament_results) {
   }
 }
 
-void TournamentRunner::ComputeAverages(const std::vector<std::unique_ptr<q2::proto::PlayerResults>>& results,
-        std::vector<std::unique_ptr<q2::proto::PlayerAverages>>* averages)
-        const {
+void TournamentRunner::ComputeAverages(
+    const std::vector<std::unique_ptr<q2::proto::PlayerResults>>& results,
+    std::vector<std::unique_ptr<q2::proto::PlayerAverages>>* averages) const {
   averages->reserve(results.size());
   for (const auto& result : results) {
     averages->emplace_back(absl::make_unique<q2::proto::PlayerAverages>());
     auto& a = averages->back();
     a->set_player_id(result->player_id());
-    const int num_games = result->num_wins() + result->num_losses() + result->num_draws();
+    const int num_games =
+        result->num_wins() + result->num_losses() + result->num_draws();
     a->set_average_score(static_cast<float>(result->total_score()) / num_games);
+    a->set_average_opponent_score(
+        static_cast<float>(result->total_opponent_score()) / num_games);
+    const int64_t score_diff =
+        result->total_score() - result->total_opponent_score();
+    a->set_average_score_difference(static_cast<float>(score_diff) / num_games);
+    a->set_score_difference_sd(
+        sqrt((result->score_difference_sum_of_squares() -
+              (score_diff * score_diff / static_cast<float>(num_games))) /
+             static_cast<float>(num_games - 1)));
+    a->set_average_time_remaining_micros(
+        static_cast<float>(result->total_time_remaining_micros()) / num_games);
+    a->set_average_time_used_micros(
+        static_cast<float>(result->total_time_used_micros()) / num_games);
+
+    const int mdiff_games = result->mirrored_with_difference();
+    // LOG(INFO) << "mdiff_games: " << mdiff_games;
+    const int mirrored_diff = result->total_mirrored_difference();
+    // LOG(INFO) << "mirrored_diff: " << mirrored_diff;
+    if (mdiff_games > 1) {
+      a->set_mirrored_score_difference_sd(sqrt(
+          (result->mirrored_score_difference_sum_of_squares() -
+           (mirrored_diff * mirrored_diff / static_cast<float>(mdiff_games))) /
+          static_cast<float>(mdiff_games - 1)));
+
+      const float z = 2.576;  // 99% confidence
+      const float mirrored_error = z * a->mirrored_score_difference_sd() /
+                                   sqrt(static_cast<float>(mdiff_games));
+      a->set_mirrored_confidence_lower_bound(a->average_score_difference() -
+                                             mirrored_error);
+      a->set_mirrored_confidence_upper_bound(a->average_score_difference() +
+                                             mirrored_error);
+    }
   }
 }

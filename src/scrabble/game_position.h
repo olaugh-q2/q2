@@ -51,6 +51,7 @@ class GamePosition {
   int PlayerScore() const { return player_score_; }
   int OpponentScore() const { return opponent_score_; }
   std::size_t PositionIndex() const { return position_index_; }
+  absl::Duration TimeRemainingStart() const { return time_remaining_start_; }
   absl::Duration TimeRemainingEnd() const { return time_remaining_end_; }
   int ScorelessTurns() const { return scoreless_turns_; }
   bool IsGameOver() const {
