@@ -173,3 +173,20 @@ void Board::WriteMoveWords(const Move& move, const Tiles& tiles,
     proto->add_all_words_formed(word);
   }
 }
+
+void Board::SetLetters(const std::vector<std::string>& rows,
+                       const Tiles& tiles) {
+  for (int i = 0; i < 15; ++i) {
+    const int src_i = i + 2;  // two header rows
+    for (int j = 0; j < 15; ++j) {
+      const int src_j = j * 2 + 3; // two digits and a |
+      auto maybe_letter = tiles.CharToNumber(rows[src_i][src_j]);
+      if (maybe_letter) {
+        rows_[i][j] = maybe_letter.value();
+        is_empty_ = false;
+      } else {
+        rows_[i][j] = 0;
+      }
+    }
+  }
+}

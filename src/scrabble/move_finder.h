@@ -50,7 +50,6 @@ class MoveFinder {
     int ExtraScore() const { return extra_score_; }
     int MaxScore() const { return max_score_; }
     float MaxEquity() const { return max_equity_; }
-
    private:
     Move::Dir direction_;
     int start_row_;
@@ -115,7 +114,7 @@ class MoveFinder {
   std::vector<Move> FindMoves(const Rack& rack, const Board& board,
                               const Bag& bag, RecordMode record_mode);
   std::vector<Move> FindExchanges(const Rack& rack) const;
-
+  bool IsBlocked(const Move& move, const Board& board) const;
  private:
   FRIEND_TEST(MoveFinderTest, Blankify);
   FRIEND_TEST(MoveFinderTest, BlankifyAllBlanks);

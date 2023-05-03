@@ -78,3 +78,15 @@ void GamePosition::WriteProto(q2::proto::GamePosition* proto) const {
     board_.WriteMoveWords(*move_, tiles_, proto->mutable_move());
   }
 }
+
+GamePosition GamePosition::SwapRacks() const {
+  const auto unseen = GetUnseenToPlayer();
+  CHECK_LE(unseen.Size(), 7);
+  LetterString rack;
+  for (const auto& letter : unseen.Letters()) {
+    rack.push_back(letter);
+  }
+  return GamePosition(layout_, board_, opponent_player_id_, on_turn_player_id_,
+                      rack, opponent_score_, player_score_, position_index_,
+                      time_remaining_start_, scoreless_turns_, tiles_);
+}

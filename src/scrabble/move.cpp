@@ -201,3 +201,20 @@ void Move::WriteProto(const Tiles& tiles, q2::proto::Move* proto) const {
   }
   */
 }
+
+bool Move::IsSubsetOf(const Tiles& tiles, const Rack& rack) const {
+  auto rack_counts = rack.Counts();
+  for (auto letter : letters_) {
+    if (!letter) {
+      continue;
+    }
+    if (letter >= tiles.BlankIndex()) {
+      letter = tiles.BlankIndex();
+    }
+    if (rack_counts[letter] == 0) {
+      return false;
+    }
+    --rack_counts[letter];
+  }
+  return true;
+}

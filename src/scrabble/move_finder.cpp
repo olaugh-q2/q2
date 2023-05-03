@@ -943,9 +943,10 @@ void MoveFinder::ComputeSpotMaxEquity(const Rack& rack, const Board& board,
 
 std::vector<MoveFinder::Spot> MoveFinder::FindSpots(const Rack& rack,
                                                     const Board& board) {
-  // LOG(INFO) << "FindSpots(...)";
+  //LOG(INFO) << "FindSpots(...)";
   std::vector<MoveFinder::Spot> spots;
   if (board.IsEmpty()) {
+    //LOG(INFO) << "Empty board";
     spots.reserve(7 * 7 + 6 * 6 + 5 * 5 + 4 * 4 + 3 * 3 + 2 * 2);
     for (int num_tiles = 2; num_tiles <= rack.NumTiles(); num_tiles++) {
       for (int start_col = 7 + 1 - num_tiles; start_col <= 7; start_col++) {
@@ -972,11 +973,11 @@ std::vector<MoveFinder::Spot> MoveFinder::FindSpots(const Rack& rack,
 std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
                                         const Bag& bag,
                                         RecordMode record_mode) {
-  // LOG(INFO) << "************************** FindMoves(...)";
+  //LOG(INFO) << "************************** FindMoves(...)";
   CacheCrossesAndScores(board);
-  // LOG(INFO) << "Cached crosses and scores.";
+  //LOG(INFO) << "Cached crosses and scores.";
   CacheRackPartitions(rack);
-  // LOG(INFO) << "Cached rack partitions.";
+  //LOG(INFO) << "Cached rack partitions.";
   cross_map_.clear();
   subracks_.clear();
   std::vector<Move> moves;
@@ -988,7 +989,8 @@ std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
   pass.ComputeEquity();
   moves.emplace_back(pass);
 
-  if (bag.CanExchange()) {
+  //LOG(INFO) << "bag.CanExchangeWithUnseen(): " << bag.CanExchangeWithUnseen();
+  if (bag.CanExchangeWithUnseen()) {
     const auto exchanges = FindExchanges(rack);
     if (record_mode == MoveFinder::RecordBest) {
       for (const Move& exchange : exchanges) {
@@ -1001,14 +1003,14 @@ std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
     }
   }
   std::vector<MoveFinder::Spot> spots = FindSpots(rack, board);
-  // LOG(INFO) << "spots.size(): " << spots.size() << ", sorting...";
+  //LOG(INFO) << "spots.size(): " << spots.size() << ", sorting...";
   if (record_mode == MoveFinder::RecordBest) {
     std::stable_sort(spots.begin(), spots.end(),
                      [](const Spot& a, const Spot& b) {
                        return a.MaxEquity() > b.MaxEquity();
                      });
   }
-  // LOG(INFO) << "sorted spots";
+  //LOG(INFO) << "sorted spots";
   float best_equity = moves[0].Equity();
   int spots_checked = 0;
   for (const MoveFinder::Spot& spot : spots) {
@@ -1022,9 +1024,8 @@ std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
     }
     spots_checked++;
 
-    // LOG(INFO) << "spot: " << spot.Direction() << ", " << spot.StartRow() <<
-    // ", "
-    //           << spot.StartCol() << ", " << spot.NumTiles();
+    //LOG(INFO) << "spot: " << spot.Direction() << ", " << spot.StartRow() << ", "
+    //          << spot.StartCol() << ", " << spot.NumTiles();
     const auto words = FindWords(rack, board, spot, record_mode, best_equity);
     // LOG(INFO) << "words.size(): " << words.size();
     if (record_mode == MoveFinder::RecordBest) {
@@ -1041,6 +1042,24 @@ std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
       moves.insert(moves.end(), words.begin(), words.end());
     }
   }
-  // LOG(INFO) << "Found " << moves.size() << " moves.";
+  //LOG(INFO) << "Found " << moves.size() << " moves.";
   return moves;
+}
+
+bool MoveFinder::IsBlocked(const Move& move, const Board& board) const {
+  int row = move.StartRow();
+  int col = move.StartCol();
+  for (const Letter letter : move.Letters()) {
+    if (letter) {
+      if (board.At(row, col) != 0) {
+        return true;
+      }
+    }
+    if (move.Direction() == Move::Across) {
+      col++;
+    } else {
+      row++;
+    }
+  }
+  return false;
 }

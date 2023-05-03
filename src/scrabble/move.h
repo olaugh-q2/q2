@@ -4,6 +4,7 @@
 #include "absl/status/statusor.h"
 #include "glog/logging.h"
 #include "src/scrabble/computer_players.pb.h"
+#include "src/scrabble/rack.h"
 #include "src/scrabble/strings.h"
 #include "src/scrabble/tiles.h"
 
@@ -133,6 +134,10 @@ class Move {
     return leave_value_.value();
   }
 
+  void SetEquity(float equity) {
+    equity_ = equity;
+  }
+
   double Equity() const {
     CHECK(equity_.has_value());
     return equity_.value();
@@ -141,6 +146,18 @@ class Move {
   void WriteProto(const Tiles& tiles,
                   q2::proto::Move* result) const;
 
+  bool IsSubsetOf(const Tiles& tiles, const Rack& rack) const;                  
+
+  int NumTiles() const {
+    int ret = 0;
+    for (const Letter letter : letters_) {
+      if (letter) {
+        ret++;
+      }
+    }
+    return ret;
+  }
+  
  private:
   std::string StartingSquare() const;
   enum Action action_;
@@ -150,8 +167,8 @@ class Move {
   LetterString letters_;
   absl::optional<int> score_;
   absl::optional<LetterString> leave_;
-  absl::optional<double> leave_value_;
-  absl::optional<double> equity_;
+  absl::optional<float> leave_value_;
+  absl::optional<float> equity_;
 };
 
 #endif  // SRC_SCRABBLE_MOVE_H

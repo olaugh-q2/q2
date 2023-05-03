@@ -16,6 +16,7 @@ class Bag {
   Bag UnseenToPlayer(const Board& board, const Rack& rack) const;
   int Size() const { return letters_.size(); }
   bool CanExchange() const { return Size() >= 7; }
+  bool CanExchangeWithUnseen() const { return Size() >= 14; }
   void Display(std::ostream& os) const;
   std::string ToString() const;
   void Shuffle(absl::BitGenRef gen) {

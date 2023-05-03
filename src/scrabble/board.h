@@ -25,6 +25,8 @@ class Board {
   void WriteMoveWords(const Move& move, const Tiles& tiles,
                       q2::proto::Move* proto) const;
 
+  void SetLetters(const std::vector<std::string>& letters, const Tiles& tiles);
+
  private:
   std::array<LetterString, 15> rows_;
   bool is_empty_;

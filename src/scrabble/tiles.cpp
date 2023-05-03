@@ -112,8 +112,8 @@ absl::optional<Letter> Tiles::CharToNumber(char c) const {
     // LOG(INFO) << "returning " << c - 'a' + 1 + blank_index_;
     return c - 'a' + 1 + blank_index_;
   }
-  LOG(ERROR) << "Could not convert character '" << c << " ("
-             << static_cast<int>(c) << ")' to number";
+  //LOG(ERROR) << "Could not convert character '" << c << " ("
+  //           << static_cast<int>(c) << ")' to number";
   return absl::nullopt;
 }
 

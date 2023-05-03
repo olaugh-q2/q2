@@ -148,6 +148,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":computer_players_cc_proto",
+        ":rack",
         ":tiles",
         "@com_google_absl//absl/status:statusor",
         "@glog",
@@ -321,6 +322,51 @@ cc_library(
         ":player",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/time",
+        "@glog",
+    ],
+)
+
+cc_library(
+    name = "endgame_player",
+    srcs = ["endgame_player.cpp"],
+    hdrs = ["endgame_player.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":board_layout",
+        ":component_factory",
+        ":computer_player",
+        ":computer_players_cc_proto",
+        ":data_manager",
+        ":move",
+        ":move_finder",
+        ":rack",
+        ":tiles",
+        "//src/anagram:anagram_map",
+        "//src/leaves",
+        "@com_google_absl//absl/memory",
+        "@glog",
+    ],
+)
+
+cc_test(
+    name = "endgame_player_test",
+    srcs = ["endgame_player_test.cpp"],
+    data = glob([
+        "testdata/*.qam",
+        "testdata/*.qlv",
+        "testdata/*.textproto",
+    ]),
+    deps = [
+        ":board",
+        ":board_layout",
+        ":computer_player",
+        ":endgame_player",
+        ":move",
+        ":move_finder",
+        ":rack",
+        ":tiles",
+        "@com_google_absl//absl/memory",
+        "@com_google_googletest//:gtest_main",
         "@glog",
     ],
 )
@@ -509,6 +555,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":computer_player",
+        ":computer_players_cc_proto",
         ":predicate",
         "@com_google_protobuf//:protobuf",
         "@com_google_protobuf//:protoc",
@@ -583,6 +630,7 @@ cc_library(
         ":computer_player",
         ":computer_players_cc_proto",
         ":data_manager",
+        ":endgame_player",
         ":game",
         ":passing_player",
         ":player",

@@ -61,7 +61,11 @@ std::unique_ptr<ComputerPlayer> ComponentFactory::CreatePlayerFromConfig(
     case q2::proto::ComputerPlayerConfig::kSpecializingPlayerConfig:
       return ComponentFactory::GetInstance()->CreateComputerPlayer(
           config.specializing_player_config());
-      break;  
+      break;
+    case q2::proto::ComputerPlayerConfig::kEndgamePlayerConfig:
+      return ComponentFactory::GetInstance()->CreateComputerPlayer(
+          config.endgame_player_config());
+      break;
     case q2::proto::ComputerPlayerConfig::PLAYER_NOT_SET:
       LOG(ERROR) << "No player type specified for player "
                  << config.DebugString();

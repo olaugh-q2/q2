@@ -59,13 +59,14 @@ class GamePosition {
     if (scoreless_turns_ >= 6) {
       return true;
     }
-    // TODO: Handle outplay case
     if (GetUnseenToPlayer().Size() == 0) {
       return true;
     }
     return false;
   }
   void WriteProto(q2::proto::GamePosition* proto) const;
+  GamePosition SwapRacks() const;
+  void SetBoard(const Board& board) { board_ = board; }
  private:
   const BoardLayout& layout_;
   Board board_;

@@ -18,6 +18,7 @@ message ComputerPlayerConfig {
         PassingPlayerConfig passing_player_config = 1;
         StaticPlayerConfig static_player_config = 2;
         SpecializingPlayerConfig specializing_player_config = 3;
+        EndgamePlayerConfig endgame_player_config = 4;
     }
 }
 
@@ -47,6 +48,18 @@ message SpecializingPlayerConfig {
     string nickname = 2;
     int32 id = 3;
     repeated ConditionalPlayer conditional_players = 4;
+}
+
+message EndgamePlayerConfig {
+    string name = 1;
+    string nickname = 2;
+    int32 id = 3;
+    string anagram_map_file = 4;
+    string board_layout_file = 5;
+    string tiles_file = 6;
+    string leaves_file = 7;
+
+    int32 plies = 8;
 }
 
 message ComputerPlayerCollection {

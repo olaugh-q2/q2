@@ -12,11 +12,15 @@ Bag::Bag(const Tiles& tiles) : tiles_(tiles) {
 }
 
 Bag Bag::UnseenToPlayer(const Board& board, const Rack& rack) const {
+  //LOG(INFO) << "UnseenToPlayer()";
   std::array<int, 32> counts = rack.Counts();
   std::fill(std::begin(counts), std::end(counts), 0);
   for (Letter letter : letters_) {
     counts[letter]++;
   }
+  //for (int i = 0; i < 32; i++) {
+  //  LOG(INFO) << "counts[" << i << "] = " << counts[i];
+  //}
   for (int row = 0; row < 15; ++row) {
     for (int col = 0; col < 15; ++col) {
       if (Letter letter = board.At(row, col)) {
@@ -39,6 +43,9 @@ Bag Bag::UnseenToPlayer(const Board& board, const Rack& rack) const {
       letters.push_back(letter);
     }
   }
+  //for (int i = 0; i < 32; i++) {
+  //  LOG(INFO) << "counts[" << i << "] = " << counts[i];
+  //}
   const Bag bag(tiles_, letters);
   return bag;
 }
