@@ -50,6 +50,7 @@ class MoveFinder {
     int ExtraScore() const { return extra_score_; }
     int MaxScore() const { return max_score_; }
     float MaxEquity() const { return max_equity_; }
+
    private:
     Move::Dir direction_;
     int start_row_;
@@ -109,12 +110,19 @@ class MoveFinder {
       : anagram_map_(anagram_map),
         board_layout_(board_layout),
         tiles_(tiles),
-        leaves_(leaves) {}
+        leaves_(leaves) {
+    moves_.reserve(80000);
+  }
 
-  std::vector<Move> FindMoves(const Rack& rack, const Board& board,
-                              const Bag& bag, RecordMode record_mode);
+  const std::vector<Move>& Moves() const { return moves_; }
+  void FindMoves(const Rack& rack, const Board& board, const Bag& bag,
+                 RecordMode record_mode);
   std::vector<Move> FindExchanges(const Rack& rack) const;
+
+  void CacheCrossesAndScores(const Board& board);
+
   bool IsBlocked(const Move& move, const Board& board) const;
+
  private:
   FRIEND_TEST(MoveFinderTest, Blankify);
   FRIEND_TEST(MoveFinderTest, BlankifyAllBlanks);
@@ -174,14 +182,12 @@ class MoveFinder {
                                       int start_row, int start_col,
                                       const LetterString& word) const;
 
-  void CacheCrossesAndScores(const Board& board);
-
   // Returns nullopt if the square is unconstrained, otherwise returns a string
   // with a gap for this square's hooks which (after unblanking) is a key to use
   // with anagram_map_.Hooks(). To use this for scoring, don't unblank.
   absl::optional<LetterString> CrossAt(const Board& board, Move::Dir play_dir,
                                        int square_row, int square_col) const;
-  bool CheckHooks(const Board& board, const Move& move);
+  bool CheckHooks(const Board& board, const Move& move) const;
 
   // Word should only have played tiles (play-through is zeroed out).
   // Returns copies of the word with blanks designated to make legal plays.
@@ -227,6 +233,7 @@ class MoveFinder {
 
   HookTable hook_table_;
   ScoreTable score_table_;
+  std::vector<Move> moves_;
 
   // For each size from 0 to 7 tiles, a list of possible divisions of the rack
   // into used and left tiles, with data needed for finding and evaluating

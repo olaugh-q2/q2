@@ -645,7 +645,7 @@ absl::optional<LetterString> MoveFinder::CrossAt(const Board& board,
   }
 }
 
-bool MoveFinder::CheckHooks(const Board& board, const Move& move) {
+bool MoveFinder::CheckHooks(const Board& board, const Move& move) const {
   int row = move.StartRow();
   int col = move.StartCol();
   for (Letter letter : move.Letters()) {
@@ -970,7 +970,7 @@ std::vector<MoveFinder::Spot> MoveFinder::FindSpots(const Rack& rack,
   return spots;
 }
 
-std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
+void MoveFinder::FindMoves(const Rack& rack, const Board& board,
                                         const Bag& bag,
                                         RecordMode record_mode) {
   //LOG(INFO) << "************************** FindMoves(...)";
@@ -978,28 +978,28 @@ std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
   //LOG(INFO) << "Cached crosses and scores.";
   CacheRackPartitions(rack);
   //LOG(INFO) << "Cached rack partitions.";
+  moves_.clear();
   cross_map_.clear();
   subracks_.clear();
-  std::vector<Move> moves;
   // In normal static eval, Pass 0 is a last resort.
   LetterString empty;
   Move pass(empty);
   pass.SetLeave(rack.Letters());
   pass.SetLeaveValue(-1000);
   pass.ComputeEquity();
-  moves.emplace_back(pass);
+  moves_.emplace_back(pass);
 
   //LOG(INFO) << "bag.CanExchangeWithUnseen(): " << bag.CanExchangeWithUnseen();
   if (bag.CanExchangeWithUnseen()) {
     const auto exchanges = FindExchanges(rack);
     if (record_mode == MoveFinder::RecordBest) {
       for (const Move& exchange : exchanges) {
-        if (exchange.Equity() > moves[0].Equity()) {
-          moves[0] = exchange;
+        if (exchange.Equity() > moves_[0].Equity()) {
+          moves_[0] = exchange;
         }
       }
     } else {
-      moves.insert(moves.end(), exchanges.begin(), exchanges.end());
+      moves_.insert(moves_.end(), exchanges.begin(), exchanges.end());
     }
   }
   std::vector<MoveFinder::Spot> spots = FindSpots(rack, board);
@@ -1011,7 +1011,7 @@ std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
                      });
   }
   //LOG(INFO) << "sorted spots";
-  float best_equity = moves[0].Equity();
+  float best_equity = moves_[0].Equity();
   int spots_checked = 0;
   for (const MoveFinder::Spot& spot : spots) {
     if (record_mode == MoveFinder::RecordBest) {
@@ -1033,17 +1033,16 @@ std::vector<Move> MoveFinder::FindMoves(const Rack& rack, const Board& board,
         // LOG(INFO) << "word: " << tiles_.ToString(word.Letters()).value() <<
         // ", "
         //           << word.Equity();
-        if (word.Equity() > moves[0].Equity()) {
+        if (word.Equity() > moves_[0].Equity()) {
           best_equity = word.Equity();
-          moves[0] = word;
+          moves_[0] = word;
         }
       }
     } else {
-      moves.insert(moves.end(), words.begin(), words.end());
+      moves_.insert(moves_.end(), words.begin(), words.end());
     }
   }
-  //LOG(INFO) << "Found " << moves.size() << " moves.";
-  return moves;
+  //LOG(INFO) << "Found " << moves_.size() << " moves.";
 }
 
 bool MoveFinder::IsBlocked(const Move& move, const Board& board) const {
@@ -1061,5 +1060,5 @@ bool MoveFinder::IsBlocked(const Move& move, const Board& board) const {
       row++;
     }
   }
-  return false;
+  return !CheckHooks(board, move);
 }

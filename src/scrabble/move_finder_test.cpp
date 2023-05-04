@@ -715,8 +715,8 @@ TEST_F(MoveFinderTest, WordScore) {
 TEST_F(MoveFinderTest, FindMoves) {
   Board board;
   const Rack rack(tiles_->ToLetterString("QUACKLE").value());
-  std::vector<Move> moves =
-      move_finder_->FindMoves(rack, board, *empty_bag_, MoveFinder::RecordAll);
+  move_finder_->FindMoves(rack, board, *empty_bag_, MoveFinder::RecordAll);
+  const std::vector<Move>& moves = move_finder_->Moves();
   // for (const auto& move : moves) {
   //   std::stringstream ss;
   //   move.Display(*tiles_, ss);
@@ -731,8 +731,9 @@ TEST_F(MoveFinderTest, FindMoves) {
 TEST_F(MoveFinderTest, FindMoves2) {
   Board board;
   const Rack rack(tiles_->ToLetterString("QUACKLE").value());
-  std::vector<Move> moves =
-      move_finder_->FindMoves(rack, board, *full_bag_, MoveFinder::RecordAll);
+  move_finder_->FindMoves(rack, board, *full_bag_, MoveFinder::RecordAll);
+  const std::vector<Move>& moves = move_finder_->Moves();
+
   // for (const auto& move : moves) {
   //   std::stringstream ss;
   //   move.Display(*tiles_, ss);
@@ -746,12 +747,13 @@ TEST_F(MoveFinderTest, FindMoves2) {
 TEST_F(MoveFinderTest, FindBestExchange) {
   Board board;
   const Rack rack(tiles_->ToLetterString("RRRVVWW").value());
-  std::vector<Move> moves =
-      move_finder_->FindMoves(rack, board, *full_bag_, MoveFinder::RecordAll);
+  move_finder_->FindMoves(rack, board, *full_bag_, MoveFinder::RecordAll);
+  const std::vector<Move>& const_moves = move_finder_->Moves();
 
   int num_expected = 4 * 3 * 3;
-  EXPECT_EQ(moves.size(), num_expected);
+  EXPECT_EQ(const_moves.size(), num_expected);
 
+  std::vector<Move> moves = const_moves;
   std::sort(moves.begin(), moves.end(), [](const Move& a, const Move& b) {
     return a.Equity() > b.Equity();
   });
@@ -781,15 +783,16 @@ TEST_F(MoveFinderTest, FindBestExchange) {
 TEST_F(MoveFinderTest, FindBestMove) {
   Board board;
   const Rack rack(tiles_->ToLetterString("QCLEANS").value());
-  std::vector<Move> moves =
-      move_finder_->FindMoves(rack, board, *full_bag_, MoveFinder::RecordAll);
+  move_finder_->FindMoves(rack, board, *full_bag_, MoveFinder::RecordAll);
+  const std::vector<Move>& const_moves = move_finder_->Moves();
+  std::vector<Move> moves = const_moves;
   std::sort(moves.begin(), moves.end(), [](const Move& a, const Move& b) {
     return a.Equity() > b.Equity();
   });
 
   const Move* best_nonexchange = nullptr;
   for (const auto& move : moves) {
-    if (move.Action() != Move::Exchange) {
+    if (move.GetAction() != Move::Exchange) {
       best_nonexchange = &move;
       break;
     }
@@ -801,32 +804,31 @@ TEST_F(MoveFinderTest, FindBestMove) {
 TEST_F(MoveFinderTest, RecordBest1) {
   Board board;
   const Rack rack(tiles_->ToLetterString("QCLEANS").value());
-  std::vector<Move> moves =
-      move_finder_->FindMoves(rack, board, *full_bag_, MoveFinder::RecordBest);
+  move_finder_->FindMoves(rack, board, *full_bag_, MoveFinder::RecordBest);
+  const std::vector<Move>& moves = move_finder_->Moves();
   ExpectMoves(moves, {"EXCH Q (score = 0)"});
 }
 
 TEST_F(MoveFinderTest, RecordBest2) {
   Board board;
   const Rack rack(tiles_->ToLetterString("QANASTA").value());
-  std::vector<Move> moves =
-      move_finder_->FindMoves(rack, board, *full_bag_, MoveFinder::RecordBest);
+  move_finder_->FindMoves(rack, board, *full_bag_, MoveFinder::RecordBest);
+  const std::vector<Move>& moves = move_finder_->Moves();
   ExpectMoves(moves, {"8D QANAT (score = 48)"});
 }
 
 TEST_F(MoveFinderTest, RepeatedlyPlay1) {
   Board board;
-  std::vector<Move> moves;
   int moves_played = 0;
   for (int i = 0;; ++i) {
     const Rack rack(tiles_->ToLetterString("RATES??").value());
-    std::vector<Move> moves = move_finder_->FindMoves(rack, board, *empty_bag_,
-                                                      MoveFinder::RecordBest);
+    move_finder_->FindMoves(rack, board, *empty_bag_, MoveFinder::RecordBest);
+    const std::vector<Move>& moves = move_finder_->Moves();
     ASSERT_EQ(moves.size(), 1);
     std::stringstream ss;
     moves[0].Display(*tiles_, ss);
     LOG(INFO) << "moves[0]: " << ss.str();
-    if (moves[0].Action() != Move::Place) {
+    if (moves[0].GetAction() != Move::Place) {
       break;
     }
     board.UnsafePlaceMove(moves[0]);
@@ -841,17 +843,16 @@ TEST_F(MoveFinderTest, RepeatedlyPlay1) {
 
 TEST_F(MoveFinderTest, RepeatedlyPlay2) {
   Board board;
-  std::vector<Move> moves;
   int moves_played = 0;
   for (int i = 0;; ++i) {
     const Rack rack(tiles_->ToLetterString("PLUMBUM").value());
-    std::vector<Move> moves = move_finder_->FindMoves(rack, board, *empty_bag_,
-                                                      MoveFinder::RecordBest);
+    move_finder_->FindMoves(rack, board, *empty_bag_, MoveFinder::RecordBest);
+    const std::vector<Move>& moves = move_finder_->Moves();
     ASSERT_EQ(moves.size(), 1);
     std::stringstream ss;
     moves[0].Display(*tiles_, ss);
     LOG(INFO) << "moves[0]: " << ss.str();
-    if (moves[0].Action() != Move::Place) {
+    if (moves[0].GetAction() != Move::Place) {
       break;
     }
     board.UnsafePlaceMove(moves[0]);
@@ -866,17 +867,16 @@ TEST_F(MoveFinderTest, RepeatedlyPlay2) {
 
 TEST_F(MoveFinderTest, RepeatedlyPlay3) {
   Board board;
-  std::vector<Move> moves;
   int moves_played = 0;
   for (int i = 0;; ++i) {
     const Rack rack(tiles_->ToLetterString("AAAAAAA").value());
-    std::vector<Move> moves = move_finder_->FindMoves(rack, board, *empty_bag_,
-                                                      MoveFinder::RecordBest);
+    move_finder_->FindMoves(rack, board, *empty_bag_, MoveFinder::RecordBest);
+    const std::vector<Move>& moves = move_finder_->Moves();
     ASSERT_EQ(moves.size(), 1);
     std::stringstream ss;
     moves[0].Display(*tiles_, ss);
     LOG(INFO) << "moves[0]: " << ss.str();
-    if (moves[0].Action() != Move::Place) {
+    if (moves[0].GetAction() != Move::Place) {
       break;
     }
     board.UnsafePlaceMove(moves[0]);
@@ -894,8 +894,8 @@ TEST_F(MoveFinderTest, PlayThroughBlank) {
   const auto jetbead = Move::Parse("8D JeTBeAD", *tiles_);
   board.UnsafePlaceMove(jetbead.value());
   const Rack rack(tiles_->ToLetterString("OXAZPAM").value());
-  std::vector<Move> moves =
-      move_finder_->FindMoves(rack, board, *empty_bag_, MoveFinder::RecordBest);
+  move_finder_->FindMoves(rack, board, *empty_bag_, MoveFinder::RecordBest);
+  const std::vector<Move>& moves = move_finder_->Moves();
   ExpectMoves(moves, {"E4 OXAZ.PAM (score = 158)"});
 }
 
@@ -971,7 +971,7 @@ TEST_F(MoveFinderTest, FindMissingMove) {
   const auto aerates = Move::Parse("L7 aERATeS", *tiles_);
   board.UnsafePlaceMove(aerates.value());
   const Rack rack(tiles_->ToLetterString("RATES??").value());
-  std::vector<Move> moves =
-      move_finder_->FindMoves(rack, board, *empty_bag_, MoveFinder::RecordBest);
+  move_finder_->FindMoves(rack, board, *empty_bag_, MoveFinder::RecordBest);
+  const std::vector<Move>& moves = move_finder_->Moves();
   EXPECT_EQ(moves[0].Score(), 72);  // M5 mASTERy or wASTERy
 }

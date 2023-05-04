@@ -5,26 +5,28 @@
 
 Move EndgamePlayer::ChooseBestMove(const GamePosition& pos) {
   SetStartOfTurnTime();
-  auto on_moves =
-      move_finder_->FindMoves(pos.GetRack(), pos.GetBoard(),
+  move_finders_[0]->FindMoves(pos.GetRack(), pos.GetBoard(),
                               pos.GetUnseenToPlayer(), MoveFinder::RecordAll);
-  for (auto& move : on_moves) {
-    move.SetEquity(StaticEndgameEquity(pos, move));
+  const auto& on_moves_const = move_finders_[0]->Moves();
+  //LOG(INFO) << "on_moves_const.size(): " << on_moves_const.size();
+  std::vector<MoveWithDelta> on_moves;
+  on_moves.reserve(on_moves_const.size());
+  for (auto& move : on_moves_const) {
+    on_moves.emplace_back(&move);
+    on_moves.back().SetEquity(StaticEndgameEquity(pos, move));
   }
   const GamePosition off_pos = pos.SwapRacks();
-  auto off_moves = move_finder_->FindMoves(
-      off_pos.GetRack(), off_pos.GetBoard(), off_pos.GetUnseenToPlayer(),
-      MoveFinder::RecordAll);
-  for (auto& move : off_moves) {
-    move.SetEquity(StaticEndgameEquity(pos, move));
-    // std::stringstream ss;
-    // move.Display(tiles_, ss);
-    // LOG(INFO) << "off_move: " << ss.str() << " " << move.Equity();
+  move_finders_[1]->FindMoves(off_pos.GetRack(), off_pos.GetBoard(),
+                              off_pos.GetUnseenToPlayer(),
+                              MoveFinder::RecordAll);
+  const auto& off_moves_const = move_finders_[1]->Moves();
+  //LOG(INFO) << "off_moves_const.size(): " << off_moves_const.size();
+  std::vector<MoveWithDelta> off_moves;
+  off_moves.reserve(off_moves_const.size());
+  for (auto& move : off_moves_const) {
+    off_moves.emplace_back(&move);
+    off_moves.back().SetEquity(StaticEndgameEquity(pos, move));
   }
-  // std::sort(on_moves.begin(), on_moves.end(), [](const Move& a, const Move&
-  // b) {
-  //   return a.Equity() > b.Equity();
-  // });
   auto on_moves_greedy = on_moves;
   for (auto& move : on_moves_greedy) {
     move.SetEquity(GreedyEndgameEquity(pos, move, on_moves, off_moves));
@@ -33,7 +35,7 @@ Move EndgamePlayer::ChooseBestMove(const GamePosition& pos) {
     // LOG(INFO) << "on_move: " << ss.str() << " " << move.Equity();
   }
   // LOG(INFO) << "Sorting " << on_moves_greedy.size() << " moves";
-  Move* best_move = nullptr;
+  MoveWithDelta* best_move = nullptr;
   for (auto& move : on_moves_greedy) {
     if (best_move == nullptr || move.Equity() > best_move->Equity()) {
       best_move = &move;
@@ -53,36 +55,46 @@ Move EndgamePlayer::ChooseBestMove(const GamePosition& pos) {
   // return on_moves_greedy[0];
 
   CHECK(best_move != nullptr);
-  //std::stringstream ss;
-  //best_move->Display(tiles_, ss);
-  ///LOG(INFO) << "best_move: " << ss.str() << " " << best_move->Equity();
-  return *best_move;
+  // std::stringstream ss;
+  // best_move->Display(tiles_, ss);
+  /// LOG(INFO) << "best_move: " << ss.str() << " " << best_move->Equity();
+  return *best_move->GetMove();
 }
 
-void EndgamePlayer::RemoveMovesNotOnRack(std::vector<Move>* moves,
+void EndgamePlayer::RemoveMovesNotOnRack(std::vector<MoveWithDelta>* moves,
                                          const Rack& rack) {
-  auto it = std::remove_if(moves->begin(), moves->end(),
-                           [this, &rack](const Move& move) {
-                             return !move.IsSubsetOf(tiles_, rack);
-                           });
-  moves->erase(it, moves->end());
+  for (auto& move : *moves) {
+    if (move.GetMove() == nullptr) {
+      continue;
+    }
+    if (!move.GetMove()->IsSubsetOf(tiles_, rack)) {
+      move.Nullify();
+    }
+  }
 }
 
-void EndgamePlayer::RemoveBlockedMoves(std::vector<Move>* moves,
+void EndgamePlayer::RemoveBlockedMoves(std::vector<MoveWithDelta>* moves,
                                        const Board& board) {
-  auto it = std::remove_if(moves->begin(), moves->end(),
-                           [this, board](const Move& move) {
-                             return move_finder_->IsBlocked(move, board);
-                           });
-  moves->erase(it, moves->end());
+  for (auto& move : *moves) {
+    if (move.GetMove() == nullptr) {
+      continue;
+    }
+    if (move_finders_[0]->IsBlocked(*move.GetMove(), board)) {
+      move.Nullify();
+    }
+  }
 }
 
 namespace {
-void AddDeadwood(std::vector<Move>* moves, int deadwood_points, int num_tiles) {
+void AddDeadwood(std::vector<EndgamePlayer::MoveWithDelta>* moves,
+                 int deadwood_points, int num_tiles) {
   for (auto& move : *moves) {
+    if (move.GetMove() == nullptr) {
+      continue;
+    }
     float equity = move.Score();
-    CHECK_LE(move.NumTiles(), num_tiles);
-    if (move.NumTiles() == num_tiles) {
+    CHECK_LE(move.GetMove()->NumTiles(), num_tiles);
+    if (move.GetMove()->NumTiles() == num_tiles) {
       equity += deadwood_points;
     }
     move.SetEquity(equity);
@@ -90,11 +102,11 @@ void AddDeadwood(std::vector<Move>* moves, int deadwood_points, int num_tiles) {
 }
 }  // namespace
 float EndgamePlayer::GreedyEndgameEquity(const GamePosition& pos,
-                                         const Move& move,
-                                         std::vector<Move> on_moves,
-                                         std::vector<Move> off_moves) {
+                                         const MoveWithDelta& move,
+                                         std::vector<MoveWithDelta> on_moves,
+                                         std::vector<MoveWithDelta> off_moves) {
   float net = move.Score();
-  if (move.Leave().size() == 0) {
+  if (move.GetMove()->Leave().size() == 0) {
     // outplay
     int deadwood = 0;
     for (const Letter& letter : pos.GetUnseenToPlayer().Letters()) {
@@ -104,7 +116,7 @@ float EndgamePlayer::GreedyEndgameEquity(const GamePosition& pos,
   }
 
   std::vector<GamePosition> positions({pos});
-  const Move* move_to_place = &move;
+  const MoveWithDelta* move_to_place = &move;
   int scoreless = pos.ScorelessTurns();
   for (int ply = 1;; ++ply) {
     // std::stringstream ss;
@@ -114,8 +126,8 @@ float EndgamePlayer::GreedyEndgameEquity(const GamePosition& pos,
     std::stringstream ss2;
     GamePosition& new_pos = positions.back();
     Board board = new_pos.GetBoard();
-    if (move_to_place->GetAction() == Move::Action::Place) {
-      board.UnsafePlaceMove(*move_to_place);
+    if (move_to_place->GetMove()->GetAction() == Move::Action::Place) {
+      board.UnsafePlaceMove(*move_to_place->GetMove());
     }
     new_pos.SetBoard(board);
     // positions.back().Display(ss2);
@@ -132,6 +144,11 @@ float EndgamePlayer::GreedyEndgameEquity(const GamePosition& pos,
     RemoveMovesNotOnRack(&moves, new_pos.GetRack());
     // LOG(INFO) << "after removing moves with used tiles: moves.size(): "
     //           << moves.size();
+    if (check_altered_plays_) {
+      for (int i = 0; i < 2; i++) {
+        move_finders_[i]->CacheCrossesAndScores(board);
+      }
+    }
     RemoveBlockedMoves(&moves, board);
     // LOG(INFO) << "after removing blocked moves: moves.size(): " <<
     // moves.size();
@@ -139,6 +156,9 @@ float EndgamePlayer::GreedyEndgameEquity(const GamePosition& pos,
 
     move_to_place = nullptr;
     for (auto& move : moves) {
+      if (move.GetMove() == nullptr) {
+        continue;
+      }
       // std::stringstream ss;
       // move.Display(tiles_, ss);
       // LOG(INFO) << "move: " << ss.str() << " " << move.Equity();
@@ -150,7 +170,7 @@ float EndgamePlayer::GreedyEndgameEquity(const GamePosition& pos,
     // At very least, we can pass.
     CHECK_NE(move_to_place, nullptr);
 
-    if (move_to_place->GetAction() == Move::Exchange) {
+    if (move_to_place->GetMove()->GetAction() == Move::Exchange) {
       scoreless++;
     } else {
       scoreless = 0;
@@ -167,7 +187,7 @@ float EndgamePlayer::GreedyEndgameEquity(const GamePosition& pos,
       return net + sign * (opp_deadwood - own_deadwood);
     }
     int tiles_played = 0;
-    for (const auto& letter : move_to_place->Letters()) {
+    for (const auto& letter : move_to_place->GetMove()->Letters()) {
       if (letter > 0) {
         ++tiles_played;
       }

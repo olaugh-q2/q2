@@ -51,6 +51,7 @@ TEST_F(EndgamePlayerTest, OnePlyNoNullLookahead) {
         board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
         tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
         leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+        check_altered_plays: true
         )",
                                                 config);
   auto player = absl::make_unique<EndgamePlayer>(*config);

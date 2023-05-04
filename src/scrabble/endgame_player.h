@@ -16,6 +16,23 @@
 
 class EndgamePlayer : public ComputerPlayer {
  public:
+  class MoveWithDelta {
+   public:
+    MoveWithDelta(const Move* move)
+        : move_(move), score_(move->Score()), equity_(move->Equity()) {}
+    const Move* GetMove() const { return move_; }
+    void Nullify() { move_ = nullptr; }
+    void SetScore(int score) { score_ = score; }
+    void SetEquity(float equity) { equity_ = equity; }
+    int Score() const { return score_; }
+    float Equity() const { return equity_; }
+
+   private:
+    const Move* move_;
+    int score_;
+    float equity_;
+  };
+
   static void Register() {
     LOG(INFO) << "Registering EndgamePlayer";
     ComponentFactory::GetInstance()->RegisterComputerPlayer(
@@ -28,25 +45,31 @@ class EndgamePlayer : public ComputerPlayer {
 
   explicit EndgamePlayer(const q2::proto::EndgamePlayerConfig& config)
       : ComputerPlayer(config.name(), config.nickname(), config.id()),
-        tiles_(*DataManager::GetInstance()->GetTiles(config.tiles_file())) {
-    move_finder_ = absl::make_unique<MoveFinder>(
-        *DataManager::GetInstance()->GetAnagramMap(config.anagram_map_file()),
-        *DataManager::GetInstance()->GetBoardLayout(config.board_layout_file()),
-        tiles_, *DataManager::GetInstance()->GetLeaves(config.leaves_file()));
+        tiles_(*DataManager::GetInstance()->GetTiles(config.tiles_file())),
+        check_altered_plays_(config.check_altered_plays()) {
+    for (int i = 0; i < 2; i++) {
+      move_finders_.push_back(absl::make_unique<MoveFinder>(
+          *DataManager::GetInstance()->GetAnagramMap(config.anagram_map_file()),
+          *DataManager::GetInstance()->GetBoardLayout(
+              config.board_layout_file()),
+          tiles_,
+          *DataManager::GetInstance()->GetLeaves(config.leaves_file())));
+    }
   }
 
   Move ChooseBestMove(const GamePosition& position) override;
 
  private:
-  float GreedyEndgameEquity(const GamePosition& pos, const Move& move,
-                            std::vector<Move> on_moves,
-                            std::vector<Move> off_moves);
-  void RemoveMovesNotOnRack(std::vector<Move>* moves, const Rack& rack);
-  void RemoveBlockedMoves(std::vector<Move>* moves, const Board& board);
+  float GreedyEndgameEquity(const GamePosition& pos, const MoveWithDelta& move,
+                            std::vector<MoveWithDelta> on_moves,
+                            std::vector<MoveWithDelta> off_moves);
+  void RemoveMovesNotOnRack(std::vector<MoveWithDelta>* moves, const Rack& rack);
+  void RemoveBlockedMoves(std::vector<MoveWithDelta>* moves, const Board& board);
   float StaticEndgameEquity(const GamePosition& position,
                             const Move& move) const;
   const Tiles& tiles_;
-  std::unique_ptr<MoveFinder> move_finder_;
+  std::vector<std::unique_ptr<MoveFinder>> move_finders_;
+  bool check_altered_plays_;
 };
 
 #endif  // SRC_SCRABBLE_ENDGAME_PLAYER_H
