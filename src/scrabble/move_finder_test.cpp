@@ -397,9 +397,7 @@ TEST_F(MoveFinderTest, EmptyBoardSpots) {
   move_finder_->CacheRackPartitions(rack);
   const auto spots4 = move_finder_->FindSpots(rack, board);
   EXPECT_THAT(spots4,
-              UnorderedElementsAre(MoveFinder::Spot(Move::Across, 7, 6, 2),
-                                   MoveFinder::Spot(Move::Across, 7, 7, 2),
-                                   MoveFinder::Spot(Move::Across, 7, 5, 3),
+              UnorderedElementsAre(MoveFinder::Spot(Move::Across, 7, 5, 3),
                                    MoveFinder::Spot(Move::Across, 7, 6, 3),
                                    MoveFinder::Spot(Move::Across, 7, 7, 3),
                                    MoveFinder::Spot(Move::Across, 7, 4, 4),

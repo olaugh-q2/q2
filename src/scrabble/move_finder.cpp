@@ -322,21 +322,25 @@ void MoveFinder::CacheRackPartitions(const Rack& rack) {
   }
   for (int blanks = 0; blanks <= rack_blanks; ++blanks) {
     for (const auto& subset : subsets) {
+      AnagramMapIterator word_iterator;
       const uint64_t used_product = static_cast<uint64_t>(subset.first);
       LetterString used_letters = subset.second;
       for (int i = 0; i < blanks; ++i) {
         used_letters.push_back(tiles_.BlankIndex());
       }
       const int size = used_letters.size();
+      // auto word_iterator = anagram_map_.WordIterator(used_product, blanks);
       /*
       const auto words = anagram_map_.Words(used_product, blanks);
       auto span_join = words.Spans() | ranges::view::join;
       const bool has_word = span_join.begin() != span_join.end();
+      LOG(INFO) << "span_size: " << ranges::distance(span_join);
       */
-      bool has_word = true;  // hack to turn off
-      if (used_letters.size() >= 6) {
-        has_word = anagram_map_.HasWord(used_product, blanks);
-      }
+      // const bool has_word = anagram_map_.HasWord(word_iterator);
+      word_iterator = anagram_map_.WordIterator(used_product, blanks);
+      const auto has_word = anagram_map_.HasWord(word_iterator);
+      // LOG(INFO) << "used_letters: " << tiles_.ToString(used_letters).value()
+      //           << " has_word: " << has_word;
       if (has_word) {
         rack_word_of_length_[size] = true;
       }
@@ -357,11 +361,14 @@ void MoveFinder::CacheRackPartitions(const Rack& rack) {
       const int leave_size = leave.size();
       const float leave_value =
           (leave_size > 6) ? -999999 : leaves_.Value(leave_product);
-      const RackPartition rp(used_product, blanks, used_letters, leave,
-                             leave_value);
-      rack_partitions_[size].push_back(rp);
-      if (leave_value > best_leave_at_size_[leave_size]) {
-        best_leave_at_size_[leave_size] = leave_value;
+      RackPartition rp(used_product, blanks, used_letters, leave, leave_value, word_iterator);
+      /*
+            const RackPartition rp(used_product, blanks, used_letters, leave,
+                                   leave_value, word_iterator);
+      */
+      rack_partitions_.at(size).push_back(rp);
+      if (leave_value > best_leave_at_size_.at(leave_size)) {
+        best_leave_at_size_.at(leave_size) = leave_value;
       }
     }
   }
@@ -375,14 +382,11 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
   const int start_row = spot.StartRow();
   const int start_col = spot.StartCol();
   const int num_tiles = spot.NumTiles();
-  // LOG(INFO) << "FindWords(" << direction << ", " << start_row << ", "
-  //           << start_col << ", " << num_tiles << ")"
-  //           << " max equity: " << spot.MaxEquity();
   std::vector<Move> moves;
   const absl::uint128 through_product =
       AbsorbThroughTiles(board, direction, start_row, start_col, num_tiles);
   int partitions_used = 0;
-  auto& partitions = rack_partitions_[num_tiles];
+  auto& partitions = rack_partitions_.at(num_tiles);
   for (auto& partition : partitions) {
     if ((through_product == 1) && !HasWord(&partition)) {
       // LOG(INFO) << "skipping partition without word: "
@@ -390,17 +394,18 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
       continue;
     }
     const auto num_blanks = partition.NumBlanks();
-    // LOG(INFO) << "num_blanks: " << num_blanks;
+    // LOG(INFO) << "num_blanks: " << static_cast<int>(num_blanks);
     const absl::uint128 product = partition.UsedProduct();
     const auto& letters = partition.UsedLetters();
     const auto& leave = partition.LeftLetters();
     const auto leave_value = partition.LeaveValue();
     // LOG(INFO) << "partition of " << tiles_.ToString(letters).value() << " / "
-    //          << tiles_.ToString(leave).value() << " (" << leave_value << ")";
+    //           << tiles_.ToString(leave).value() << " (" << leave_value <<
+    //           ")";
     if (record_mode == MoveFinder::RecordBest) {
-      // LOG(INFO) << "best_equity: " << best_equity
-      //           << ", leave_value: " << leave_value
-      //           << ", spot.MaxScore: " << spot.MaxScore();
+      //      LOG(INFO) << "best_equity: " << best_equity
+      //                << ", leave_value: " << leave_value
+      //                << ", spot.MaxScore: " << spot.MaxScore();
       if (leave_value + spot.MaxScore() < best_equity + 1e-5) {
         // LOG(INFO) << "...skipping partition";
         continue;
@@ -417,11 +422,19 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
       */
     }
     partitions_used++;
+    /*
+        LOG(INFO) << "product: " << product
+                  << ", through_product: " << through_product;
+    */
+    // LOG(INFO) << "has word: " << anagram_map_.HasWord(word_iterator);
     const auto words =
         (through_product == 1)
             ? anagram_map_.Words(partition.WordIterator(), product)
             : anagram_map_.Words(product * through_product, num_blanks);
+    // const auto words =
+    //     anagram_map_.Words(product * through_product, num_blanks);
     auto span_join = words.Spans() | ranges::view::join;
+    // LOG(INFO) << "span_join.size(): " << ranges::distance(span_join);
     for (const auto& word : span_join) {
       // LOG(INFO) << "word: " << tiles_.ToString(word).value();
       if (!FitsWithPlayedThroughTiles(board, direction, start_row, start_col,
@@ -515,6 +528,49 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
   return moves;
 }
 
+void MoveFinder::CacheCrossesAndScores(const Board& board, int row, int col) {
+  // LOG(INFO) << "CacheCrossesAndScores(" << row << ", " << col << ")";
+  const int word_multiplier = board_layout_.WordMultiplier(row, col);
+  auto across = CrossAt(board, Move::Dir::Across, row, col);
+  auto down = CrossAt(board, Move::Dir::Down, row, col);
+  if (across.has_value()) {
+    // LOG(INFO) << "across: " << tiles_.ToString(across.value()).value();
+    int score_sum = 0;
+    for (auto& letter : across.value()) {
+      if (letter < tiles_.BlankIndex()) {
+        score_sum += tiles_.Score(letter);
+      } else {
+        letter -= tiles_.BlankIndex();
+      }
+    }
+    // LOG(INFO) << "across: " << tiles_.ToString(across.value()).value();
+    // LOG(INFO) << "score_sum: " << score_sum;
+    score_table_.at(0).at(row).at(col) = score_sum * word_multiplier;
+    hook_table_.at(0).at(row).at(col) = anagram_map_.Hooks(across.value());
+  } else {
+    hook_table_.at(0).at(row).at(col) = kNotTouching;
+    score_table_.at(0).at(row).at(col) = 0;
+  }
+  if (down.has_value()) {
+    // LOG(INFO) << "down: " << tiles_.ToString(down.value()).value();
+    int score_sum = 0;
+    for (auto& letter : down.value()) {
+      if (letter < tiles_.BlankIndex()) {
+        score_sum += tiles_.Score(letter);
+      } else {
+        letter -= tiles_.BlankIndex();
+      }
+    }
+    // LOG(INFO) << "down: " << tiles_.ToString(down.value()).value();
+    // LOG(INFO) << "score_sum: " << score_sum;
+    score_table_.at(1).at(row).at(col) = score_sum * word_multiplier;
+    hook_table_.at(1).at(row).at(col) = anagram_map_.Hooks(down.value());
+  } else {
+    hook_table_.at(1).at(row).at(col) = kNotTouching;
+    score_table_.at(1).at(row).at(col) = 0;
+  }
+}
+
 void MoveFinder::CacheCrossesAndScores(const Board& board) {
   // LOG(INFO) << "CacheCrossesAndScores(...)";
   for (int row = 0; row < 15; ++row) {
@@ -523,6 +579,8 @@ void MoveFinder::CacheCrossesAndScores(const Board& board) {
       if (letter) {
         continue;
       }
+      CacheCrossesAndScores(board, row, col);
+      /*
       const int word_multiplier = board_layout_.WordMultiplier(row, col);
       auto across = CrossAt(board, Move::Dir::Across, row, col);
       auto down = CrossAt(board, Move::Dir::Down, row, col);
@@ -538,11 +596,11 @@ void MoveFinder::CacheCrossesAndScores(const Board& board) {
         }
         // LOG(INFO) << "across: " << tiles_.ToString(across.value()).value();
         // LOG(INFO) << "score_sum: " << score_sum;
-        score_table_[0][row][col] = score_sum * word_multiplier;
-        hook_table_[0][row][col] = anagram_map_.Hooks(across.value());
+        score_table_.at(0).at(row).at(col) = score_sum * word_multiplier;
+        hook_table_.at(0).at(row).at(col) = anagram_map_.Hooks(across.value());
       } else {
-        hook_table_[0][row][col] = kNotTouching;
-        score_table_[0][row][col] = 0;
+        hook_table_.at(0).at(row).at(col) = kNotTouching;
+        score_table_.at(0).at(row).at(col) = 0;
       }
       if (down.has_value()) {
         // LOG(INFO) << "down: " << tiles_.ToString(down.value()).value();
@@ -556,14 +614,29 @@ void MoveFinder::CacheCrossesAndScores(const Board& board) {
         }
         // LOG(INFO) << "down: " << tiles_.ToString(down.value()).value();
         // LOG(INFO) << "score_sum: " << score_sum;
-        score_table_[1][row][col] = score_sum * word_multiplier;
-        hook_table_[1][row][col] = anagram_map_.Hooks(down.value());
+        score_table_.at(1).at(row).at(col) = score_sum * word_multiplier;
+        hook_table_.at(1).at(row).at(col) = anagram_map_.Hooks(down.value());
       } else {
-        hook_table_[1][row][col] = kNotTouching;
-        score_table_[1][row][col] = 0;
+        hook_table_.at(1).at(row).at(col) = kNotTouching;
+        score_table_.at(1).at(row).at(col) = 0;
       }
+    */
     }
   }
+  /*
+  for (int row = 0; row < 15; ++row) {
+    for (int col = 0; col < 15; ++col) {
+      LOG(INFO) << "score_table_[0][" << row << "][" << col
+                << "]: " << score_table_[0][row][col];
+      LOG(INFO) << "score_table_[1][" << row << "][" << col
+                << "]: " << score_table_[1][row][col];
+      LOG(INFO) << "hook_table_[0][" << row << "][" << col
+                << "]: " << hook_table_[0][row][col];
+      LOG(INFO) << "hook_table_[1][" << row << "][" << col
+                << "]: " << hook_table_[1][row][col];
+    }
+  }
+  */
 }
 
 absl::optional<LetterString> MoveFinder::CrossAt(const Board& board,
@@ -646,6 +719,9 @@ absl::optional<LetterString> MoveFinder::CrossAt(const Board& board,
 }
 
 bool MoveFinder::CheckHooks(const Board& board, const Move& move) const {
+  // std::stringstream ss;
+  // move.Display(tiles_, ss);
+  // LOG(INFO) << "CheckHooks for " << ss.str();
   int row = move.StartRow();
   int col = move.StartCol();
   for (Letter letter : move.Letters()) {
@@ -943,10 +1019,10 @@ void MoveFinder::ComputeSpotMaxEquity(const Rack& rack, const Board& board,
 
 std::vector<MoveFinder::Spot> MoveFinder::FindSpots(const Rack& rack,
                                                     const Board& board) {
-  //LOG(INFO) << "FindSpots(...)";
+  // LOG(INFO) << "FindSpots(...)";
   std::vector<MoveFinder::Spot> spots;
   if (board.IsEmpty()) {
-    //LOG(INFO) << "Empty board";
+    // LOG(INFO) << "Empty board";
     spots.reserve(7 * 7 + 6 * 6 + 5 * 5 + 4 * 4 + 3 * 3 + 2 * 2);
     for (int num_tiles = 2; num_tiles <= rack.NumTiles(); num_tiles++) {
       for (int start_col = 7 + 1 - num_tiles; start_col <= 7; start_col++) {
@@ -970,14 +1046,13 @@ std::vector<MoveFinder::Spot> MoveFinder::FindSpots(const Rack& rack,
   return spots;
 }
 
-void MoveFinder::FindMoves(const Rack& rack, const Board& board,
-                                        const Bag& bag,
-                                        RecordMode record_mode) {
-  //LOG(INFO) << "************************** FindMoves(...)";
+void MoveFinder::FindMoves(const Rack& rack, const Board& board, const Bag& bag,
+                           RecordMode record_mode) {
+  // LOG(INFO) << "************************** FindMoves(...)";
   CacheCrossesAndScores(board);
-  //LOG(INFO) << "Cached crosses and scores.";
+  // LOG(INFO) << "Cached crosses and scores.";
   CacheRackPartitions(rack);
-  //LOG(INFO) << "Cached rack partitions.";
+  // LOG(INFO) << "Cached rack partitions.";
   moves_.clear();
   cross_map_.clear();
   subracks_.clear();
@@ -989,7 +1064,8 @@ void MoveFinder::FindMoves(const Rack& rack, const Board& board,
   pass.ComputeEquity();
   moves_.emplace_back(pass);
 
-  //LOG(INFO) << "bag.CanExchangeWithUnseen(): " << bag.CanExchangeWithUnseen();
+  // LOG(INFO) << "bag.CanExchangeWithUnseen(): " <<
+  // bag.CanExchangeWithUnseen();
   if (bag.CanExchangeWithUnseen()) {
     const auto exchanges = FindExchanges(rack);
     if (record_mode == MoveFinder::RecordBest) {
@@ -1003,14 +1079,14 @@ void MoveFinder::FindMoves(const Rack& rack, const Board& board,
     }
   }
   std::vector<MoveFinder::Spot> spots = FindSpots(rack, board);
-  //LOG(INFO) << "spots.size(): " << spots.size() << ", sorting...";
+  // LOG(INFO) << "spots.size(): " << spots.size() << ", sorting...";
   if (record_mode == MoveFinder::RecordBest) {
     std::stable_sort(spots.begin(), spots.end(),
                      [](const Spot& a, const Spot& b) {
                        return a.MaxEquity() > b.MaxEquity();
                      });
   }
-  //LOG(INFO) << "sorted spots";
+  // LOG(INFO) << "sorted spots";
   float best_equity = moves_[0].Equity();
   int spots_checked = 0;
   for (const MoveFinder::Spot& spot : spots) {
@@ -1024,8 +1100,9 @@ void MoveFinder::FindMoves(const Rack& rack, const Board& board,
     }
     spots_checked++;
 
-    //LOG(INFO) << "spot: " << spot.Direction() << ", " << spot.StartRow() << ", "
-    //          << spot.StartCol() << ", " << spot.NumTiles();
+    // LOG(INFO) << "spot: " << spot.Direction() << ", " << spot.StartRow() <<
+    // ", "
+    //           << spot.StartCol() << ", " << spot.NumTiles();
     const auto words = FindWords(rack, board, spot, record_mode, best_equity);
     // LOG(INFO) << "words.size(): " << words.size();
     if (record_mode == MoveFinder::RecordBest) {
@@ -1042,7 +1119,7 @@ void MoveFinder::FindMoves(const Rack& rack, const Board& board,
       moves_.insert(moves_.end(), words.begin(), words.end());
     }
   }
-  //LOG(INFO) << "Found " << moves_.size() << " moves.";
+  // LOG(INFO) << "Found " << moves_.size() << " moves.";
 }
 
 bool MoveFinder::IsBlocked(const Move& move, const Board& board) const {

@@ -73,12 +73,16 @@ class MoveFinder {
    public:
     RackPartition(uint64_t used_product, uint8_t num_blanks,
                   const LetterString& used_letters,
-                  const LetterString& left_letters, float leave_value)
+                  const LetterString& left_letters, float leave_value,
+                  AnagramMapIterator word_iterator)
         : used_product_(used_product),
           num_blanks_(num_blanks),
           used_letters_(used_letters),
           left_letters_(left_letters),
-          leave_value_(leave_value) {}
+          leave_value_(leave_value),
+          has_word_status_(kHasWord),
+          word_iterator_(word_iterator)
+           {}
     uint64_t UsedProduct() const { return used_product_; }
     uint8_t NumBlanks() const { return num_blanks_; }
     const LetterString& UsedLetters() const { return used_letters_; }
@@ -89,6 +93,7 @@ class MoveFinder {
       has_word_status_ = has_word_status;
     }
     void SetWordIterator(AnagramMapIterator word_iterator) {
+      //LOG(INFO) << "SetWordIterator called";
       word_iterator_ = word_iterator;
     }
     const AnagramMapIterator& WordIterator() const { return word_iterator_; }
@@ -119,6 +124,7 @@ class MoveFinder {
                  RecordMode record_mode);
   std::vector<Move> FindExchanges(const Rack& rack) const;
 
+  void CacheCrossesAndScores(const Board& board, int row, int col);
   void CacheCrossesAndScores(const Board& board);
 
   bool IsBlocked(const Move& move, const Board& board) const;
@@ -199,17 +205,25 @@ class MoveFinder {
 
   void CacheRackPartitions(const Rack& rack);
   bool HasWord(RackPartition* partition) const {
+    //LOG(INFO) << "HasWord: " << partition->UsedProduct() << " "
+    //          << static_cast<int>(partition->NumBlanks()) << " "
+    //          << tiles_.ToString(partition->UsedLetters()).value();
     if (partition->GetHasWordStatus() == kHasWord) {
+      //LOG(INFO) << "cached true";
       return true;
     } else if (partition->GetHasWordStatus() == kNoWord) {
+      //LOG(INFO) << "cached false";
       return false;
     } else {
+      //LOG(INFO) << "setting word iterator";
       partition->SetWordIterator(anagram_map_.WordIterator(
           partition->UsedProduct(), partition->NumBlanks()));
       if (anagram_map_.HasWord(partition->WordIterator())) {
+        //LOG(INFO) << "looked up, true";
         partition->SetHasWordStatus(kHasWord);
         return true;
       } else {
+        //LOG(INFO) << "looked up, false";
         partition->SetHasWordStatus(kNoWord);
         return false;
       }
