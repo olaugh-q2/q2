@@ -30,6 +30,7 @@ class StaticPlayer : public ComputerPlayer {
       : ComputerPlayer("Static Player", "static", id) {
     move_finder_ =
         absl::make_unique<MoveFinder>(anagram_map, layout, tiles, leaves);
+    positions_with_crosses_computed_ = 0;
   }
 
   explicit StaticPlayer(const q2::proto::StaticPlayerConfig& config)
@@ -41,10 +42,13 @@ class StaticPlayer : public ComputerPlayer {
                 config.board_layout_file()),
             *DataManager::GetInstance()->GetTiles(config.tiles_file()),
             *DataManager::GetInstance()->GetLeaves(config.leaves_file())) {}
-  Move ChooseBestMove(const GamePosition& position) override;
+  Move ChooseBestMove(const std::vector<GamePosition>* previous_positions,
+                      const GamePosition& position) override;
+  void ResetGameState() override;
 
  private:
   std::unique_ptr<MoveFinder> move_finder_;
+  int positions_with_crosses_computed_ = 0;
 };
 
 #endif  // SRC_SCRABBLE_STATIC_PLAYER_H

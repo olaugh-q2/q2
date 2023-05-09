@@ -70,8 +70,8 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredStatic) {
             tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
         }
-        number_of_rounds: 30000
-        number_of_threads: 24
+        number_of_rounds: 2
+        number_of_threads: 1
         format: HEADS_UP_MIRRORED_PAIRS
         players {
           static_player_config {

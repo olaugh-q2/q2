@@ -116,18 +116,33 @@ class MoveFinder {
         board_layout_(board_layout),
         tiles_(tiles),
         leaves_(leaves) {
+    //LOG(INFO) << "MoveFinder constructor called";         
     moves_.reserve(80000);
+    ClearHookTables();
   }
 
   const std::vector<Move>& Moves() const { return moves_; }
   void FindMoves(const Rack& rack, const Board& board, const Bag& bag,
-                 RecordMode record_mode);
+                 RecordMode record_mode, bool recompute_all_crosses_and_scores);
   std::vector<Move> FindExchanges(const Rack& rack) const;
 
-  void CacheCrossesAndScores(const Board& board, int row, int col);
+  void CacheCrossesAndScores(const Board& board, int row, int col, bool across, bool down);
+  void CacheCrossesAndScores(const Board& board, const Move& move);
   void CacheCrossesAndScores(const Board& board);
 
   bool IsBlocked(const Move& move, const Board& board) const;
+
+  void ClearHookTables() {
+    //LOG(INFO) << "clearing hook tables";
+    for (int i = 0; i < 2; ++i) {
+      for (int j = 0; j < 15; ++j) {
+        for (int k = 0; k < 15; ++k) {
+          hook_table_[i][j][k] = kNotTouching;
+          score_table_[i][j][k] = 0;
+        }
+      }
+    }
+  }
 
  private:
   FRIEND_TEST(MoveFinderTest, Blankify);

@@ -18,11 +18,13 @@ class PassingPlayer : public ComputerPlayer {
         });
   }
 
-  explicit PassingPlayer(int id) : ComputerPlayer("Passing Player", "passing", id) {}
+  explicit PassingPlayer(int id)
+      : ComputerPlayer("Passing Player", "passing", id) {}
 
   explicit PassingPlayer(const q2::proto::PassingPlayerConfig& config)
       : ComputerPlayer(config.name(), config.nickname(), config.id()) {}
-  Move ChooseBestMove(const GamePosition& position) override;
+  Move ChooseBestMove(const std::vector<GamePosition>* previous_positions,
+                      const GamePosition& position) override;
 };
 
 #endif  // SRC_SCRABBLE_PASSING_PLAYER_H

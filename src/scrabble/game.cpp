@@ -35,6 +35,9 @@ void Game::CreateInitialPosition(
   racks_.emplace_back(player_rack);
   racks_.emplace_back(opponent_rack);
   bags_.emplace_back(new_bag);
+  for (auto& player : players_) {
+    player->ResetGameState();
+  }
   positions_.emplace_back(layout_, board, players_[0]->Id(), players_[1]->Id(),
                           player_rack, 0, 0, 0, initial_time_, 0, tiles_);
 }
@@ -190,10 +193,10 @@ void Game::FinishWithComputerPlayers() {
     const auto start_time = absl::Now();
     // LOG(INFO) << "start_time: " << start_time;
     std::stringstream ss;
-    positions_.back().Display(ss);
-    computer_player->Display(ss);
+    //positions_.back().Display(ss);
+    //computer_player->Display(ss);
     // LOG(INFO) << "positions_.back(): " << std::endl << ss.str() << std::endl;
-    const auto move = computer_player->ChooseBestMove(positions_.back());
+    const auto move = computer_player->ChooseBestMove(&positions_, positions_.back());
     AddNextPosition(move, absl::Now() - start_time);
   }
   AdjustGameEndScores();

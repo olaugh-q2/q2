@@ -361,7 +361,8 @@ void MoveFinder::CacheRackPartitions(const Rack& rack) {
       const int leave_size = leave.size();
       const float leave_value =
           (leave_size > 6) ? -999999 : leaves_.Value(leave_product);
-      RackPartition rp(used_product, blanks, used_letters, leave, leave_value, word_iterator);
+      RackPartition rp(used_product, blanks, used_letters, leave, leave_value,
+                       word_iterator);
       /*
             const RackPartition rp(used_product, blanks, used_letters, leave,
                                    leave_value, word_iterator);
@@ -528,115 +529,286 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
   return moves;
 }
 
-void MoveFinder::CacheCrossesAndScores(const Board& board, int row, int col) {
+void MoveFinder::CacheCrossesAndScores(const Board& board, const Move& move) {
+  /*
+  LOG(INFO) << "CacheCrossesAndScores() for move";
+  std::stringstream ss;
+  move.Display(tiles_, ss);
+  LOG(INFO) << "move: " << ss.str();
+  */
+  /*
+  LOG(INFO) << "across touching?";
+  for (int row = 0; row < 15; row++) {
+    std::string touching;
+    for (int col = 0; col < 15; col++) {
+      if (hook_table_[0][row][col] != kNotTouching) {
+        if (hook_table_[0][row][col] == 0) {
+          touching += "∅";
+        }
+        for (int i = 1; i < 26; ++i) {
+          if (hook_table_[0][row][col] & (1 << i)) {
+            touching += 'A' + i - 1;
+            break;
+          }
+        }
+      } else {
+        touching += ".";
+      }
+    }
+  }
+  LOG(INFO) << "down touching?";
+  for (int row = 0; row < 15; row++) {
+    std::string touching;
+    for (int col = 0; col < 15; col++) {
+      if (hook_table_[1][row][col] != kNotTouching) {
+        if (hook_table_[1][row][col] == 0) {
+          touching += "∅";
+        }
+        for (int i = 1; i < 26; ++i) {
+          if (hook_table_[1][row][col] & (1 << i)) {
+            touching += 'A' + i - 1;
+            break;
+          }
+        }
+      } else {
+        touching += ".";
+      }
+    }
+  }
+  */
+  if (move.GetAction() != Move::Place) {
+    return;
+  }
+  // LOG(INFO) << "caching for move: " << ss.str();
+  int row = move.StartRow();
+  int col = move.StartCol();
+  int prevrow = row;
+  int prevcol = col;
+  if (move.Direction() == Move::Across) {
+    prevcol--;
+  } else {
+    prevrow--;
+  }
+  if ((prevcol >= 0) && (prevrow >= 0)) {
+    if (board.At(prevrow, prevcol) != 0) {
+      std::stringstream ss;
+      move.Display(tiles_, ss);
+      std::stringstream ss2;
+      board_layout_.DisplayBoard(board, tiles_, ss2);
+      LOG(INFO) << "board: " << std::endl << ss2.str();
+      LOG(ERROR) << "unexpected tile on board before move: " << ss.str()
+                 << " at " << prevrow << ", " << prevcol;
+    }
+    CHECK_EQ(board.At(prevrow, prevcol), 0);
+    CacheCrossesAndScores(board, prevrow, prevcol,
+                          move.Direction() == Move::Down,
+                          move.Direction() == Move::Across);
+  }
+  for (const auto letter : move.Letters()) {
+    if (letter != 0) {
+      if (move.Direction() == Move::Across) {
+        int before_row = row;
+        while (--before_row >= 0 && board.At(before_row, col)) {
+        }
+        if (before_row >= 0) {
+          CacheCrossesAndScores(board, before_row, col,
+                                move.Direction() == Move::Across,
+                                move.Direction() == Move::Down);
+        }
+        int after_row = row;
+        while (++after_row < 15 && board.At(after_row, col)) {
+        }
+        if (after_row < 15) {
+          CacheCrossesAndScores(board, after_row, col,
+                                move.Direction() == Move::Across,
+                                move.Direction() == Move::Down);
+        }
+      } else {
+        int before_col = col;
+        while (--before_col >= 0 && board.At(row, before_col)) {
+        }
+        if (before_col >= 0) {
+          CacheCrossesAndScores(board, row, before_col,
+                                move.Direction() == Move::Across,
+                                move.Direction() == Move::Down);
+        }
+        int after_col = col;
+        while (++after_col < 15 && board.At(row, after_col)) {
+        }
+        if (after_col < 15) {
+          CacheCrossesAndScores(board, row, after_col,
+                                move.Direction() == Move::Across,
+                                move.Direction() == Move::Down);
+        }
+      }
+    }
+    if (move.Direction() == Move::Across) {
+      col++;
+    } else {
+      row++;
+    }
+  }
+  if ((col < 15) && (row < 15)) {
+    if (board.At(row, col) != 0) {
+      std::stringstream ss;
+      move.Display(tiles_, ss);
+      std::stringstream ss2;
+      board_layout_.DisplayBoard(board, tiles_, ss2);
+      LOG(ERROR) << "unexpected tile on board after move: " << ss.str()
+                 << " at " << row << ", " << col;
+    }
+    CHECK_EQ(board.At(row, col), 0);
+    CacheCrossesAndScores(board, row, col, move.Direction() == Move::Down,
+                          move.Direction() == Move::Across);
+  }
+  /*
+  LOG(INFO) << "across touching?";
+  for (int row = 0; row < 15; row++) {
+    std::string touching;
+    for (int col = 0; col < 15; col++) {
+      if (hook_table_[0][row][col] != kNotTouching) {
+        if (hook_table_[0][row][col] == 0) {
+          touching += "∅";
+        }
+        for (int i = 1; i < 26; ++i) {
+          if (hook_table_[0][row][col] & (1 << i)) {
+            touching += 'A' + i - 1;
+            break;
+          }
+        }
+      } else {
+        touching += ".";
+      }
+    }
+    LOG(INFO) << touching;
+  }
+  LOG(INFO) << "down touching?";
+  for (int row = 0; row < 15; row++) {
+    std::string touching;
+    for (int col = 0; col < 15; col++) {
+      if (hook_table_[1][row][col] != kNotTouching) {
+        if (hook_table_[1][row][col] == 0) {
+          touching += "∅";
+        }
+        for (int i = 1; i < 26; ++i) {
+          if (hook_table_[1][row][col] & (1 << i)) {
+            touching += 'A' + i - 1;
+            break;
+          }
+        }
+      } else {
+        touching += ".";
+      }
+    }
+    LOG(INFO) << touching;
+  }
+  */
+}
+
+void MoveFinder::CacheCrossesAndScores(const Board& board, int row, int col,
+                                       bool across, bool down) {
   // LOG(INFO) << "CacheCrossesAndScores(" << row << ", " << col << ")";
   const int word_multiplier = board_layout_.WordMultiplier(row, col);
-  auto across = CrossAt(board, Move::Dir::Across, row, col);
-  auto down = CrossAt(board, Move::Dir::Down, row, col);
-  if (across.has_value()) {
-    // LOG(INFO) << "across: " << tiles_.ToString(across.value()).value();
-    int score_sum = 0;
-    for (auto& letter : across.value()) {
-      if (letter < tiles_.BlankIndex()) {
-        score_sum += tiles_.Score(letter);
-      } else {
-        letter -= tiles_.BlankIndex();
+  if (across) {
+    auto across_cross = CrossAt(board, Move::Dir::Across, row, col);
+    if (across_cross.has_value()) {
+      // LOG(INFO) << "across: " << tiles_.ToString(across.value()).value();
+      int score_sum = 0;
+      for (auto& letter : across_cross.value()) {
+        if (letter < tiles_.BlankIndex()) {
+          score_sum += tiles_.Score(letter);
+        } else {
+          letter -= tiles_.BlankIndex();
+        }
       }
+      // LOG(INFO) << "across: " << tiles_.ToString(across.value()).value();
+      // LOG(INFO) << "score_sum: " << score_sum;
+      score_table_.at(0).at(row).at(col) = score_sum * word_multiplier;
+      hook_table_.at(0).at(row).at(col) =
+          anagram_map_.Hooks(across_cross.value());
+    } else {
+      hook_table_.at(0).at(row).at(col) = kNotTouching;
+      score_table_.at(0).at(row).at(col) = 0;
     }
-    // LOG(INFO) << "across: " << tiles_.ToString(across.value()).value();
-    // LOG(INFO) << "score_sum: " << score_sum;
-    score_table_.at(0).at(row).at(col) = score_sum * word_multiplier;
-    hook_table_.at(0).at(row).at(col) = anagram_map_.Hooks(across.value());
-  } else {
-    hook_table_.at(0).at(row).at(col) = kNotTouching;
-    score_table_.at(0).at(row).at(col) = 0;
   }
-  if (down.has_value()) {
-    // LOG(INFO) << "down: " << tiles_.ToString(down.value()).value();
-    int score_sum = 0;
-    for (auto& letter : down.value()) {
-      if (letter < tiles_.BlankIndex()) {
-        score_sum += tiles_.Score(letter);
-      } else {
-        letter -= tiles_.BlankIndex();
+  if (down) {
+    auto down_cross = CrossAt(board, Move::Dir::Down, row, col);
+    if (down_cross.has_value()) {
+      // LOG(INFO) << "down: " << tiles_.ToString(down.value()).value();
+      int score_sum = 0;
+      for (auto& letter : down_cross.value()) {
+        if (letter < tiles_.BlankIndex()) {
+          score_sum += tiles_.Score(letter);
+        } else {
+          letter -= tiles_.BlankIndex();
+        }
       }
+      // LOG(INFO) << "down: " << tiles_.ToString(down.value()).value();
+      // LOG(INFO) << "score_sum: " << score_sum;
+      score_table_.at(1).at(row).at(col) = score_sum * word_multiplier;
+      hook_table_.at(1).at(row).at(col) =
+          anagram_map_.Hooks(down_cross.value());
+    } else {
+      hook_table_.at(1).at(row).at(col) = kNotTouching;
+      score_table_.at(1).at(row).at(col) = 0;
     }
-    // LOG(INFO) << "down: " << tiles_.ToString(down.value()).value();
-    // LOG(INFO) << "score_sum: " << score_sum;
-    score_table_.at(1).at(row).at(col) = score_sum * word_multiplier;
-    hook_table_.at(1).at(row).at(col) = anagram_map_.Hooks(down.value());
-  } else {
-    hook_table_.at(1).at(row).at(col) = kNotTouching;
-    score_table_.at(1).at(row).at(col) = 0;
   }
 }
 
 void MoveFinder::CacheCrossesAndScores(const Board& board) {
-  // LOG(INFO) << "CacheCrossesAndScores(...)";
+  ClearHookTables();
+  // LOG(INFO) << "CacheCrossesAndScores(...) whole board";
   for (int row = 0; row < 15; ++row) {
     for (int col = 0; col < 15; ++col) {
       Letter letter = board.At(row, col);
       if (letter) {
         continue;
       }
-      CacheCrossesAndScores(board, row, col);
-      /*
-      const int word_multiplier = board_layout_.WordMultiplier(row, col);
-      auto across = CrossAt(board, Move::Dir::Across, row, col);
-      auto down = CrossAt(board, Move::Dir::Down, row, col);
-      if (across.has_value()) {
-        // LOG(INFO) << "across: " << tiles_.ToString(across.value()).value();
-        int score_sum = 0;
-        for (auto& letter : across.value()) {
-          if (letter < tiles_.BlankIndex()) {
-            score_sum += tiles_.Score(letter);
-          } else {
-            letter -= tiles_.BlankIndex();
-          }
-        }
-        // LOG(INFO) << "across: " << tiles_.ToString(across.value()).value();
-        // LOG(INFO) << "score_sum: " << score_sum;
-        score_table_.at(0).at(row).at(col) = score_sum * word_multiplier;
-        hook_table_.at(0).at(row).at(col) = anagram_map_.Hooks(across.value());
-      } else {
-        hook_table_.at(0).at(row).at(col) = kNotTouching;
-        score_table_.at(0).at(row).at(col) = 0;
-      }
-      if (down.has_value()) {
-        // LOG(INFO) << "down: " << tiles_.ToString(down.value()).value();
-        int score_sum = 0;
-        for (auto& letter : down.value()) {
-          if (letter < tiles_.BlankIndex()) {
-            score_sum += tiles_.Score(letter);
-          } else {
-            letter -= tiles_.BlankIndex();
-          }
-        }
-        // LOG(INFO) << "down: " << tiles_.ToString(down.value()).value();
-        // LOG(INFO) << "score_sum: " << score_sum;
-        score_table_.at(1).at(row).at(col) = score_sum * word_multiplier;
-        hook_table_.at(1).at(row).at(col) = anagram_map_.Hooks(down.value());
-      } else {
-        hook_table_.at(1).at(row).at(col) = kNotTouching;
-        score_table_.at(1).at(row).at(col) = 0;
-      }
-    */
+      CacheCrossesAndScores(board, row, col, true, true);
     }
   }
   /*
-  for (int row = 0; row < 15; ++row) {
-    for (int col = 0; col < 15; ++col) {
-      LOG(INFO) << "score_table_[0][" << row << "][" << col
-                << "]: " << score_table_[0][row][col];
-      LOG(INFO) << "score_table_[1][" << row << "][" << col
-                << "]: " << score_table_[1][row][col];
-      LOG(INFO) << "hook_table_[0][" << row << "][" << col
-                << "]: " << hook_table_[0][row][col];
-      LOG(INFO) << "hook_table_[1][" << row << "][" << col
-                << "]: " << hook_table_[1][row][col];
+    LOG(INFO) << "across touching?";
+    for (int row = 0; row < 15; row++) {
+      std::string touching;
+      for (int col = 0; col < 15; col++) {
+        if (hook_table_[0][row][col] != kNotTouching) {
+          if (hook_table_[0][row][col] == 0) {
+            touching += "∅";
+          }
+          for (int i = 1; i < 26; ++i) {
+            if (hook_table_[0][row][col] & (1 << i)) {
+              touching += 'A' + i - 1;
+              break;
+            }
+          }
+        } else {
+          touching += ".";
+        }
+      }
+      LOG(INFO) << touching;
     }
-  }
-  */
+    LOG(INFO) << "down touching?";
+    for (int row = 0; row < 15; row++) {
+      std::string touching;
+      for (int col = 0; col < 15; col++) {
+        if (hook_table_[1][row][col] != kNotTouching) {
+          if (hook_table_[1][row][col] == 0) {
+            touching += "∅";
+          }
+          for (int i = 1; i < 26; ++i) {
+            if (hook_table_[1][row][col] & (1 << i)) {
+              touching += 'A' + i - 1;
+              break;
+            }
+          }
+        } else {
+          touching += ".";
+        }
+      }
+      LOG(INFO) << touching;
+    }
+    */
 }
 
 absl::optional<LetterString> MoveFinder::CrossAt(const Board& board,
@@ -1047,9 +1219,12 @@ std::vector<MoveFinder::Spot> MoveFinder::FindSpots(const Rack& rack,
 }
 
 void MoveFinder::FindMoves(const Rack& rack, const Board& board, const Bag& bag,
-                           RecordMode record_mode) {
+                           RecordMode record_mode,
+                           bool recompute_all_crosses_and_scores) {
   // LOG(INFO) << "************************** FindMoves(...)";
-  CacheCrossesAndScores(board);
+  if (recompute_all_crosses_and_scores) {
+    CacheCrossesAndScores(board);
+  }
   // LOG(INFO) << "Cached crosses and scores.";
   CacheRackPartitions(rack);
   // LOG(INFO) << "Cached rack partitions.";

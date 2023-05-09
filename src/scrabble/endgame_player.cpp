@@ -3,12 +3,15 @@
 #include "src/scrabble/move_finder.h"
 #include "src/scrabble/rack.h"
 
-Move EndgamePlayer::ChooseBestMove(const GamePosition& pos) {
+Move EndgamePlayer::ChooseBestMove(
+    const std::vector<GamePosition>* previous_positions,
+    const GamePosition& pos) {
   SetStartOfTurnTime();
   move_finders_[0]->FindMoves(pos.GetRack(), pos.GetBoard(),
-                              pos.GetUnseenToPlayer(), MoveFinder::RecordAll);
+                              pos.GetUnseenToPlayer(), MoveFinder::RecordAll,
+                              true);
   const auto& on_moves_const = move_finders_[0]->Moves();
-  //LOG(INFO) << "on_moves_const.size(): " << on_moves_const.size();
+  // LOG(INFO) << "on_moves_const.size(): " << on_moves_const.size();
   std::vector<MoveWithDelta> on_moves;
   on_moves.reserve(on_moves_const.size());
   for (auto& move : on_moves_const) {
@@ -18,9 +21,9 @@ Move EndgamePlayer::ChooseBestMove(const GamePosition& pos) {
   const GamePosition off_pos = pos.SwapRacks();
   move_finders_[1]->FindMoves(off_pos.GetRack(), off_pos.GetBoard(),
                               off_pos.GetUnseenToPlayer(),
-                              MoveFinder::RecordAll);
+                              MoveFinder::RecordAll, true);
   const auto& off_moves_const = move_finders_[1]->Moves();
-  //LOG(INFO) << "off_moves_const.size(): " << off_moves_const.size();
+  // LOG(INFO) << "off_moves_const.size(): " << off_moves_const.size();
   std::vector<MoveWithDelta> off_moves;
   off_moves.reserve(off_moves_const.size());
   for (auto& move : off_moves_const) {

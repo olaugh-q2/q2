@@ -13,13 +13,16 @@ class Player {
   Player(std::string& name, std::string& nickname, PlayerType player_type,
          int id)
       : name_(name), nickname_(nickname), player_type_(player_type), id_(id) {}
-  virtual Move ChooseBestMove(const GamePosition& position) = 0;
+  virtual Move ChooseBestMove(
+      const std::vector<GamePosition>* previous_position,
+      const GamePosition& position) = 0;
 
   std::string Name() const { return name_; }
   std::string Nickname() const { return nickname_; }
   PlayerType GetPlayerType() const { return player_type_; }
   void Display(std::ostream& os) const;
   int Id() const { return id_; }
+  virtual void ResetGameState() {}
 
  private:
   std::string name_;

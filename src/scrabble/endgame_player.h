@@ -57,14 +57,17 @@ class EndgamePlayer : public ComputerPlayer {
     }
   }
 
-  Move ChooseBestMove(const GamePosition& position) override;
+  Move ChooseBestMove(const std::vector<GamePosition>* previous_position,
+                      const GamePosition& position) override;
 
  private:
   float GreedyEndgameEquity(const GamePosition& pos, const MoveWithDelta& move,
                             std::vector<MoveWithDelta> on_moves,
                             std::vector<MoveWithDelta> off_moves);
-  void RemoveMovesNotOnRack(std::vector<MoveWithDelta>* moves, const Rack& rack);
-  void RemoveBlockedMoves(std::vector<MoveWithDelta>* moves, const Board& board);
+  void RemoveMovesNotOnRack(std::vector<MoveWithDelta>* moves,
+                            const Rack& rack);
+  void RemoveBlockedMoves(std::vector<MoveWithDelta>* moves,
+                          const Board& board);
   float StaticEndgameEquity(const GamePosition& position,
                             const Move& move) const;
   const Tiles& tiles_;

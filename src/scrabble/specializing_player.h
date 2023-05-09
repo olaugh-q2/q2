@@ -21,7 +21,7 @@ class SpecializingPlayer : public ComputerPlayer {
   }
 
   explicit SpecializingPlayer(const q2::proto::SpecializingPlayerConfig& config)
-  : ComputerPlayer(config.name(), config.nickname(), config.id()) {
+      : ComputerPlayer(config.name(), config.nickname(), config.id()) {
     for (const auto& conditional_player : config.conditional_players()) {
       players_.emplace_back(ComponentFactory::CreatePlayerFromConfig(
           conditional_player.player()));
@@ -30,11 +30,14 @@ class SpecializingPlayer : public ComputerPlayer {
     }
   }
 
-  Move ChooseBestMove(const GamePosition& position) override;
+  Move ChooseBestMove(const std::vector<GamePosition>* previous_positions,
+                      const GamePosition& position) override;
 
-  private:
-    std::vector<std::unique_ptr<Predicate>> predicates_;
-    std::vector<std::unique_ptr<ComputerPlayer>> players_;
+  void ResetGameState() override;
+  
+ private:
+  std::vector<std::unique_ptr<Predicate>> predicates_;
+  std::vector<std::unique_ptr<ComputerPlayer>> players_;
 };
 
 #endif  // SRC_SCRABBLE_SPECIALIZING_PLAYER_H
