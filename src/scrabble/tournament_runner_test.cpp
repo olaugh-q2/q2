@@ -122,8 +122,8 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredStaticVsScore) {
             tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
         }
-        number_of_rounds: 24
-        number_of_threads: 24
+        number_of_rounds: 2
+        number_of_threads: 1
         format: HEADS_UP_MIRRORED_PAIRS
         players {
           static_player_config {
@@ -174,8 +174,8 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredMacondoVsQuackle) {
             tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
         }
-        number_of_rounds: 24
-        number_of_threads: 24
+        number_of_rounds: 2
+        number_of_threads: 1
         format: HEADS_UP_MIRRORED_PAIRS
         players {
           static_player_config {
@@ -226,8 +226,8 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializing) {
             tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
         }
-        number_of_rounds: 24
-        number_of_threads: 24
+        number_of_rounds: 2
+        number_of_threads: 1
         format: HEADS_UP_MIRRORED_PAIRS
         players {
           specializing_player_config {
@@ -319,8 +319,8 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializingMvQ) {
             tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
         }
-        number_of_rounds: 24
-        number_of_threads: 24
+        number_of_rounds: 2
+        number_of_threads: 1
         format: HEADS_UP_MIRRORED_PAIRS
         players {
           specializing_player_config {
@@ -443,8 +443,8 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredQuickEndgame) {
             tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
         }
-        number_of_rounds: 6
-        number_of_threads: 6
+        number_of_rounds: 4800
+        number_of_threads: 24
         format: HEADS_UP_MIRRORED_PAIRS
         players {
           specializing_player_config {
@@ -531,132 +531,6 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredQuickEndgame) {
                   board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
                   tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
                   leaves_file: "src/scrabble/testdata/zeroes.qlv"
-                }
-              }
-            }
-          }            
-        }
-    )",
-                                                spec);                                                
-  TournamentRunner runner(*spec);
-  auto results = Arena::CreateMessage<q2::proto::TournamentResults>(&arena);
-  runner.Run(results);
-  for (const auto& a : results->player_averages()) {
-    LOG(INFO) << "player_averages: " << std::endl << a.DebugString();
-  }
-}
-
-TEST_F(TournamentRunnerTest, HeadsUpMirroredCheckAlteredPlays) {
-  Arena arena;
-  auto spec = Arena::CreateMessage<q2::proto::TournamentSpec>(&arena);
-  google::protobuf::TextFormat::ParseFromString(R"(
-        data_collection {
-          tiles_files: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-          board_files: "src/scrabble/testdata/scrabble_board.textproto"
-          anagram_map_file_specs {
-            anagram_map_filename: "src/scrabble/testdata/csw21.qam"
-            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-          }
-          leaves_file_specs {
-            leaves_filename: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
-            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-          }
-
-          leaves_file_specs {
-            leaves_filename: "src/scrabble/testdata/zeroes.qlv"
-            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-          }
-        }
-        number_of_rounds: 24
-        number_of_threads: 24
-        format: HEADS_UP_MIRRORED_PAIRS
-        players {
-          specializing_player_config {
-            id: 1
-            name: "Macondo + QuickCheck Endgame"
-            nickname: "MQuickCheck"
-            conditional_players {
-              predicate {
-                unseen_tiles_predicate_config {
-                  min_unseen_tiles: 8
-                  max_unseen_tiles: 10000
-                }
-              }
-              player {
-                static_player_config {
-                  id: 101
-                  name: "Macondo Leaves"
-                  nickname: "M"
-                  anagram_map_file: "src/scrabble/testdata/csw21.qam"
-                  board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
-                  tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-                  leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
-                }
-              }
-            }
-            conditional_players {
-              predicate {
-                unseen_tiles_predicate_config {
-                  min_unseen_tiles: 0
-                  max_unseen_tiles: 7
-                }
-              }
-              player {
-                endgame_player_config {
-                  id: 102
-                  name: "QuickCheck Endgame"
-                  nickname: "Check"
-                  anagram_map_file: "src/scrabble/testdata/csw21.qam"
-                  board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
-                  tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-                  leaves_file: "src/scrabble/testdata/zeroes.qlv"
-                  check_altered_plays: true
-                }
-              }
-            }
-          }            
-        }
-        players {
-          specializing_player_config {
-            id: 2
-            name: "Macondo + QuickNoCheck Endgame"
-            nickname: "MQuickNoCheck"
-            conditional_players {
-              predicate {
-                unseen_tiles_predicate_config {
-                  min_unseen_tiles: 8
-                  max_unseen_tiles: 10000
-                }
-              }
-              player {
-                static_player_config {
-                  id: 201
-                  name: "Macondo Leaves"
-                  nickname: "M"
-                  anagram_map_file: "src/scrabble/testdata/csw21.qam"
-                  board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
-                  tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-                  leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
-                }
-              }
-            }
-            conditional_players {
-              predicate {
-                unseen_tiles_predicate_config {
-                  min_unseen_tiles: 0
-                  max_unseen_tiles: 7
-                }
-              }
-              player {
-                endgame_player_config {
-                  id: 202
-                  name: "QuickNoCheck Endgame"
-                  nickname: "NoCheck"
-                  anagram_map_file: "src/scrabble/testdata/csw21.qam"
-                  board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
-                  tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-                  leaves_file: "src/scrabble/testdata/zeroes.qlv"
-                  check_altered_plays: false
                 }
               }
             }

@@ -125,3 +125,27 @@ TEST_F(BoardLayoutTest, UnsafePlaceMove) {
     }
   }
 }
+
+TEST_F(BoardLayoutTest, UnsafeUndoMove) {
+  Board board;
+  std::array<std::string, 15> before_row_strings;
+  for (int i = 0; i < 15; ++i) {
+    std::stringstream ss;
+    layout_->DisplayRow(board, i, *tiles_, ss);
+    before_row_strings[i] = ss.str();
+  }
+  const auto citizen = Move::Parse("8h CITIZEN", *tiles_);
+  board.UnsafePlaceMove(citizen.value());
+  EXPECT_FALSE(board.IsEmpty());
+  board.UnsafeUndoMove(citizen.value());
+  EXPECT_TRUE(board.IsEmpty());
+  std::array<std::string, 15> after_row_strings;
+  for (int i = 0; i < 15; ++i) {
+    std::stringstream ss;
+    layout_->DisplayRow(board, i, *tiles_, ss);
+    after_row_strings[i] = ss.str();
+  }
+  for (int i = 0; i < 15; ++i) {
+    EXPECT_EQ(before_row_strings[i], after_row_strings[i]);
+  }
+}

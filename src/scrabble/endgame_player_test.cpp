@@ -40,7 +40,7 @@ class EndgamePlayerTest : public ::testing::Test {
   }
 };
 
-TEST_F(EndgamePlayerTest, OnePlyNoNullLookahead) {
+TEST_F(EndgamePlayerTest, ZeroPlyGreedyPlayout) {
   Arena arena;
   auto config = Arena::CreateMessage<q2::proto::EndgamePlayerConfig>(&arena);
   google::protobuf::TextFormat::ParseFromString(R"(
@@ -97,6 +97,6 @@ TEST_F(EndgamePlayerTest, OnePlyNoNullLookahead) {
   pos->Display(ss2);
   LOG(INFO) << "position:" << std::endl << ss2.str();
   auto* computer_player = static_cast<ComputerPlayer*>(player.get());
-  const auto move = computer_player->ChooseBestMove(*pos);
+  const auto move = computer_player->ChooseBestMove(nullptr, *pos);
   ExpectMove(move, "12L MING (score = 26)");
 }

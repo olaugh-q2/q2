@@ -60,7 +60,6 @@ message EndgamePlayerConfig {
     string leaves_file = 7;
 
     int32 plies = 8;
-    bool check_altered_plays = 9;
 }
 
 message ComputerPlayerCollection {

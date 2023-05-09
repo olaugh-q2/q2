@@ -535,8 +535,9 @@ void MoveFinder::CacheCrossesAndScores(const Board& board, const Move& move) {
   std::stringstream ss;
   move.Display(tiles_, ss);
   LOG(INFO) << "move: " << ss.str();
-  */
-  /*
+  std::stringstream ss2;
+  board_layout_.DisplayBoard(board, tiles_, ss2);
+  LOG(INFO) << "board: " << std::endl << ss2.str();
   LOG(INFO) << "across touching?";
   for (int row = 0; row < 15; row++) {
     std::string touching;
@@ -555,6 +556,7 @@ void MoveFinder::CacheCrossesAndScores(const Board& board, const Move& move) {
         touching += ".";
       }
     }
+    LOG(INFO) << "touching: " << touching;
   }
   LOG(INFO) << "down touching?";
   for (int row = 0; row < 15; row++) {
@@ -574,6 +576,7 @@ void MoveFinder::CacheCrossesAndScores(const Board& board, const Move& move) {
         touching += ".";
       }
     }
+    LOG(INFO) << "touching: " << touching;
   }
   */
   if (move.GetAction() != Move::Place) {
@@ -1298,8 +1301,20 @@ void MoveFinder::FindMoves(const Rack& rack, const Board& board, const Bag& bag,
 }
 
 bool MoveFinder::IsBlocked(const Move& move, const Board& board) const {
+  if (move.GetAction() != Move::Place) {
+    return false;
+  }
   int row = move.StartRow();
   int col = move.StartCol();
+  if (move.Direction() == Move::Across) {
+    if ((col > 0) && (board.At(row, col - 1) != 0)) {
+      return true;
+    }
+  } else {
+    if ((row > 0) && (board.At(row - 1, col) != 0)) {
+      return true;
+    }
+  }
   for (const Letter letter : move.Letters()) {
     if (letter) {
       if (board.At(row, col) != 0) {
@@ -1310,6 +1325,11 @@ bool MoveFinder::IsBlocked(const Move& move, const Board& board) const {
       col++;
     } else {
       row++;
+    }
+  }
+  if ((col <= 14) && (row <= 14)) {
+    if (board.At(row, col) != 0) {
+      return true;
     }
   }
   return !CheckHooks(board, move);

@@ -128,6 +128,7 @@ class MoveFinder {
 
   void CacheCrossesAndScores(const Board& board, int row, int col, bool across, bool down);
   void CacheCrossesAndScores(const Board& board, const Move& move);
+
   void CacheCrossesAndScores(const Board& board);
 
   bool IsBlocked(const Move& move, const Board& board) const;

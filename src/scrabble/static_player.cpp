@@ -11,17 +11,18 @@ Move StaticPlayer::ChooseBestMove(
   // LOG(INFO) << "StaticPlayer::ChooseBestMove: " << std::endl << ss.str();
   CHECK_NE(previous_positions, nullptr);
   //LOG(INFO) << "positions_with_crosses_computed_: "
-  //          << positions_with_crosses_computed_;
+  //           << positions_with_crosses_computed_;
   if (positions_with_crosses_computed_ == 0) {
     move_finder_->ClearHookTables();
   }
-  for (int i = positions_with_crosses_computed_ + 1; i < previous_positions->size();
-       ++i) {
+  for (int i = positions_with_crosses_computed_ + 1;
+       i < previous_positions->size(); ++i) {
+    //LOG(INFO) << "i: " << i;
     const auto& p1 = (*previous_positions)[i - 1];
     const auto& p2 = (*previous_positions)[i];
     move_finder_->CacheCrossesAndScores(p2.GetBoard(), *p1.GetMove());
+    positions_with_crosses_computed_++;
   }
-  positions_with_crosses_computed_ = previous_positions->size();
   //LOG(INFO) << "positions_with_crosses_computed_: "
   //          << positions_with_crosses_computed_;
   move_finder_->FindMoves(pos.GetRack(), pos.GetBoard(),
@@ -32,6 +33,4 @@ Move StaticPlayer::ChooseBestMove(
   return moves[0];
 }
 
-void StaticPlayer::ResetGameState() {
-  positions_with_crosses_computed_ = 0;
-}
+void StaticPlayer::ResetGameState() { positions_with_crosses_computed_ = 0; }

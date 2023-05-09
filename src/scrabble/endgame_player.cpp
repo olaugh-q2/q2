@@ -121,20 +121,22 @@ float EndgamePlayer::GreedyEndgameEquity(const GamePosition& pos,
   std::vector<GamePosition> positions({pos});
   const MoveWithDelta* move_to_place = &move;
   int scoreless = pos.ScorelessTurns();
+  std::vector<const Move*> moves_with_crosses_applied;
   for (int ply = 1;; ++ply) {
-    // std::stringstream ss;
-    // move_to_place->Display(tiles_, ss);
-    // LOG(INFO) << "ply: " << ply << " move: " << ss.str();
+    //std::stringstream ss;
+    //move_to_place->GetMove()->Display(tiles_, ss);
+    //LOG(INFO) << "ply: " << ply << " move: " << ss.str();
     positions.push_back(positions.back().SwapRacks());
-    std::stringstream ss2;
+    //std::stringstream ss2;
     GamePosition& new_pos = positions.back();
     Board board = new_pos.GetBoard();
     if (move_to_place->GetMove()->GetAction() == Move::Action::Place) {
+      //LOG(INFO) << "placing move: " << ss.str();
       board.UnsafePlaceMove(*move_to_place->GetMove());
     }
     new_pos.SetBoard(board);
-    // positions.back().Display(ss2);
-    // LOG(INFO) << "pos: " << std::endl << ss2.str();
+    //positions.back().Display(ss2);
+    //LOG(INFO) << "pos: " << std::endl << ss2.str();
     int opp_deadwood = 0;
     auto unseen = new_pos.GetUnseenToPlayer();
     for (const Letter& letter : unseen.Letters()) {
@@ -147,10 +149,10 @@ float EndgamePlayer::GreedyEndgameEquity(const GamePosition& pos,
     RemoveMovesNotOnRack(&moves, new_pos.GetRack());
     // LOG(INFO) << "after removing moves with used tiles: moves.size(): "
     //           << moves.size();
-    if (check_altered_plays_) {
-      for (int i = 0; i < 2; i++) {
-        move_finders_[i]->CacheCrossesAndScores(board);
-      }
+    if (move_to_place->GetMove()->GetAction() == Move::Action::Place) {
+      move_finders_[0]->CacheCrossesAndScores(board, *move_to_place->GetMove());
+      //move_finders_[0]->CacheCrossesAndScores(board);
+      moves_with_crosses_applied.push_back(move_to_place->GetMove());
     }
     RemoveBlockedMoves(&moves, board);
     // LOG(INFO) << "after removing blocked moves: moves.size(): " <<
@@ -187,6 +189,15 @@ float EndgamePlayer::GreedyEndgameEquity(const GamePosition& pos,
       //           << " own_deadwood: " << own_deadwood;
       // LOG(INFO) << "returning " << net + sign * (opp_deadwood -
       // own_deadwood);
+      for (int move_index = moves_with_crosses_applied.size() - 1;
+           move_index >= 0; move_index--) {
+        //std::stringstream ss3;
+        //moves_with_crosses_applied[move_index]->Display(tiles_, ss3);
+        //LOG(INFO) << "undoing move: " << ss3.str();
+        board.UnsafeUndoMove(*moves_with_crosses_applied[move_index]);
+        move_finders_[0]->CacheCrossesAndScores(
+            board, *moves_with_crosses_applied[move_index]);
+      }
       return net + sign * (opp_deadwood - own_deadwood);
     }
     int tiles_played = 0;
@@ -200,6 +211,12 @@ float EndgamePlayer::GreedyEndgameEquity(const GamePosition& pos,
     if (tiles_played == new_pos.GetRack().NumTiles()) {
       // LOG(INFO) << "deadwood: " << opp_deadwood;
       // LOG(INFO) << "returning " << net + sign * opp_deadwood * 2;
+      for (int move_index = moves_with_crosses_applied.size() - 1;
+           move_index >= 0; move_index--) {
+        board.UnsafeUndoMove(*moves_with_crosses_applied[move_index]);
+        move_finders_[0]->CacheCrossesAndScores(
+            board, *moves_with_crosses_applied[move_index]);
+      }
       return net + sign * opp_deadwood * 2;
     }
   }

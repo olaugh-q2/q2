@@ -45,8 +45,7 @@ class EndgamePlayer : public ComputerPlayer {
 
   explicit EndgamePlayer(const q2::proto::EndgamePlayerConfig& config)
       : ComputerPlayer(config.name(), config.nickname(), config.id()),
-        tiles_(*DataManager::GetInstance()->GetTiles(config.tiles_file())),
-        check_altered_plays_(config.check_altered_plays()) {
+        tiles_(*DataManager::GetInstance()->GetTiles(config.tiles_file())) {
     for (int i = 0; i < 2; i++) {
       move_finders_.push_back(absl::make_unique<MoveFinder>(
           *DataManager::GetInstance()->GetAnagramMap(config.anagram_map_file()),
@@ -72,7 +71,6 @@ class EndgamePlayer : public ComputerPlayer {
                             const Move& move) const;
   const Tiles& tiles_;
   std::vector<std::unique_ptr<MoveFinder>> move_finders_;
-  bool check_altered_plays_;
 };
 
 #endif  // SRC_SCRABBLE_ENDGAME_PLAYER_H

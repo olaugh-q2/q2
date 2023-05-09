@@ -34,6 +34,22 @@ void Board::UnsafePlaceMove(const Move& move) {
   }
 }
 
+void Board::UnsafeUndoMove(const Move& move) {
+  int row = move.StartRow();
+  int col = move.StartCol();
+  for (const Letter letter : move.Letters()) {
+    if (letter != 0) {  // Tiles::kUnset gives linking error ???
+      rows_[row][col] = 0;
+    }
+    if (move.Direction() == Move::Across) {
+      col++;
+    } else {
+      row++;
+    }
+  }
+  is_empty_ = (rows_[7][7] == 0);
+}
+
 LetterString Board::MainWord(const Move& move, const Tiles& tiles) const {
   LetterString ret = move.Letters();
   int row = move.StartRow();
