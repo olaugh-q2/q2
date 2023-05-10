@@ -51,8 +51,12 @@ void GamePosition::Display(std::ostream& os, const Bag& initial_bag) const {
 
     os << "Unseen: ";
   }
-  auto unseen_to_player = GetUnseenToPlayer(initial_bag);
-  unseen_to_player.Display(os);
+  if (known_opp_rack_.NumTiles() > 0) {
+    known_opp_rack_.Display(tiles_, os);
+  } else {
+    auto unseen_to_player = GetUnseenToPlayer(initial_bag);
+    unseen_to_player.Display(os);
+  }
   os << std::endl;
 }
 

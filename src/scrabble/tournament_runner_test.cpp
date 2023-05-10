@@ -443,7 +443,7 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredQuickEndgame) {
             tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
         }
-        number_of_rounds: 4800
+        number_of_rounds: 7200
         number_of_threads: 24
         format: HEADS_UP_MIRRORED_PAIRS
         players {

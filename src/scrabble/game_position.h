@@ -20,6 +20,7 @@ class GamePosition {
         on_turn_player_id_(on_turn_player_id),
         opponent_player_id_(opponent_player_id),
         rack_(rack),
+        known_opp_rack_(Rack(LetterString())),
         player_score_(player_score),
         opponent_score_(opponent_score),
         position_index_(position_index),
@@ -67,6 +68,25 @@ class GamePosition {
   void WriteProto(q2::proto::GamePosition* proto) const;
   GamePosition SwapRacks() const;
   void SetBoard(const Board& board) { board_ = board; }
+  void SwapWithKnownOppRack() {
+    std::swap(rack_, known_opp_rack_);
+  }
+  const Rack& GetKnownOppRack() const { return known_opp_rack_; }
+  void SetKnownOppRack(const Bag& bag) {
+    known_opp_rack_.Clear();
+    for (const auto& letter : bag.Letters()) {
+      known_opp_rack_.PushBack(letter);
+    }
+  }
+  void UnsafePlaceMove(const Move& move) {
+    board_.UnsafePlaceMove(move);
+  }
+  void UnsafeUndoMove(const Move& move) {
+    board_.UnsafeUndoMove(move);
+  }
+  void RemoveRackTiles(const Move& move) {
+    rack_.RemoveTiles(move.Letters(), tiles_);
+  }
  private:
   const BoardLayout& layout_;
   Board board_;
@@ -74,7 +94,10 @@ class GamePosition {
   int opponent_player_id_;
 
   // Rack for on-turn player.
-  const Rack rack_;
+  Rack rack_;
+
+  // Rack for opponent player, only set in endgame positions.
+  Rack known_opp_rack_;
 
   // Score for on-turn player.
   const int player_score_;

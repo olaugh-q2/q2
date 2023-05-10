@@ -202,8 +202,8 @@ void Move::WriteProto(const Tiles& tiles, q2::proto::Move* proto) const {
   */
 }
 
-bool Move::IsSubsetOf(const Tiles& tiles, const Rack& rack) const {
-  auto rack_counts = rack.Counts();
+bool Move::IsSubsetOf(const Tiles& tiles, std::array<int, 32>* rack_counts,
+                      bool* copy_counts_decremented) const {
   for (auto letter : letters_) {
     if (!letter) {
       continue;
@@ -211,10 +211,13 @@ bool Move::IsSubsetOf(const Tiles& tiles, const Rack& rack) const {
     if (letter >= tiles.BlankIndex()) {
       letter = tiles.BlankIndex();
     }
-    if (rack_counts[letter] == 0) {
+    if ((*rack_counts)[letter] == 0) {
+      //LOG(INFO) << "letter = " << static_cast<int>(letter)
+      //          << ", rack_counts[letter] = " << (*rack_counts)[letter];
       return false;
     }
-    --rack_counts[letter];
+    --(*rack_counts)[letter];
+    *copy_counts_decremented = true;
   }
   return true;
 }

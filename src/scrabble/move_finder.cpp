@@ -379,11 +379,18 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
                                         const Spot& spot,
                                         MoveFinder::RecordMode record_mode,
                                         float best_equity) {
+  std::vector<Move> ret;
+  FindWords(rack, board, spot, record_mode, best_equity, &ret);
+  return ret;
+}
+
+void MoveFinder::FindWords(const Rack& rack, const Board& board,
+                           const Spot& spot, MoveFinder::RecordMode record_mode,
+                           float best_equity, std::vector<Move>* moves) {
   const auto direction = spot.Direction();
   const int start_row = spot.StartRow();
   const int start_col = spot.StartCol();
   const int num_tiles = spot.NumTiles();
-  std::vector<Move> moves;
   const absl::uint128 through_product =
       AbsorbThroughTiles(board, direction, start_row, start_col, num_tiles);
   int partitions_used = 0;
@@ -400,6 +407,12 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
     const auto& letters = partition.UsedLetters();
     const auto& leave = partition.LeftLetters();
     const auto leave_value = partition.LeaveValue();
+    uint32_t move_bits = 0;
+    if (record_mode == MoveFinder::RecordAll) {
+      for (auto letter : letters) {
+        move_bits |= (1 << letter);
+      }
+    }
     // LOG(INFO) << "partition of " << tiles_.ToString(letters).value() << " / "
     //           << tiles_.ToString(leave).value() << " (" << leave_value <<
     //           ")";
@@ -470,25 +483,34 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
           // std::stringstream ss;
           // move.Display(tiles_, ss);
           // LOG(INFO) << " found move " << ss.str();
-          //  CHECK_GE(spot.MaxEquity(), move.Equity()) << ss.str();
+          //   CHECK_GE(spot.MaxEquity(), move.Equity()) << ss.str();
           CHECK_LE(move.Equity(), leave_value + spot.MaxScore() + 1e-5);
-          if (record_mode == RecordMode::RecordAll ||
-              (record_mode == RecordMode::RecordBest &&
-               move.Equity() > best_equity + 1e-5)) {
-            best_equity = move.Equity();
-            if ((record_mode == RecordMode::RecordBest) &&
-                move.Equity() + 1e-5 > spot.MaxEquity()) {
-              // LOG(INFO) << "Returning best move possible from this spot";
-              return {std::move(move)};
+          if (record_mode == RecordMode::RecordBest) {
+            if (move.Equity() > best_equity + 1e-5) {
+              best_equity = move.Equity();
+              (*moves)[0] = std::move(move);
+              if (move.Equity() + 1e-5 > spot.MaxEquity()) {
+                // LOG(INFO) << "Returning best move possible from this spot";
+                return;
+              }
             }
-            moves.push_back(std::move(move));
+          } else {
+            move.SetCachedNumTiles(num_tiles);
+            move.SetNumBlanks(num_blanks);
+            move.SetMoveBits(move_bits);
+            moves->push_back(std::move(move));
           }
         } else {
           auto blankified(Blankify(letters, played_tiles));
-          // LOG(INFO) << "blankfied";
+          // LOG(INFO) << "blankified";
           for (auto& blank_word : blankified) {
             Move blank_move(direction, start_row, start_col,
                             std::move(blank_word));
+            /*
+std::stringstream ss;
+move.Display(tiles_, ss);
+LOG(INFO) << " move " << ss.str();
+*/
             const int word_score =
                 WordScore(board, blank_move, spot.WordMultiplier());
             const int score = spot.ExtraScore() + word_score;
@@ -505,16 +527,20 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
             // LOG(INFO) << " found move " << ss.str();
             //  CHECK_GE(spot.MaxEquity(), blank_move.Equity())
             //      << "move " << ss.str();
-            if (record_mode == RecordMode::RecordAll ||
-                (record_mode == RecordMode::RecordBest &&
-                 blank_move.Equity() > best_equity + 1e-5)) {
-              best_equity = blank_move.Equity();
-              if ((record_mode == RecordMode::RecordBest) &&
-                  blank_move.Equity() + 1e-5 > spot.MaxEquity()) {
-                // LOG(INFO) << "Returning best move possible from this spot";
-                return {std::move(blank_move)};
+            if (record_mode == RecordMode::RecordBest) {
+              if (blank_move.Equity() > best_equity + 1e-5) {
+                best_equity = blank_move.Equity();
+                (*moves)[0] = std::move(blank_move);
+                if (blank_move.Equity() + 1e-5 > spot.MaxEquity()) {
+                  // LOG(INFO) << "Returning best move possible from this spot";
+                  return;
+                }
               }
-              moves.push_back(std::move(blank_move));
+            } else {
+              blank_move.SetCachedNumTiles(num_tiles);
+              blank_move.SetNumBlanks(num_blanks);
+              blank_move.SetMoveBits(move_bits);
+              moves->push_back(std::move(blank_move));
             }
           }
         }
@@ -523,10 +549,8 @@ std::vector<Move> MoveFinder::FindWords(const Rack& rack, const Board& board,
       }
     }
   }
-
   // LOG(INFO) << "  partitions searched: " << partitions_used << " out of "
   //           << partitions.size();
-  return moves;
 }
 
 void MoveFinder::CacheCrossesAndScores(const Board& board, const Move& move) {
@@ -1240,7 +1264,10 @@ void MoveFinder::FindMoves(const Rack& rack, const Board& board, const Bag& bag,
   pass.SetLeave(rack.Letters());
   pass.SetLeaveValue(-1000);
   pass.ComputeEquity();
-  moves_.emplace_back(pass);
+  pass.SetCachedNumTiles(0);
+  pass.SetMoveBits(0);
+  pass.SetNumBlanks(0);
+  moves_.push_back(pass);
 
   // LOG(INFO) << "bag.CanExchangeWithUnseen(): " <<
   // bag.CanExchangeWithUnseen();
@@ -1281,20 +1308,9 @@ void MoveFinder::FindMoves(const Rack& rack, const Board& board, const Bag& bag,
     // LOG(INFO) << "spot: " << spot.Direction() << ", " << spot.StartRow() <<
     // ", "
     //           << spot.StartCol() << ", " << spot.NumTiles();
-    const auto words = FindWords(rack, board, spot, record_mode, best_equity);
-    // LOG(INFO) << "words.size(): " << words.size();
+    FindWords(rack, board, spot, record_mode, best_equity, &moves_);
     if (record_mode == MoveFinder::RecordBest) {
-      for (const Move& word : words) {
-        // LOG(INFO) << "word: " << tiles_.ToString(word.Letters()).value() <<
-        // ", "
-        //           << word.Equity();
-        if (word.Equity() > moves_[0].Equity()) {
-          best_equity = word.Equity();
-          moves_[0] = word;
-        }
-      }
-    } else {
-      moves_.insert(moves_.end(), words.begin(), words.end());
+      best_equity = moves_[0].Equity();
     }
   }
   // LOG(INFO) << "Found " << moves_.size() << " moves.";

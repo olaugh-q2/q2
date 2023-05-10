@@ -50,6 +50,9 @@ class Move {
     leave_ = move.leave_;
     leave_value_ = move.leave_value_;
     equity_ = move.equity_;
+    num_tiles_ = move.num_tiles_;
+    num_blanks_ = move.num_blanks_;
+    move_bits_ = move.move_bits_;
   }
 
   const Move& operator=(const Move& move) {
@@ -62,6 +65,9 @@ class Move {
     leave_ = move.leave_;
     leave_value_ = move.leave_value_;
     equity_ = move.equity_;
+    num_tiles_ = move.num_tiles_;
+    num_blanks_ = move.num_blanks_;
+    move_bits_ = move.move_bits_;
     return *this;
   }
 
@@ -75,6 +81,9 @@ class Move {
     leave_ = std::move(move.leave_);
     leave_value_ = move.leave_value_;
     equity_ = move.equity_;
+    num_tiles_ = move.num_tiles_;
+    num_blanks_ = move.num_blanks_;
+    move_bits_ = move.move_bits_;
     return *this;
   }
 
@@ -88,6 +97,9 @@ class Move {
     leave_ = std::move(move.leave_);
     leave_value_ = move.leave_value_;
     equity_ = move.equity_;
+    num_tiles_ = move.num_tiles_;
+    num_blanks_ = move.num_blanks_;
+    move_bits_ = move.move_bits_;
   }
 
   void Display(const Tiles& tiles, std::ostream& os) const;
@@ -99,7 +111,7 @@ class Move {
 
   Action GetAction() const { return action_; }
 
-  LetterString Letters() const { return letters_; }
+  const LetterString& Letters() const { return letters_; }
 
   Dir Direction() const { return direction_; }
 
@@ -124,7 +136,7 @@ class Move {
     equity_ = score_.value() + leave_value_.value();
   }
 
-  LetterString Leave() const {
+  const LetterString& Leave() const {
     CHECK(leave_.has_value());
     return leave_.value();
   }
@@ -134,19 +146,18 @@ class Move {
     return leave_value_.value();
   }
 
-  void SetEquity(float equity) {
-    equity_ = equity;
-  }
+  void SetEquity(float equity) { equity_ = equity; }
 
   double Equity() const {
     CHECK(equity_.has_value());
     return equity_.value();
   }
 
-  void WriteProto(const Tiles& tiles,
-                  q2::proto::Move* result) const;
+  void WriteProto(const Tiles& tiles, q2::proto::Move* result) const;
 
-  bool IsSubsetOf(const Tiles& tiles, const Rack& rack) const;                  
+  bool IsSubsetOf(const Tiles& tiles, 
+                  std::array<int, 32>* rack_counts,
+                  bool* copy_counts_decremented) const;
 
   int NumTiles() const {
     int ret = 0;
@@ -157,7 +168,19 @@ class Move {
     }
     return ret;
   }
-  
+
+  inline void SetCachedNumTiles(int num_tiles) { num_tiles_ = num_tiles; }
+
+  inline int CachedNumTiles() const { return num_tiles_; }
+
+  inline void SetNumBlanks(int num_blanks) { num_blanks_ = num_blanks; }
+
+  inline int NumBlanks() const { return num_blanks_; }
+
+  inline void SetMoveBits(uint32_t move_bits) { move_bits_ = move_bits; }
+
+  inline uint32_t MoveBits() const { return move_bits_; }
+
  private:
   std::string StartingSquare() const;
   enum Action action_;
@@ -169,6 +192,9 @@ class Move {
   absl::optional<LetterString> leave_;
   absl::optional<float> leave_value_;
   absl::optional<float> equity_;
+  uint32_t move_bits_;
+  int num_tiles_;
+  int num_blanks_;
 };
 
 #endif  // SRC_SCRABBLE_MOVE_H
