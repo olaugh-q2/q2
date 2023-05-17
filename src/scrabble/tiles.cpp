@@ -226,3 +226,11 @@ absl::uint128 Tiles::ToProduct(const LetterString& s) const {
   }
   return ret;
 }
+
+uint64_t Tiles::ToProduct64(const LetterString& s) const {
+  uint64_t ret = 1;
+  for (char c : s) {
+    ret *= primes_[c];
+  }
+  return ret;
+}

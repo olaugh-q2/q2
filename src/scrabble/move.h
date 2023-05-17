@@ -141,7 +141,7 @@ class Move {
     return leave_.value();
   }
 
-  double LeaveValue() const {
+  float LeaveValue() const {
     CHECK(leave_value_.has_value());
     return leave_value_.value();
   }
@@ -155,8 +155,7 @@ class Move {
 
   void WriteProto(const Tiles& tiles, q2::proto::Move* result) const;
 
-  bool IsSubsetOf(const Tiles& tiles, 
-                  std::array<int, 32>* rack_counts,
+  bool IsSubsetOf(const Tiles& tiles, std::array<int, 32>* rack_counts,
                   bool* copy_counts_decremented) const;
 
   int NumTiles() const {

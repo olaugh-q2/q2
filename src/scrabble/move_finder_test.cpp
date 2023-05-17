@@ -112,31 +112,49 @@ TEST_F(MoveFinderTest, BlankifyAllBlanks) {
 
 TEST_F(MoveFinderTest, FindExchanges) {
   const Rack rack(tiles_->ToLetterString("AB").value());
-  const auto exchanges = move_finder_->FindExchanges(rack);
+  move_finder_->CacheSubsets(rack);
+  move_finder_->CacheRackPartitions(rack);
+  const auto exchanges =
+      move_finder_->FindExchanges(rack, MoveFinder::RecordAll);
   ExpectMoves(exchanges, {"EXCH A (score = 0)", "EXCH B (score = 0)",
                           "EXCH AB (score = 0)"});
 }
 
 TEST_F(MoveFinderTest, FindExchanges2) {
   const Rack rack(tiles_->ToLetterString("AAA").value());
-  const auto exchanges = move_finder_->FindExchanges(rack);
+  move_finder_->CacheSubsets(rack);
+  move_finder_->CacheRackPartitions(rack);
+  const auto exchanges =
+      move_finder_->FindExchanges(rack, MoveFinder::RecordAll);
   ExpectMoves(exchanges, {"EXCH A (score = 0)", "EXCH AA (score = 0)",
                           "EXCH AAA (score = 0)"});
 }
 
 TEST_F(MoveFinderTest, FindExchanges3) {
   const Rack rack(tiles_->ToLetterString("A?").value());
-  const auto exchanges = move_finder_->FindExchanges(rack);
+  move_finder_->CacheSubsets(rack);
+  move_finder_->CacheRackPartitions(rack);
+  const auto exchanges =
+      move_finder_->FindExchanges(rack, MoveFinder::RecordAll);
   ExpectMoves(exchanges, {"EXCH A (score = 0)", "EXCH ? (score = 0)",
                           "EXCH A? (score = 0)"});
 }
 
+TEST_F(MoveFinderTest, FindExchanges4) {
+  const Rack rack(tiles_->ToLetterString("Q?").value());
+  move_finder_->CacheSubsets(rack);
+  move_finder_->CacheRackPartitions(rack);
+  const auto exchanges =
+      move_finder_->FindExchanges(rack, MoveFinder::RecordBest);
+  ExpectMoves(exchanges, {"EXCH Q (score = 0)"});
+}
 TEST_F(MoveFinderTest, FindWords) {
   Board board;
   const Rack rack(tiles_->ToLetterString("IIICFVV").value());
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 7, 7, 7);
   move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
@@ -151,6 +169,7 @@ TEST_F(MoveFinderTest, FindWords2) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 7, 6, 2);
   move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
@@ -167,6 +186,7 @@ TEST_F(MoveFinderTest, FindWords3) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 7, 5, 7);
   move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
@@ -181,6 +201,7 @@ TEST_F(MoveFinderTest, FindWords4) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 7, 1, 7);
   move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
@@ -269,6 +290,7 @@ TEST_F(MoveFinderTest, PlayThroughWithBlanks) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 7, 4, 7);
   move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
@@ -348,6 +370,7 @@ TEST_F(MoveFinderTest, SevenTileOverlap) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 6, 6, 7);
   move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
@@ -364,6 +387,7 @@ TEST_F(MoveFinderTest, NonHooks) {
   const Rack rack(tiles_->ToLetterString("Z??").value());
   move_finder_->cross_map_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 6, 6, 3);
   move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
@@ -381,6 +405,7 @@ TEST_F(MoveFinderTest, FrontExtension) {
   move_finder_->cross_map_.clear();
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 7, 0, 7);
   move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
@@ -394,6 +419,7 @@ TEST_F(MoveFinderTest, EmptyBoardSpots) {
   const Rack rack(tiles_->ToLetterString("LULZ").value());
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   const auto spots4 = move_finder_->FindSpots(rack, board);
   EXPECT_THAT(spots4,
@@ -418,6 +444,7 @@ TEST_F(MoveFinderTest, AcrossSpots) {
   board.UnsafePlaceMove(ax.value());
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
@@ -479,6 +506,7 @@ TEST_F(MoveFinderTest, AcrossSpots) {
   board.UnsafePlaceMove(am.value());
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
@@ -513,6 +541,7 @@ TEST_F(MoveFinderTest, AcrossSpots) {
   board.UnsafePlaceMove(amp.value());
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
@@ -557,6 +586,7 @@ TEST_F(MoveFinderTest, DownSpots) {
   board.UnsafePlaceMove(ax.value());
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ
@@ -621,6 +651,7 @@ TEST_F(MoveFinderTest, DownSpots) {
   board.UnsafePlaceMove(am.value());
   move_finder_->subracks_.clear();
   move_finder_->CacheCrossesAndScores(board);
+  move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   /*
     ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯ

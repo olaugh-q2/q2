@@ -27,7 +27,7 @@ class StaticPlayer : public ComputerPlayer {
 
   StaticPlayer(int id, const AnagramMap& anagram_map, const BoardLayout& layout,
                const Tiles& tiles, const Leaves& leaves)
-      : ComputerPlayer("Static Player", "static", id) {
+      : ComputerPlayer("Static Player", "static", id), tiles_(tiles) {
     move_finder_ =
         absl::make_unique<MoveFinder>(anagram_map, layout, tiles, leaves);
     positions_with_crosses_computed_ = 0;
@@ -49,6 +49,7 @@ class StaticPlayer : public ComputerPlayer {
  private:
   std::unique_ptr<MoveFinder> move_finder_;
   int positions_with_crosses_computed_ = 0;
+  const Tiles& tiles_;
 };
 
 #endif  // SRC_SCRABBLE_STATIC_PLAYER_H

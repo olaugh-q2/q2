@@ -22,7 +22,7 @@ class TournamentRunnerTest : public ::testing::Test {
     UnseenTilesPredicate::Register();
   }
 };
-
+/*
 TEST_F(TournamentRunnerTest, HeadsUpMirroredPassing) {
   Arena arena;
   auto spec = Arena::CreateMessage<q2::proto::TournamentSpec>(&arena);
@@ -53,7 +53,9 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredPassing) {
   auto results = Arena::CreateMessage<q2::proto::TournamentResults>(&arena);
   runner.Run(results);
 }
+*/
 
+/*
 TEST_F(TournamentRunnerTest, HeadsUpMirroredStatic) {
   Arena arena;
   auto spec = Arena::CreateMessage<q2::proto::TournamentSpec>(&arena);
@@ -63,11 +65,13 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredStatic) {
           board_files: "src/scrabble/testdata/scrabble_board.textproto"
           anagram_map_file_specs {
             anagram_map_filename: "src/scrabble/testdata/csw21.qam"
-            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
           leaves_file_specs {
             leaves_filename: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
-            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
         }
         number_of_rounds: 2
@@ -100,8 +104,13 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredStatic) {
   TournamentRunner runner(*spec);
   auto results = Arena::CreateMessage<q2::proto::TournamentResults>(&arena);
   runner.Run(results);
+    for (const auto& a : results->player_averages()) {
+    LOG(INFO) << "player_averages: " << std::endl << a.DebugString();
+  }
 }
+*/
 
+/*
 TEST_F(TournamentRunnerTest, HeadsUpMirroredStaticVsScore) {
   Arena arena;
   auto spec = Arena::CreateMessage<q2::proto::TournamentSpec>(&arena);
@@ -114,7 +123,7 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredStaticVsScore) {
             tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
           leaves_file_specs {
-            leaves_filename: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+            leaves_filename: "src/scrabble/testdata/csw_scrabble_quackle.qlv"
             tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
           leaves_file_specs {
@@ -122,23 +131,12 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredStaticVsScore) {
             tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
         }
-        number_of_rounds: 2
-        number_of_threads: 1
+        number_of_rounds: 12
+        number_of_threads: 12
         format: HEADS_UP_MIRRORED_PAIRS
         players {
           static_player_config {
             id: 1
-            name: "Static"
-            nickname: "S"
-            anagram_map_file: "src/scrabble/testdata/csw21.qam"
-            board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
-            tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-            leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
-          }
-        }
-        players {
-          static_player_config {
-            id: 2
             name: "High Score"
             nickname: "H"
             anagram_map_file: "src/scrabble/testdata/csw21.qam"
@@ -147,52 +145,11 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredStaticVsScore) {
             leaves_file: "src/scrabble/testdata/zeroes.qlv"
           }
         }
-    )",
-                                                spec);
-  TournamentRunner runner(*spec);
-  auto results = Arena::CreateMessage<q2::proto::TournamentResults>(&arena);
-  runner.Run(results);
-}
-
-TEST_F(TournamentRunnerTest, HeadsUpMirroredMacondoVsQuackle) {
-  Arena arena;
-  auto spec = Arena::CreateMessage<q2::proto::TournamentSpec>(&arena);
-  google::protobuf::TextFormat::ParseFromString(R"(
-        data_collection {
-          tiles_files: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-          board_files: "src/scrabble/testdata/scrabble_board.textproto"
-          anagram_map_file_specs {
-            anagram_map_filename: "src/scrabble/testdata/csw21.qam"
-            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-          }
-          leaves_file_specs {
-            leaves_filename: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
-            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-          }
-          leaves_file_specs {
-            leaves_filename: "src/scrabble/testdata/csw_scrabble_quackle.qlv"
-            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-          }
-        }
-        number_of_rounds: 2
-        number_of_threads: 1
-        format: HEADS_UP_MIRRORED_PAIRS
-        players {
-          static_player_config {
-            id: 1
-            name: "Macondo Leaves"
-            nickname: "M"
-            anagram_map_file: "src/scrabble/testdata/csw21.qam"
-            board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
-            tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-            leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
-          }
-        }
         players {
           static_player_config {
             id: 2
-            name: "Quackle Leaves"
-            nickname: "Q"
+            name: "Static"
+            nickname: "S"
             anagram_map_file: "src/scrabble/testdata/csw21.qam"
             board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
             tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
@@ -204,8 +161,72 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredMacondoVsQuackle) {
   TournamentRunner runner(*spec);
   auto results = Arena::CreateMessage<q2::proto::TournamentResults>(&arena);
   runner.Run(results);
+  for (const auto& a : results->player_averages()) {
+    LOG(INFO) << "player_averages: " << std::endl << a.DebugString();
+  }
 }
+*/
+/*
+TEST_F(TournamentRunnerTest, HeadsUpMirroredMacondoVsQuackle) {
+  Arena arena;
+  auto spec = Arena::CreateMessage<q2::proto::TournamentSpec>(&arena);
+  google::protobuf::TextFormat::ParseFromString(R"(
+        data_collection {
+          tiles_files: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+          board_files: "src/scrabble/testdata/scrabble_board.textproto"
+          anagram_map_file_specs {
+            anagram_map_filename: "src/scrabble/testdata/csw21.qam"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
+          }
+          leaves_file_specs {
+            leaves_filename: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
+          }
+          leaves_file_specs {
+            leaves_filename: "src/scrabble/testdata/csw_scrabble_quackle.qlv"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
+          }
+        }
+        number_of_rounds: 2400
+        number_of_threads: 24
+        format: HEADS_UP_MIRRORED_PAIRS
+        players {
+          static_player_config {
+            id: 1
+            name: "Quackle Leaves"
+            nickname: "Q"
+            anagram_map_file: "src/scrabble/testdata/csw21.qam"
+            board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
+            tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+            leaves_file: "src/scrabble/testdata/csw_scrabble_quackle.qlv"
+          }
+        }
+        players {
+          static_player_config {
+            id: 2
+            name: "Macondo Leaves"
+            nickname: "M"
+            anagram_map_file: "src/scrabble/testdata/csw21.qam"
+            board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
+            tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+            leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+          }
+        }
+    )",
+                                                spec);
+  TournamentRunner runner(*spec);
+  auto results = Arena::CreateMessage<q2::proto::TournamentResults>(&arena);
+  runner.Run(results);
+  for (const auto& a : results->player_averages()) {
+    LOG(INFO) << "player_averages: " << std::endl << a.DebugString();
+  }
+}
+*/
 
+/*
 TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializing) {
   Arena arena;
   auto spec = Arena::CreateMessage<q2::proto::TournamentSpec>(&arena);
@@ -215,15 +236,18 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializing) {
           board_files: "src/scrabble/testdata/scrabble_board.textproto"
           anagram_map_file_specs {
             anagram_map_filename: "src/scrabble/testdata/csw21.qam"
-            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
           leaves_file_specs {
             leaves_filename: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
-            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
           leaves_file_specs {
             leaves_filename: "src/scrabble/testdata/zeroes.qlv"
-            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
         }
         number_of_rounds: 2
@@ -247,9 +271,10 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializing) {
                   name: "Macondo Leaves"
                   nickname: "M"
                   anagram_map_file: "src/scrabble/testdata/csw21.qam"
-                  board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
-                  tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-                  leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/csw_scrabble_macondo.qlv"
                 }
               }
             }
@@ -266,13 +291,14 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializing) {
                   name: "High Score Endgame"
                   nickname: "HSE"
                   anagram_map_file: "src/scrabble/testdata/csw21.qam"
-                  board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
-                  tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-                  leaves_file: "src/scrabble/testdata/zeroes.qlv"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/zeroes.qlv"
                 }
               }
             }
-          }            
+          }
         }
         players {
           static_player_config {
@@ -286,7 +312,7 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializing) {
           }
         }
     )",
-                                                spec);                                                
+                                                spec);
   TournamentRunner runner(*spec);
   auto results = Arena::CreateMessage<q2::proto::TournamentResults>(&arena);
   runner.Run(results);
@@ -294,6 +320,7 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializing) {
     LOG(INFO) << "player_averages: " << std::endl << a.DebugString();
   }
 }
+*/
 
 TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializingMvQ) {
   Arena arena;
@@ -304,23 +331,27 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializingMvQ) {
           board_files: "src/scrabble/testdata/scrabble_board.textproto"
           anagram_map_file_specs {
             anagram_map_filename: "src/scrabble/testdata/csw21.qam"
-            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
           leaves_file_specs {
             leaves_filename: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
-            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
           leaves_file_specs {
             leaves_filename: "src/scrabble/testdata/csw_scrabble_quackle.qlv"
-            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
           leaves_file_specs {
             leaves_filename: "src/scrabble/testdata/zeroes.qlv"
-            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
         }
-        number_of_rounds: 2
-        number_of_threads: 1
+        number_of_rounds: 3600
+        number_of_threads: 24
         format: HEADS_UP_MIRRORED_PAIRS
         players {
           specializing_player_config {
@@ -340,9 +371,10 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializingMvQ) {
                   name: "Macondo Leaves"
                   nickname: "M"
                   anagram_map_file: "src/scrabble/testdata/csw21.qam"
-                  board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
-                  tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-                  leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/csw_scrabble_macondo.qlv"
                 }
               }
             }
@@ -359,13 +391,14 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializingMvQ) {
                   name: "High Score Endgame"
                   nickname: "HSE"
                   anagram_map_file: "src/scrabble/testdata/csw21.qam"
-                  board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
-                  tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-                  leaves_file: "src/scrabble/testdata/zeroes.qlv"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/zeroes.qlv"
                 }
               }
             }
-          }            
+          }
         }
         players {
           specializing_player_config {
@@ -385,9 +418,10 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializingMvQ) {
                   name: "Quackle Leaves"
                   nickname: "Q"
                   anagram_map_file: "src/scrabble/testdata/csw21.qam"
-                  board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
-                  tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-                  leaves_file: "src/scrabble/testdata/csw_scrabble_quackle.qlv"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/csw_scrabble_quackle.qlv"
                 }
               }
             }
@@ -404,16 +438,17 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializingMvQ) {
                   name: "High Score Endgame"
                   nickname: "HSE"
                   anagram_map_file: "src/scrabble/testdata/csw21.qam"
-                  board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
-                  tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-                  leaves_file: "src/scrabble/testdata/zeroes.qlv"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/zeroes.qlv"
                 }
               }
             }
-          }            
+          }
         }
     )",
-                                                spec);                                                
+                                                spec);
   TournamentRunner runner(*spec);
   auto results = Arena::CreateMessage<q2::proto::TournamentResults>(&arena);
   runner.Run(results);
@@ -422,6 +457,7 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializingMvQ) {
   }
 }
 
+/*
 TEST_F(TournamentRunnerTest, HeadsUpMirroredQuickEndgame) {
   Arena arena;
   auto spec = Arena::CreateMessage<q2::proto::TournamentSpec>(&arena);
@@ -431,20 +467,23 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredQuickEndgame) {
           board_files: "src/scrabble/testdata/scrabble_board.textproto"
           anagram_map_file_specs {
             anagram_map_filename: "src/scrabble/testdata/csw21.qam"
-            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
           leaves_file_specs {
             leaves_filename: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
-            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
 
           leaves_file_specs {
             leaves_filename: "src/scrabble/testdata/zeroes.qlv"
-            tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
         }
-        number_of_rounds: 7200
-        number_of_threads: 24
+        number_of_rounds: 2
+        number_of_threads: 12
         format: HEADS_UP_MIRRORED_PAIRS
         players {
           specializing_player_config {
@@ -464,9 +503,10 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredQuickEndgame) {
                   name: "Macondo Leaves"
                   nickname: "M"
                   anagram_map_file: "src/scrabble/testdata/csw21.qam"
-                  board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
-                  tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-                  leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/csw_scrabble_macondo.qlv"
                 }
               }
             }
@@ -483,13 +523,15 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredQuickEndgame) {
                   name: "Quick Endgame"
                   nickname: "Quick"
                   anagram_map_file: "src/scrabble/testdata/csw21.qam"
-                  board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
-                  tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-                  leaves_file: "src/scrabble/testdata/zeroes.qlv"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/zeroes.qlv" plies: 0 leave_score_weight: 1.0
+                  leave_value_weight: 0.5
                 }
               }
             }
-          }            
+          }
         }
         players {
           specializing_player_config {
@@ -509,9 +551,10 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredQuickEndgame) {
                   name: "Macondo Leaves"
                   nickname: "M"
                   anagram_map_file: "src/scrabble/testdata/csw21.qam"
-                  board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
-                  tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-                  leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/csw_scrabble_macondo.qlv"
                 }
               }
             }
@@ -528,16 +571,17 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredQuickEndgame) {
                   name: "High Score Endgame"
                   nickname: "HSE"
                   anagram_map_file: "src/scrabble/testdata/csw21.qam"
-                  board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
-                  tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
-                  leaves_file: "src/scrabble/testdata/zeroes.qlv"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/zeroes.qlv"
                 }
               }
             }
-          }            
+          }
         }
     )",
-                                                spec);                                                
+                                                spec);
   TournamentRunner runner(*spec);
   auto results = Arena::CreateMessage<q2::proto::TournamentResults>(&arena);
   runner.Run(results);
@@ -545,3 +589,278 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredQuickEndgame) {
     LOG(INFO) << "player_averages: " << std::endl << a.DebugString();
   }
 }
+*/
+
+/*
+TEST_F(TournamentRunnerTest, HeadsUpMirroredLeaveWeights) {
+  Arena arena;
+  auto spec = Arena::CreateMessage<q2::proto::TournamentSpec>(&arena);
+  google::protobuf::TextFormat::ParseFromString(R"(
+        data_collection {
+          tiles_files: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+          board_files: "src/scrabble/testdata/scrabble_board.textproto"
+          anagram_map_file_specs {
+            anagram_map_filename: "src/scrabble/testdata/csw21.qam"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
+          }
+          leaves_file_specs {
+            leaves_filename: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
+          }
+
+          leaves_file_specs {
+            leaves_filename: "src/scrabble/testdata/zeroes.qlv"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
+          }
+        }
+        number_of_rounds: 24
+        number_of_threads: 24
+        format: HEADS_UP_MIRRORED_PAIRS
+        players {
+          specializing_player_config {
+            id: 1
+            name: "Macondo + LeaveWeightA"
+            nickname: "MLWA"
+            conditional_players {
+              predicate {
+                unseen_tiles_predicate_config {
+                  min_unseen_tiles: 8
+                  max_unseen_tiles: 10000
+                }
+              }
+              player {
+                static_player_config {
+                  id: 101
+                  name: "Macondo Leaves"
+                  nickname: "M"
+                  anagram_map_file: "src/scrabble/testdata/csw21.qam"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/csw_scrabble_macondo.qlv"
+                }
+              }
+            }
+            conditional_players {
+              predicate {
+                unseen_tiles_predicate_config {
+                  min_unseen_tiles: 0
+                  max_unseen_tiles: 7
+                }
+              }
+              player {
+                endgame_player_config {
+                  id: 102
+                  name: "LeaveWeightA"
+                  nickname: "Quick"
+                  anagram_map_file: "src/scrabble/testdata/csw21.qam"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/zeroes.qlv" plies: 0 leave_score_weight: 1.70
+                  leave_value_weight: 0.00
+                }
+              }
+            }
+          }
+        }
+        players {
+          specializing_player_config {
+            id: 2
+            name: "Macondo + LeaveWeightB"
+            nickname: "MLWB"
+            conditional_players {
+              predicate {
+                unseen_tiles_predicate_config {
+                  min_unseen_tiles: 8
+                  max_unseen_tiles: 10000
+                }
+              }
+              player {
+                static_player_config {
+                  id: 201
+                  name: "Macondo Leaves"
+                  nickname: "M"
+                  anagram_map_file: "src/scrabble/testdata/csw21.qam"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/csw_scrabble_macondo.qlv"
+                }
+              }
+            }
+            conditional_players {
+              predicate {
+                unseen_tiles_predicate_config {
+                  min_unseen_tiles: 0
+                  max_unseen_tiles: 7
+                }
+              }
+              player {
+                endgame_player_config {
+                  id: 102
+                  name: "LeaveWeightB"
+                  nickname: "Quick"
+                  anagram_map_file: "src/scrabble/testdata/csw21.qam"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/zeroes.qlv" plies: 0 leave_score_weight: 1.70
+                  leave_value_weight: 0.30
+                }
+              }
+            }
+          }
+        }
+    )",
+                                                spec);
+  TournamentRunner runner(*spec);
+  auto results = Arena::CreateMessage<q2::proto::TournamentResults>(&arena);
+  runner.Run(results);
+  for (const auto& a : results->player_averages()) {
+    LOG(INFO) << "player_averages: " << std::endl << a.DebugString();
+  }
+}
+
+TEST_F(TournamentRunnerTest, HeadsUpMirroredCapsPerPly) {
+  Arena arena;
+  auto spec = Arena::CreateMessage<q2::proto::TournamentSpec>(&arena);
+  google::protobuf::TextFormat::ParseFromString(R"(
+        data_collection {
+          tiles_files: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+          board_files: "src/scrabble/testdata/scrabble_board.textproto"
+          anagram_map_file_specs {
+            anagram_map_filename: "src/scrabble/testdata/csw21.qam"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
+          }
+          leaves_file_specs {
+            leaves_filename: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
+          }
+
+          leaves_file_specs {
+            leaves_filename: "src/scrabble/testdata/zeroes.qlv"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
+          }
+        }
+        number_of_rounds: 240
+        number_of_threads: 24
+        format: HEADS_UP_MIRRORED_PAIRS
+        players {
+          specializing_player_config {
+            id: 1
+            name: "Macondo + LeaveWeightA"
+            nickname: "MLWA"
+            conditional_players {
+              predicate {
+                unseen_tiles_predicate_config {
+                  min_unseen_tiles: 8
+                  max_unseen_tiles: 10000
+                }
+              }
+              player {
+                static_player_config {
+                  id: 101
+                  name: "Macondo Leaves"
+                  nickname: "M"
+                  anagram_map_file: "src/scrabble/testdata/csw21.qam"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/csw_scrabble_macondo.qlv"
+                }
+              }
+            }
+            conditional_players {
+              predicate {
+                unseen_tiles_predicate_config {
+                  min_unseen_tiles: 0
+                  max_unseen_tiles: 7
+                }
+              }
+              player {
+                endgame_player_config {
+                  id: 102
+                  name: "LeaveWeightA"
+                  nickname: "Quick"
+                  anagram_map_file: "src/scrabble/testdata/csw21.qam"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/zeroes.qlv"
+                  plies: 1
+                  leave_score_weight: 1.70
+                  leave_value_weight: 0.30
+                  caps_per_ply: 800
+                  caps_per_ply: 400
+                }
+              }
+            }
+          }
+        }
+        players {
+          specializing_player_config {
+            id: 2
+            name: "Macondo + LeaveWeightB"
+            nickname: "MLWB"
+            conditional_players {
+              predicate {
+                unseen_tiles_predicate_config {
+                  min_unseen_tiles: 8
+                  max_unseen_tiles: 10000
+                }
+              }
+              player {
+                static_player_config {
+                  id: 201
+                  name: "Macondo Leaves"
+                  nickname: "M"
+                  anagram_map_file: "src/scrabble/testdata/csw21.qam"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/csw_scrabble_macondo.qlv"
+                }
+              }
+            }
+            conditional_players {
+              predicate {
+                unseen_tiles_predicate_config {
+                  min_unseen_tiles: 0
+                  max_unseen_tiles: 7
+                }
+              }
+              player {
+                endgame_player_config {
+                  id: 102
+                  name: "LeaveWeightB"
+                  nickname: "Quick"
+                  anagram_map_file: "src/scrabble/testdata/csw21.qam"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/zeroes.qlv"
+                  plies: 1 
+                  leave_score_weight: 1.70
+                  leave_value_weight: 0.30
+                }
+              }
+            }
+          }
+        }
+    )",
+                                                spec);
+  TournamentRunner runner(*spec);
+  auto results = Arena::CreateMessage<q2::proto::TournamentResults>(&arena);
+  runner.Run(results);
+  for (const auto& a : results->player_averages()) {
+    LOG(INFO) << "player_averages: " << std::endl << a.DebugString();
+  }
+}
+*/

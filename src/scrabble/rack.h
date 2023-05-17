@@ -28,7 +28,7 @@ class Rack {
   }
 
   void RemoveTiles(const LetterString& letters, const Tiles& tiles);
-
+  bool SafeRemoveTiles(const LetterString& letters, const Tiles& tiles);
   void Clear() { letters_.clear(); }
 
  private:

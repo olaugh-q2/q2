@@ -194,12 +194,6 @@ void Move::WriteProto(const Tiles& tiles, q2::proto::Move* proto) const {
   std::stringstream ss;
   Display(tiles, ss);
   proto->set_as_string(ss.str());
-  /*
-  const std::vector<std::string> cross_words = CrossWords(board, tiles);
-  for (const auto& word : cross_words) {
-    proto->add_words(word);
-  }
-  */
 }
 
 bool Move::IsSubsetOf(const Tiles& tiles, std::array<int, 32>* rack_counts,

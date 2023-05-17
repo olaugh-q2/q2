@@ -50,7 +50,6 @@ class EndgamePlayerTest : public ::testing::Test {
   }
 };
 
-/*
 TEST_F(EndgamePlayerTest, Ming) {
   Arena arena;
   auto config = Arena::CreateMessage<q2::proto::EndgamePlayerConfig>(&arena);
@@ -62,6 +61,11 @@ TEST_F(EndgamePlayerTest, Ming) {
         board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
         tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
         leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+        plies: 1
+        leave_score_weight: 1.7
+        leave_value_weight: 0.3
+        caps_per_ply: 300
+        caps_per_ply: 300
         )",
                                                 config);
   auto player = absl::make_unique<EndgamePlayer>(*config);
@@ -110,9 +114,7 @@ TEST_F(EndgamePlayerTest, Ming) {
   const auto move = computer_player->ChooseBestMove(nullptr, *pos);
   ExpectMove(move, "12L MING (score = 26)");
 }
-*/
 
-/*
 TEST_F(EndgamePlayerTest, Alkyd) {
   Arena arena;
   auto config = Arena::CreateMessage<q2::proto::EndgamePlayerConfig>(&arena);
@@ -124,6 +126,11 @@ TEST_F(EndgamePlayerTest, Alkyd) {
         board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
         tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
         leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+        plies: 1
+        leave_score_weight: 1.7
+        leave_value_weight: 0.3   
+        caps_per_ply: 300
+        caps_per_ply: 300
         )",
                                                 config);
   auto player = absl::make_unique<EndgamePlayer>(*config);
@@ -171,7 +178,6 @@ TEST_F(EndgamePlayerTest, Alkyd) {
   const auto move = computer_player->ChooseBestMove(nullptr, *pos);
   ExpectMove(move, "11B AL..D (score = 13)");
 }
-*/
 
 TEST_F(EndgamePlayerTest, ViceOrVirge) {
   Arena arena;
@@ -184,6 +190,11 @@ TEST_F(EndgamePlayerTest, ViceOrVirge) {
         board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
         tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
         leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+        plies: 1
+        leave_score_weight: 1.7
+        leave_value_weight: 0.3
+        caps_per_ply: 300
+        caps_per_ply: 300
         )",
                                                 config);
   auto player = absl::make_unique<EndgamePlayer>(*config);

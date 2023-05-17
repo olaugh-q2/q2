@@ -23,6 +23,7 @@ class Tiles {
   LetterString Unblank(const LetterString& s) const;
   uint64_t Prime(Letter letter) const;
   absl::uint128 ToProduct(const LetterString& s) const;
+  uint64_t ToProduct64(const LetterString& s) const;
   int Count(Letter letter) const;
   char32_t FullWidth(Letter letter) const {
     return fullwidth_symbols_[static_cast<int>(letter)];

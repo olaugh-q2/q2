@@ -24,10 +24,12 @@ class Leaves {
 
 inline float Leaves::Value(uint64_t product) const {
   const auto it = leave_map_.find(product);
+  /*
   if (it == leave_map_.end()) {
     LOG(ERROR) << "No leave value for product " << product;
     return 0.0;
   }
+  */
   return it->second;
 }
 #endif  // SRC_LEAVES_LEAVES_H

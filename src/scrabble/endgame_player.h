@@ -21,9 +21,9 @@ class EndgamePlayer : public ComputerPlayer {
     MoveWithDelta(const Move* move)
         : move_(move), score_(move->Score()), equity_(move->Equity()) {}
     const Move* GetMove() const { return move_; }
-    void Nullify() { move_ = nullptr; }
-    void SetScore(int score) { score_ = score; }
-    void SetEquity(float equity) { equity_ = equity; }
+    inline void Nullify() { move_ = nullptr; }
+    inline void SetScore(int score) { score_ = score; }
+    inline void SetEquity(float equity) { equity_ = equity; }
     int Score() const { return score_; }
     float Equity() const { return equity_; }
 
@@ -45,14 +45,17 @@ class EndgamePlayer : public ComputerPlayer {
 
   explicit EndgamePlayer(const q2::proto::EndgamePlayerConfig& config)
       : ComputerPlayer(config.name(), config.nickname(), config.id()),
-        tiles_(*DataManager::GetInstance()->GetTiles(config.tiles_file())) {
-    for (int i = 0; i < 2; i++) {
-      move_finders_.push_back(absl::make_unique<MoveFinder>(
-          *DataManager::GetInstance()->GetAnagramMap(config.anagram_map_file()),
-          *DataManager::GetInstance()->GetBoardLayout(
-              config.board_layout_file()),
-          tiles_,
-          *DataManager::GetInstance()->GetLeaves(config.leaves_file())));
+        tiles_(*DataManager::GetInstance()->GetTiles(config.tiles_file())),
+        leaves_(*(DataManager::GetInstance()->GetLeaves(config.leaves_file()))),
+        num_plies_(config.plies()),
+        leave_score_weight_(config.leave_score_weight()),
+        leave_value_weight_(config.leave_value_weight()) {
+    move_finder_ = absl::make_unique<MoveFinder>(
+        *DataManager::GetInstance()->GetAnagramMap(config.anagram_map_file()),
+        *DataManager::GetInstance()->GetBoardLayout(config.board_layout_file()),
+        tiles_, *DataManager::GetInstance()->GetLeaves(config.leaves_file()));
+    for (const auto& cap_per_ply : config.caps_per_ply()) {
+      caps_per_ply_.push_back(cap_per_ply);
     }
   }
 
@@ -65,8 +68,25 @@ class EndgamePlayer : public ComputerPlayer {
                             std::vector<MoveWithDelta> off_moves);
   float StaticEndgameEquity(const GamePosition& position,
                             const Move& move) const;
+  float EvaluateAllResponses(GamePosition pos, float equity_to_beat,
+                             const MoveWithDelta& move);
+  int CapAtPly(int ply) const {
+    if (caps_per_ply_.empty()) {
+      return 80000;
+    } else if (ply >= caps_per_ply_.size()) {
+      return caps_per_ply_.back();
+    } else {
+      return caps_per_ply_[ply];
+    }
+
+  }
   const Tiles& tiles_;
-  std::vector<std::unique_ptr<MoveFinder>> move_finders_;
+  const Leaves& leaves_;
+  std::unique_ptr<MoveFinder> move_finder_;
+  int num_plies_;
+  float leave_score_weight_;
+  float leave_value_weight_;
+  std::vector<int> caps_per_ply_;
 };
 
 #endif  // SRC_SCRABBLE_ENDGAME_PLAYER_H

@@ -12,47 +12,17 @@
 
 using ::google::protobuf::Arena;
 
-void TournamentRunner::RunGames(
-    const Tiles& tiles, const BoardLayout& board_layout, int thread_index,
-    int start_index, int num_pairs,
-    std::vector<std::unique_ptr<q2::proto::GameResult>>* results) const {
-  absl::BitGen gen;
-  std::vector<Player*> players;
-  for (int i = 0; i < 2; i++) {
-    auto& player = players_[thread_index * 2 + i];
-    players.push_back(player.get());
-  }
-  for (int i = 0; i < num_pairs; i++) {
-    Bag bag(tiles);
-    bag.Shuffle(gen);
-    std::vector<uint64_t> exchange_insertion_dividends;
-    for (int i = 0; i < 1000; ++i) {
-      exchange_insertion_dividends.push_back(absl::Uniform<uint64_t>(gen));
-    }
-    for (int j = 0; j < 2; j++) {
-      if (j == 1) {
-        std::reverse(players.begin(), players.end());
-      }
-      int game_number = start_index + i * 2 + j;
-      // LOG(INFO) << "Game " << game_number;
-      Game game(board_layout, players, tiles, absl::Minutes(25));
-      game.CreateInitialPosition(bag, exchange_insertion_dividends);
-      game.FinishWithComputerPlayers();
-      (*results)[game_number] = absl::make_unique<q2::proto::GameResult>();
-      game.WriteProto((*results)[game_number].get());
-    }
-  }
-}
-
 namespace {
 void DoGameStats(
-    const q2::proto::GameResult* game,
-    absl::flat_hash_map<int, std::unique_ptr<q2::proto::PlayerResults>>*
-        player_results) {
-  int p0 = game->player_ids(0);
-  int p1 = game->player_ids(1);
-  auto* r0 = (*player_results)[p0].get();
-  auto* r1 = (*player_results)[p1].get();
+    const q2::proto::GameResult* game, int thread_index, int pair_index,
+    std::vector<std::unique_ptr<q2::proto::PlayerResults>>* player_results) {
+  int i0 = thread_index * 2;
+  int i1 = thread_index * 2 + 1;
+  if (pair_index % 2 == 1) {
+    std::swap(i0, i1);
+  }
+  auto* r0 = (*player_results)[i0].get();
+  auto* r1 = (*player_results)[i1].get();
   r0->set_total_score(r0->total_score() + game->player_scores(0));
   r0->set_total_opponent_score(r0->total_opponent_score() +
                                game->player_scores(1));
@@ -83,19 +53,19 @@ void DoGameStats(
   r1->set_total_time_used_micros(r1->total_time_used_micros() +
                                  game->micros_used(1));
   r0->set_total_time_remaining_micros(r0->total_time_remaining_micros() +
-                                 game->micros_remaining(0));
+                                      game->micros_remaining(0));
   r1->set_total_time_remaining_micros(r1->total_time_remaining_micros() +
-                                 game->micros_remaining(1));
+                                      game->micros_remaining(1));
 }
 
 void DoPairStats(
     const q2::proto::GameResult* g0, const q2::proto::GameResult* g1,
-    absl::flat_hash_map<int, std::unique_ptr<q2::proto::PlayerResults>>*
-        player_results) {
-  int p0 = g0->player_ids(0);
-  int p1 = g0->player_ids(1);
-  auto* r0 = (*player_results)[p0].get();
-  auto* r1 = (*player_results)[p1].get();
+    int thread_index,
+    std::vector<std::unique_ptr<q2::proto::PlayerResults>>* player_results) {
+  int i0 = thread_index * 2;
+  int i1 = thread_index * 2 + 1;
+  auto* r0 = (*player_results)[i0].get();
+  auto* r1 = (*player_results)[i1].get();  
   int p0halves = 0;
   if (g0->player_scores(0) > g0->player_scores(1)) {
     p0halves += 2;
@@ -128,6 +98,14 @@ void DoPairStats(
   int p0diff = g0->player_scores(0) - g0->player_scores(1) +
                g1->player_scores(1) - g1->player_scores(0);
   if (p0diff != 0) {
+    /*
+    if (p0diff < -100) {
+      LOG(INFO) << "p0diff: " << p0diff << " g0: " << std::endl
+                << g0->DebugString() << std::endl
+                << "g1: " << std::endl
+                << g1->DebugString();
+    }
+    */
     r0->set_total_mirrored_difference(r0->total_mirrored_difference() + p0diff);
     r1->set_total_mirrored_difference(r1->total_mirrored_difference() - p0diff);
     r0->set_mirrored_with_difference(r0->mirrored_with_difference() + 1);
@@ -139,6 +117,49 @@ void DoPairStats(
       r1->mirrored_score_difference_sum_of_squares() + p0diff * p0diff);
 }
 }  // namespace
+
+void TournamentRunner::RunGames(
+    const Tiles& tiles, const BoardLayout& board_layout, int thread_index,
+    int start_index, int num_pairs,
+    std::vector<std::unique_ptr<q2::proto::PlayerResults>>* player_results)
+    const {
+  absl::BitGen gen;
+  std::vector<Player*> players;
+  for (int i = 0; i < 2; i++) {
+    auto& player = players_[thread_index * 2 + i];
+    players.push_back(player.get());
+  }
+  for (int i = 0; i < num_pairs; i++) {
+    // LOG(INFO) << "Running pair " << i << " on thread " << thread_index;
+    Bag bag(tiles);
+    bag.Shuffle(gen);
+    std::vector<uint64_t> exchange_insertion_dividends;
+    for (int i = 0; i < 1000; ++i) {
+      exchange_insertion_dividends.push_back(absl::Uniform<uint64_t>(gen));
+    }
+    std::vector<std::unique_ptr<q2::proto::GameResult>> results;
+    results.resize(2);
+    for (int j = 0; j < 2; j++) {
+      // LOG(INFO) << "i: " << i << " j: " << j;
+      Game game(board_layout, players, tiles, absl::Minutes(25));
+      game.CreateInitialPosition(bag, exchange_insertion_dividends);
+      game.FinishWithComputerPlayers();
+      results[j] = absl::make_unique<q2::proto::GameResult>();
+      game.WriteProto(results[j].get());
+      std::reverse(players.begin(), players.end());
+    }
+    DoGameStats(results[0].get(), thread_index, 0, player_results);
+    DoGameStats(results[1].get(), thread_index, 1, player_results);
+    DoPairStats(results[0].get(), results[1].get(), thread_index,
+                player_results);
+
+    if ((thread_index == 0) && (i % 100) == 0) {
+      int thousandths = (1000 * i) / num_pairs;
+      LOG(INFO) << "Progress: " << thousandths << "/1000";
+    }
+  }
+}
+
 void TournamentRunner::Run(q2::proto::TournamentResults* tournament_results) {
   LOG(INFO) << "Run()";
 
@@ -158,6 +179,9 @@ void TournamentRunner::Run(q2::proto::TournamentResults* tournament_results) {
   if (spec_.number_of_rounds() < 1) {
     LOG(FATAL) << "At least one thread required";
   }
+  Arena arena;
+  std::vector<std::unique_ptr<q2::proto::PlayerResults>> player_results;
+
   DataManager::GetInstance()->LoadData(data);
   for (int i = 0; i < spec_.number_of_threads(); ++i) {
     for (const auto& player_spec : spec_.players()) {
@@ -165,6 +189,10 @@ void TournamentRunner::Run(q2::proto::TournamentResults* tournament_results) {
       CHECK(player != nullptr);
       players_.push_back(std::move(player));
     }
+  }
+  player_results.reserve(players_.size());
+  for (int i = 0; i < players_.size(); i++) {
+    player_results.push_back(absl::make_unique<q2::proto::PlayerResults>());
   }
   const auto& board_layout =
       *DataManager::GetInstance()->GetBoardLayout(data.board_files(0));
@@ -186,46 +214,67 @@ void TournamentRunner::Run(q2::proto::TournamentResults* tournament_results) {
       start_index += remainder;
     }
     threads.emplace_back([this, &tiles, &board_layout, i, start_index,
-                          pairs_to_run, &results]() {
-      RunGames(tiles, board_layout, i, start_index * 2, pairs_to_run, &results);
+                          pairs_to_run, &player_results]() {
+      RunGames(tiles, board_layout, i, start_index * 2, pairs_to_run,
+               &player_results);
     });
   }
   // Wait for all threads to finish
   for (auto& thread : threads) {
     thread.join();
   }
-  // for (const auto& result : results) {
-  //   std::cout << result->DebugString() << std::endl;
-  // }
-  LOG(INFO) << "Got " << results.size() << " results";
-  Arena arena;
-  absl::flat_hash_map<int, std::unique_ptr<q2::proto::PlayerResults>>
-      player_results;
-  player_results.reserve(players_.size());
-  for (int i = 0; i < 2; i++) {
-    const int id = players_[i]->Id();
-    player_results.emplace(id, absl::make_unique<q2::proto::PlayerResults>());
-    player_results[id]->set_player_id(id);
-  }
 
-  for (int i = 0; i < results.size(); i += 2) {
-    auto* mirrored_game_result =
-        tournament_results->add_mirrored_game_results();
-    mirrored_game_result->add_mirrored_games()->CopyFrom(*results[i]);
-    mirrored_game_result->add_mirrored_games()->CopyFrom(*results[i + 1]);
-    DoGameStats(results[i].get(), &player_results);
-    DoGameStats(results[i + 1].get(), &player_results);
-    DoPairStats(results[i].get(), results[i + 1].get(), &player_results);
+  std::vector<std::unique_ptr<q2::proto::PlayerResults>> aggregated_results;
+  aggregated_results.resize(2);
+  for (int i = 0; i < 2; i++) {
+    aggregated_results[i] = absl::make_unique<q2::proto::PlayerResults>();
   }
-  for (const auto& player_result : player_results) {
-    LOG(INFO) << "player_result: " << player_result.second->DebugString();
+  for (int i = 0; i < player_results.size(); i++) {
+    //LOG(INFO) << "Player " << i
+    //          << " results: " << player_results[i]->DebugString();
+    int target_index = i % 2;
+    auto* p = aggregated_results[target_index].get();
+    p->set_player_id(1 + target_index);
+    p->set_games_started(p->games_started() + player_results[i]->games_started());
+    p->set_num_wins(p->num_wins() + player_results[i]->num_wins());
+    p->set_num_losses(p->num_losses() + player_results[i]->num_losses());
+    p->set_num_draws(p->num_draws() + player_results[i]->num_draws());
+    p->set_total_score(p->total_score() + player_results[i]->total_score());
+    p->set_total_opponent_score(p->total_opponent_score() +
+                                player_results[i]->total_opponent_score());
+    p->set_score_difference_sum_of_squares(
+        p->score_difference_sum_of_squares() +
+        player_results[i]->score_difference_sum_of_squares());
+    p->set_total_time_used_micros(p->total_time_used_micros() +
+                                  player_results[i]->total_time_used_micros());
+    p->set_total_time_remaining_micros(
+        p->total_time_remaining_micros() +
+        player_results[i]->total_time_remaining_micros());
+    p->set_total_mirrored_difference(
+        p->total_mirrored_difference() +
+        player_results[i]->total_mirrored_difference());
+    p->set_mirrored_sweeps(p->mirrored_sweeps() +
+                           player_results[i]->mirrored_sweeps());
+    p->set_mirrored_3quart(p->mirrored_3quart() +
+                           player_results[i]->mirrored_3quart());
+    p->set_mirrored_splits(p->mirrored_splits() +
+                           player_results[i]->mirrored_splits());
+    p->set_mirrored_1quart(p->mirrored_1quart() +
+                           player_results[i]->mirrored_1quart());
+    p->set_mirrored_sombreros(p->mirrored_sombreros() +
+                              player_results[i]->mirrored_sombreros());
+    p->set_mirrored_with_difference(
+        p->mirrored_with_difference() +
+        player_results[i]->mirrored_with_difference());
+    p->set_mirrored_score_difference_sum_of_squares(
+        p->mirrored_score_difference_sum_of_squares() +
+        player_results[i]->mirrored_score_difference_sum_of_squares());
   }
-  std::vector<std::unique_ptr<q2::proto::PlayerResults>> player_results_vec;
-  for (int i = 0; i < spec_.players_size(); ++i) {
-    player_results_vec.push_back(std::move(player_results[players_[i]->Id()]));
+  for (const auto& player_result : aggregated_results) {
+    LOG(INFO) << "player_result: " << player_result->DebugString();
   }
   std::vector<std::unique_ptr<q2::proto::PlayerAverages>> averages;
-  ComputeAverages(player_results_vec, &averages);
+  ComputeAverages(aggregated_results, &averages);
   for (const auto& average : averages) {
     tournament_results->add_player_averages()->CopyFrom(*average);
   }

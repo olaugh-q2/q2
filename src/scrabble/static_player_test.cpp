@@ -23,7 +23,7 @@ class StaticPlayerTest : public ::testing::Test {
         "src/scrabble/testdata/scrabble_board.textproto");
     LOG(INFO) << "board layout ok";
     leaves_ = Leaves::CreateFromBinaryFile(
-        *tiles_, "src/scrabble/testdata/csw_scrabble_macondo.qlv");
+        *tiles_, "src/scrabble/testdata/csw_scrabble_quackle.qlv");
   }
 
   void ExpectMove(const Move& move, const std::string& expected) {
@@ -46,6 +46,26 @@ TEST_F(StaticPlayerTest, ChooseBestMove) {
   Player* player_ptr = &player;
   auto* computer_player = static_cast<ComputerPlayer*>(player_ptr);
   //ComputerPlayer* computer_player = static_cast<ComputerPlayer*>(player_ptr);
-  const auto move = computer_player->ChooseBestMove(*pos);
+  std::vector<GamePosition> previous_positions;
+  const auto move = computer_player->ChooseBestMove(&previous_positions, *pos);
   ExpectMove(move, "8F GOULASH (score = 80)");
+}
+
+TEST_F(StaticPlayerTest, ChooseBestMoveWithLeave) {
+  StaticPlayer player(1, *anagram_map_, *layout_, *tiles_, *leaves_);
+  const Board board;
+  const Rack rack(tiles_->ToLetterString("COEOSNE").value());
+  auto pos = absl::make_unique<GamePosition>(
+      *layout_, board, 1, 2, rack, 0, 0, 0, absl::Minutes(25), 0, *tiles_);
+  // This is just figuring out for myself how the casting works with the virtual
+  // function ChooseBestMove which exists in ComputerPlayer (but not Player) and is
+  // overridden by StaticPlayer.      
+  Player* player_ptr = &player;
+  auto* computer_player = static_cast<ComputerPlayer*>(player_ptr);
+  //ComputerPlayer* computer_player = static_cast<ComputerPlayer*>(player_ptr);
+  std::vector<GamePosition> previous_positions;
+  const auto move = computer_player->ChooseBestMove(&previous_positions, *pos);
+  // COOEE beats the shorter plays here because unlike in Q1, there are no 
+  // heuristics for opening play defense.
+  ExpectMove(move, "8D COOEE (score = 20)");
 }

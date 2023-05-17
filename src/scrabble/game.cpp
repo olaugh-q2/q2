@@ -52,12 +52,12 @@ void Game::AddNextPosition(const Move& move, absl::Duration time_elapsed) {
   }
   CHECK_GE(racks_.size(), 2);
   Rack rack = racks_[racks_.size() - 2];
-  std::stringstream ss;
-  rack.Display(tiles_, ss);
+  //std::stringstream ss;
+  //rack.Display(tiles_, ss);
   // LOG(INFO) << "rack (before removal): " << ss.str();
   // LOG(INFO) << "rack.Size() = " << rack.NumTiles();
-  std::stringstream ss_move;
-  move.Display(tiles_, ss_move);
+  //std::stringstream ss_move;
+  //move.Display(tiles_, ss_move);
   // LOG(INFO) << "move: " << ss_move.str();
   LetterString move_tiles = move.Letters();
   for (auto& tile : move_tiles) {
@@ -76,19 +76,19 @@ void Game::AddNextPosition(const Move& move, absl::Duration time_elapsed) {
     move_tiles = move.Letters();
     rack.RemoveTiles(move_tiles, tiles_);
     // LOG(INFO) << "rack.Size() = " << rack.NumTiles();
-    std::stringstream ss1;
-    bag.Display(ss1);
+    //std::stringstream ss1;
+    //bag.Display(ss1);
     // LOG(INFO) << "bag (before completion): " << ss1.str();
     bag.CompleteRack(&rack);
-    std::stringstream ss2;
-    bag.Display(ss2);
+    //std::stringstream ss2;
+    //bag.Display(ss2);
     // LOG(INFO) << "bag (after completion): " << ss2.str();
     if (move.GetAction() == Move::Exchange) {
       bag.InsertTiles(move.Letters(), exchange_insertion_dividends_,
                       &exchange_dividend_index_);
     }
-    std::stringstream ss3;
-    bag.Display(ss3);
+    //std::stringstream ss3;
+    //bag.Display(ss3);
     // LOG(INFO) << "bag (after insertion): " << ss3.str();
 
     if (positions_.back().IsScorelessTurn()) {
@@ -152,7 +152,7 @@ void Game::Display(std::ostream& os) const {
 }
 
 void Game::AdjustGameEndScores() {
-  // LOG(INFO) << "AdjustGameEndScores()";
+  //LOG(INFO) << "AdjustGameEndScores()";
   //  Assumed that this is only called when the game is over.
   CHECK(positions_.back().IsGameOver());
   // This only makes sense for 2 player games.
@@ -168,7 +168,7 @@ void Game::AdjustGameEndScores() {
     // The "on-turn" player is the one stuck with letters. We commit a pass for
     // them and give their tiles for the bonus to the other player, who must
     // have played out.
-    const LetterString& letters = positions_.back().GetRack().Letters();
+    const LetterString letters = positions_.back().GetRack().Letters();
     const LetterString empty;
     Move pass(Move::Exchange, empty, 0);
     AddNextPosition(pass, absl::ZeroDuration());
