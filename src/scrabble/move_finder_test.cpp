@@ -157,7 +157,9 @@ TEST_F(MoveFinderTest, FindWords) {
   move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 7, 7, 7);
-  move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
+  spot.SetWordMultiplier(2);
+  const std::array<int, 7> tile_scores({4, 4, 4, 3, 1, 1, 1});
+  move_finder_->ComputeSpotMaxEquity(rack, tile_scores, board, &spot);
   const auto words =
       move_finder_->FindWords(rack, board, spot, MoveFinder::RecordAll, 0);
   ExpectMoves(words, {"8H VIVIFIC (score = 94)"});
@@ -172,7 +174,9 @@ TEST_F(MoveFinderTest, FindWords2) {
   move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 7, 6, 2);
-  move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
+  spot.SetWordMultiplier(2);
+  const std::array<int, 7> tile_scores({3, 1, 1, 1, 1, 1, 1});
+  move_finder_->ComputeSpotMaxEquity(rack, tile_scores, board, &spot);
   const auto words =
       move_finder_->FindWords(rack, board, spot, MoveFinder::RecordAll, 0);
   ExpectMoves(words,
@@ -189,7 +193,9 @@ TEST_F(MoveFinderTest, FindWords3) {
   move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 7, 5, 7);
-  move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
+  spot.SetWordMultiplier(2);
+  const std::array<int, 7> tile_scores({4, 4, 1, 1, 1, 1, 0});
+  move_finder_->ComputeSpotMaxEquity(rack, tile_scores, board, &spot);
   const auto words =
       move_finder_->FindWords(rack, board, spot, MoveFinder::RecordAll, 0);
   ExpectMoves(words, {"8F qUAVERY (score = 82)"});
@@ -204,7 +210,9 @@ TEST_F(MoveFinderTest, FindWords4) {
   move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 7, 1, 7);
-  move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
+  spot.SetWordMultiplier(2);
+  const std::array<int, 7> tile_scores({10, 1, 1, 1, 1, 0, 0});
+  move_finder_->ComputeSpotMaxEquity(rack, tile_scores, board, &spot);
   const auto words =
       move_finder_->FindWords(rack, board, spot, MoveFinder::RecordAll, 0);
   ExpectMoves(words, {"8B QInTaRS (score = 78)", "8B QueRIST (score = 78)",
@@ -293,7 +301,9 @@ TEST_F(MoveFinderTest, PlayThroughWithBlanks) {
   move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 7, 4, 7);
-  move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
+  spot.SetWordMultiplier(1);
+  const std::array<int, 7> tile_scores({1, 1, 1, 1, 1, 1, 0});
+  move_finder_->ComputeSpotMaxEquity(rack, tile_scores, board, &spot);
   const auto words =
       move_finder_->FindWords(rack, board, spot, MoveFinder::RecordAll, 0);
   ExpectMoves(words,
@@ -373,7 +383,9 @@ TEST_F(MoveFinderTest, SevenTileOverlap) {
   move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 6, 6, 7);
-  move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
+  spot.SetWordMultiplier(1);
+  const std::array<int, 7> tile_scores({4, 1, 1, 1, 1, 1, 0});
+  move_finder_->ComputeSpotMaxEquity(rack, tile_scores, board, &spot);
   const auto words =
       move_finder_->FindWords(rack, board, spot, MoveFinder::RecordAll, 0);
   ExpectMoves(words, {"7G tHEATER (score = 80)", "7G THEAtER (score = 82)"});
@@ -390,7 +402,8 @@ TEST_F(MoveFinderTest, NonHooks) {
   move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 6, 6, 3);
-  move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
+  const std::array<int, 7> tile_scores({10, 0, 0});
+  move_finder_->ComputeSpotMaxEquity(rack, tile_scores, board, &spot);
   const auto words =
       move_finder_->FindWords(rack, board, spot, MoveFinder::RecordAll, 0);
   ExpectMoves(words, {});
@@ -408,7 +421,9 @@ TEST_F(MoveFinderTest, FrontExtension) {
   move_finder_->CacheSubsets(rack);
   move_finder_->CacheRackPartitions(rack);
   MoveFinder::Spot spot(Move::Across, 7, 0, 7);
-  move_finder_->ComputeSpotMaxEquity(rack, board, &spot);
+  spot.SetWordMultiplier(3);
+  const std::array<int, 7> tile_scores({1, 1, 1, 1, 1, 0, 0});
+  move_finder_->ComputeSpotMaxEquity(rack, tile_scores, board, &spot);
   const auto words =
       move_finder_->FindWords(rack, board, spot, MoveFinder::RecordAll, 0);
   ExpectMoves(words, {"8A coUNTER....... (score = 101)"});
@@ -873,7 +888,7 @@ TEST_F(MoveFinderTest, RepeatedlyPlay1) {
   std::stringstream ss;
   board_layout_->DisplayBoard(board, *tiles_, ss);
   LOG(INFO) << std::endl << ss.str();
-  EXPECT_EQ(moves_played, 42);
+  EXPECT_EQ(moves_played, 46);
 }
 
 TEST_F(MoveFinderTest, RepeatedlyPlay2) {

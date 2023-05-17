@@ -12,10 +12,10 @@ class Board {
  public:
   Board();
   LetterString Row(int row_index) const;
-  Letter At(int row, int col) const { return rows_[row][col]; }
+  inline Letter At(int row, int col) const { return rows_[row][col]; }
   void UnsafePlaceMove(const Move& move);
   void UnsafeUndoMove(const Move& move);
-  bool IsEmpty() const { return is_empty_; }
+  inline bool IsEmpty() const { return is_empty_; }
 
   LetterString MainWord(const Move& move, const Tiles& tiles) const;
   absl::optional<LetterString> CrossAt(const Move& move, const Tiles& tiles,

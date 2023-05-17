@@ -39,31 +39,33 @@ class MoveFinder {
           required_letters_(0),
           impossible_letters_(0) {}
 
-    void SetWordMultiplier(int word_multiplier) {
+    uint16_t ThroughScore() const { return through_score_; }
+    void SetThroughScore(int through_score) { through_score_ = through_score; }
+    inline void SetWordMultiplier(int word_multiplier) {
       word_multiplier_ = word_multiplier;
     }
-    void SetExtraScore(int extra_score) { extra_score_ = extra_score; }
-    void SetMaxScore(int max_score) { max_score_ = max_score; }
-    void SetMaxEquity(float max_equity) { max_equity_ = max_equity; }
-    Move::Dir Direction() const { return direction_; }
-    uint8_t StartRow() const { return start_row_; }
-    uint8_t StartCol() const { return start_col_; }
-    uint8_t NumTiles() const { return num_tiles_; }
-    uint8_t WordMultiplier() const { return word_multiplier_; }
-    int16_t ExtraScore() const { return extra_score_; }
-    int16_t MaxScore() const { return max_score_; }
-    float MaxEquity() const { return max_equity_; }
+    inline void SetExtraScore(int extra_score) { extra_score_ = extra_score; }
+    inline void SetMaxScore(int max_score) { max_score_ = max_score; }
+    inline void SetMaxEquity(float max_equity) { max_equity_ = max_equity; }
+    inline Move::Dir Direction() const { return direction_; }
+    inline uint8_t StartRow() const { return start_row_; }
+    inline uint8_t StartCol() const { return start_col_; }
+    inline uint8_t NumTiles() const { return num_tiles_; }
+    inline uint8_t WordMultiplier() const { return word_multiplier_; }
+    inline uint16_t ExtraScore() const { return extra_score_; }
+    inline uint16_t MaxScore() const { return max_score_; }
+    inline float MaxEquity() const { return max_equity_; }
 
-    void SetMinimumBlanks(uint8_t minimum_blanks) {
+    inline void SetMinimumBlanks(uint8_t minimum_blanks) {
       minimum_blanks_ = minimum_blanks;
     }
-    void SetRequiredLetters(uint32_t required_letters) {
+    inline void SetRequiredLetters(uint32_t required_letters) {
       required_letters_ = required_letters;
     }
-    void SetImpossibleLetters(uint32_t impossible_letters) {
+    inline void SetImpossibleLetters(uint32_t impossible_letters) {
       impossible_letters_ = impossible_letters;
     }
-    bool CompatibleWith(uint32_t letters, uint8_t num_blanks) const {
+    inline bool CompatibleWith(uint32_t letters, uint8_t num_blanks) const {
       /*
       std::string letter_string;
       std::string impossible_letters;
@@ -111,10 +113,12 @@ class MoveFinder {
     uint8_t word_multiplier_;
 
     // extra_score = through score + hook sum + bingo bonus
-    int16_t extra_score_;
+    uint16_t extra_score_;
 
     // highest score, leave not added on
-    int16_t max_score_;
+    uint16_t max_score_;
+
+    uint16_t through_score_;
 
     // For now this is the highest score in this spot + the best leave, even if
     // they aren't compatible.
@@ -233,9 +237,10 @@ class MoveFinder {
   FRIEND_TEST(MoveFinderTest, WordScore);
   FRIEND_TEST(MoveFinderTest, CacheCrossesAndScores);
 
-  void ComputeEmptyBoardSpotMaxEquity(const Rack& rack,
-                                      Spot* spot);
-  void ComputeSpotMaxEquity(const Rack& rack, const Board& board, Spot* spot);
+  void ComputeEmptyBoardSpotMaxEquity(const Rack& rack, Spot* spot);
+  void ComputeSpotMaxEquity(const Rack& rack,
+                            const std::array<int, 7>& sorted_tile_scores,
+                            const Board& board, Spot* spot);
 
   void FindSpots(int rack_tiles, const Board& board, Move::Dir direction,
                  std::vector<MoveFinder::Spot>* spots);
@@ -283,8 +288,8 @@ class MoveFinder {
 
   int EmptyBoardSpotMaxScore(const LetterString& letters,
                              const Spot& spot) const;
-  int SpotMaxScore(const LetterString& letters, const Board& board,
-                   const Spot& spot) const;
+  int SpotMaxScore(const std::array<int, 7>& sorted_tile_scores,
+                   const Board& board, const Spot& spot) const;
 
   bool HasWord(RackPartition* partition) const {
     // LOG(INFO) << "HasWord: " << partition->UsedProduct() << " "
@@ -346,6 +351,7 @@ class MoveFinder {
   uint32_t rack_bits_;
   uint32_t unique_rack_letter_bits_;
   int num_blanks_;
+  std::vector<const Spot*> spot_ptrs_;
 };
 
 inline bool operator==(const MoveFinder::Spot& a, const MoveFinder::Spot& b) {
