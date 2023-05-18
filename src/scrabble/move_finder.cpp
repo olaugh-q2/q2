@@ -1,5 +1,6 @@
 #include "src/scrabble/move_finder.h"
 
+#include <queue>
 #include <range/v3/all.hpp>
 
 #include "absl/numeric/bits.h"
@@ -1238,30 +1239,25 @@ void MoveFinder::ComputeSpotMaxEquity(
   spot->SetMaxEquity(max_word_score + extra_score + best_leave);
 }
 
-std::vector<MoveFinder::Spot> MoveFinder::FindSpots(const Rack& rack,
-                                                    const Board& board) {
-  // LOG(INFO) << "FindSpots(...)";
-  std::vector<MoveFinder::Spot> spots;
+void MoveFinder::FindSpots(const Rack& rack, const Board& board,
+                           std::vector<Spot>* spots) {
   if (board.IsEmpty()) {
-    // LOG(INFO) << "Empty board";
-    spots.reserve(7 * 7 + 6 * 6 + 5 * 5 + 4 * 4 + 3 * 3 + 2 * 2);
     for (int num_tiles = 2; num_tiles <= rack.NumTiles(); num_tiles++) {
+      if (!rack_word_of_length_[num_tiles]) {
+        continue;
+      }
       for (int start_col = 7 + 1 - num_tiles; start_col <= 7; start_col++) {
-        if (!rack_word_of_length_[num_tiles]) {
-          continue;
-        }
         Spot spot(Move::Across, 7, start_col, num_tiles);
         ComputeEmptyBoardSpotMaxEquity(rack, &spot);
-        spots.emplace_back(spot);
+        spots->emplace_back(spot);
       }
     }
-    return spots;
-  } else {
-    spots.reserve(1000);
-    SetRackBits(rack);
-    FindSpots(rack.NumTiles(), board, Move::Across, &spots);
-    FindSpots(rack.NumTiles(), board, Move::Down, &spots);
+    return;
   }
+
+  SetRackBits(rack);
+  FindSpots(rack.NumTiles(), board, Move::Across, spots);
+  FindSpots(rack.NumTiles(), board, Move::Down, spots);
 
   std::array<int, 7> tile_scores{0};
   const auto& letters = rack.Letters();
@@ -1270,9 +1266,15 @@ std::vector<MoveFinder::Spot> MoveFinder::FindSpots(const Rack& rack,
     tile_scores[i] = score;
   }
   std::sort(tile_scores.begin(), tile_scores.end(), std::greater<int>());
-  for (auto& spot : spots) {
+  for (auto& spot : *spots) {
     ComputeSpotMaxEquity(rack, tile_scores, board, &spot);
   }
+}
+
+std::vector<MoveFinder::Spot> MoveFinder::FindSpots(const Rack& rack,
+                                                    const Board& board) {
+  std::vector<MoveFinder::Spot> spots;
+  FindSpots(rack, board, &spots);
   return spots;
 }
 
@@ -1315,45 +1317,59 @@ void MoveFinder::FindMoves(const Rack& rack, const Board& board, const Bag& bag,
       moves_.insert(moves_.end(), exchanges.begin(), exchanges.end());
     }
   }
-  std::vector<MoveFinder::Spot> spots = FindSpots(rack, board);
-  // LOG(INFO) << "spots.size(): " << spots.size() << ", sorting...";
+  spots_.clear();
+  FindSpots(rack, board, &spots_);
   if (record_mode == MoveFinder::RecordBest) {
     spot_ptrs_.clear();
     float best_equity = moves_[0].Equity();
-    for (auto& spot : spots) {
-      if (spot.MaxEquity() < best_equity) {
-        continue;
+    for (auto& spot : spots_) {
+      if (spot.MaxEquity() > best_equity + 1e-5) {
+        spot_ptrs_.push_back(&spot);
       }
-      spot_ptrs_.push_back(&spot);
     }
     std::sort(spot_ptrs_.begin(), spot_ptrs_.end(),
-                     [](const Spot* a, const Spot* b) {
-                       return a->MaxEquity() > b->MaxEquity();
-                     });
-    int spots_checked = 0;
-
-    for (const Spot* spot : spot_ptrs_) {
-      if (spot->MaxEquity() < best_equity + 1e-5) {
-        // LOG(INFO) << "Checked " << spots_checked << " out of " <<
-        // spots.size()
-        //           << " spots.";
+              [](const Spot* a, const Spot* b) {
+                return a->MaxEquity() > b->MaxEquity();
+              });
+    for (const auto* spot : spot_ptrs_) {
+      if (spot->MaxEquity() + 1e-5 < best_equity) {
         break;
       }
-      spots_checked++;
-
-      // LOG(INFO) << "spot: " << spot.Direction() << ", " << spot.StartRow() <<
-      // ", "
-      //           << spot.StartCol() << ", " << spot.NumTiles();
       FindWords(rack, board, *spot, record_mode, best_equity, &moves_);
       best_equity = moves_[0].Equity();
     }
+    /*
+    auto spot_comparer = [](const Spot* a, const Spot* b) {
+      return a->MaxEquity() < b->MaxEquity();  // Note the inverted comparison
+    };
+
+    std::priority_queue<const Spot*, std::vector<const Spot*>,
+                        decltype(spot_comparer)>
+        spot_queue(spot_ptrs_.begin(), spot_ptrs_.end(), spot_comparer);
+
+    for (auto& spot : spots_) {
+      if (spot.MaxEquity() > best_equity + 1e-5) {
+        spot_queue.push(&spot);
+      }
+    }
+
+    while (!spot_queue.empty()) {
+      const Spot* spot = spot_queue.top();
+      spot_queue.pop();
+
+      if (spot->MaxEquity() < best_equity + 1e-5) {
+        break;
+      }
+
+      FindWords(rack, board, *spot, record_mode, best_equity, &moves_);
+      best_equity = moves_[0].Equity();
+    }
+    */
   } else {
-    // LOG(INFO) << "sorted spots";
-    for (const MoveFinder::Spot& spot : spots) {
+    for (const MoveFinder::Spot& spot : spots_) {
       FindWords(rack, board, spot, record_mode, 0.0, &moves_);
     }
   }
-  // LOG(INFO) << "Found " << moves_.size() << " moves.";
 }
 
 bool MoveFinder::IsBlocked(const Move& move, const Board& board) const {

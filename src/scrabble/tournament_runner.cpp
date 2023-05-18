@@ -204,6 +204,7 @@ void TournamentRunner::Run(q2::proto::TournamentResults* tournament_results) {
   std::vector<std::thread> threads;
   const int pairs_per_thread = number_of_pairs / spec_.number_of_threads();
   const int remainder = number_of_pairs % spec_.number_of_threads();
+  LOG(INFO) << "Starting games...";
   for (int i = 0; i < spec_.number_of_threads(); ++i) {
     int start_index = i * pairs_per_thread;
     int pairs_to_run = pairs_per_thread;
@@ -223,7 +224,7 @@ void TournamentRunner::Run(q2::proto::TournamentResults* tournament_results) {
   for (auto& thread : threads) {
     thread.join();
   }
-
+  LOG(INFO) << "Finished games!";
   std::vector<std::unique_ptr<q2::proto::PlayerResults>> aggregated_results;
   aggregated_results.resize(2);
   for (int i = 0; i < 2; i++) {

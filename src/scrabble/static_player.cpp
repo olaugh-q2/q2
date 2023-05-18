@@ -43,24 +43,24 @@ Move StaticPlayer::ChooseBestMove(
   std::stringstream ss;
   pos.Display(ss);
   LOG(INFO) << "pos: " << std::endl << ss.str();
-  LOG(INFO) << "number of moves: " << all_moves.size();
-  for (int i = 0; i < 10; ++i) {
-    if (i < all_moves.size()) {
-      std::stringstream ss;
-      all_moves[i].Display(tiles_, ss);
-      LOG(INFO) << "move: " << ss.str() << " " << all_moves[i].Equity();
-    }
-  }
   for (const auto& m : move_finder_->Moves()) {
     if (m.Equity() > move.Equity() + 1e-5) {
       std::stringstream ss;
       pos.Display(ss);
       LOG(INFO) << "pos: " << std::endl << ss.str();
+      LOG(INFO) << "number of moves: " << all_moves.size();
+      for (int i = 0; i < 10; ++i) {
+        if (i < all_moves.size()) {
+          std::stringstream ss;
+          all_moves[i].Display(tiles_, ss);
+          LOG(INFO) << "move: " << ss.str() << " " << all_moves[i].Equity();
+        }
+      }
       LOG(INFO) << "should have found move with equity " << m.Equity()
                 << " but found move with equity " << move.Equity();
     }
   }
-*/
+  */
   return move;
 }
 

@@ -245,6 +245,7 @@ class MoveFinder {
   void FindSpots(int rack_tiles, const Board& board, Move::Dir direction,
                  std::vector<MoveFinder::Spot>* spots);
 
+  void FindSpots(const Rack& rack, const Board& board, std::vector<Spot>* spots);
   std::vector<Spot> FindSpots(const Rack& rack, const Board& board);
 
   absl::uint128 AbsorbThroughTiles(const Board& board, Move::Dir direction,
@@ -351,6 +352,7 @@ class MoveFinder {
   uint32_t rack_bits_;
   uint32_t unique_rack_letter_bits_;
   int num_blanks_;
+  std::vector<Spot> spots_;
   std::vector<const Spot*> spot_ptrs_;
 };
 

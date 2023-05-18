@@ -39,13 +39,16 @@ int main(int argc, char* argv[]) {
   LOG(INFO) << "starting games... (" << num_games << ")";
   for (int i = 0; i < num_games; ++i) {
     Board board;
+    move_finder->ClearHookTables();
     for (int j = 0;; ++j) {
-      std::vector<Move> moves = move_finder->FindMoves(rack, board, *empty_bag,
-                                                       MoveFinder::RecordBest);
-      if (moves[0].Action() != Move::Place) {
+      move_finder->FindMoves(
+          rack, board, *empty_bag, MoveFinder::RecordBest, false);
+      const auto& moves = move_finder->Moves();
+      if (moves[0].GetAction() != Move::Place) {
         break;
       }
       board.UnsafePlaceMove(moves[0]);
+      move_finder->CacheCrossesAndScores(board, moves[0]);
       total_moves++;
     }
   }

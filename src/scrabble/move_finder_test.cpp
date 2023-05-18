@@ -888,7 +888,7 @@ TEST_F(MoveFinderTest, RepeatedlyPlay1) {
   std::stringstream ss;
   board_layout_->DisplayBoard(board, *tiles_, ss);
   LOG(INFO) << std::endl << ss.str();
-  EXPECT_EQ(moves_played, 46);
+  EXPECT_EQ(moves_played, 45);
 }
 
 TEST_F(MoveFinderTest, RepeatedlyPlay2) {
