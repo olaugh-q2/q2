@@ -372,6 +372,51 @@ cc_test(
 )
 
 cc_library(
+    name = "alpha_beta_player",
+    srcs = ["alpha_beta_player.cpp"],
+    hdrs = ["alpha_beta_player.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":board_layout",
+        ":component_factory",
+        ":computer_player",
+        ":computer_players_cc_proto",
+        ":data_manager",
+        ":move",
+        ":move_finder",
+        ":rack",
+        ":tiles",
+        "//src/anagram:anagram_map",
+        "//src/leaves",
+        "@com_google_absl//absl/memory",
+        "@glog",
+    ],
+)
+
+cc_test(
+    name = "alpha_beta_player_test",
+    srcs = ["alpha_beta_player_test.cpp"],
+    data = glob([
+        "testdata/*.qam",
+        "testdata/*.qlv",
+        "testdata/*.textproto",
+    ]),
+    deps = [
+        ":board",
+        ":board_layout",
+        ":computer_player",
+        ":alpha_beta_player",
+        ":move",
+        ":move_finder",
+        ":rack",
+        ":tiles",
+        "@com_google_absl//absl/memory",
+        "@com_google_googletest//:gtest_main",
+        "@glog",
+    ],
+)
+
+cc_library(
     name = "passing_player",
     srcs = ["passing_player.cpp"],
     hdrs = ["passing_player.h"],
@@ -630,6 +675,7 @@ cc_library(
         ":computer_player",
         ":computer_players_cc_proto",
         ":data_manager",
+        ":alpha_beta_player",
         ":endgame_player",
         ":game",
         ":passing_player",

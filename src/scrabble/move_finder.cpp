@@ -1406,3 +1406,33 @@ bool MoveFinder::IsBlocked(const Move& move, const Board& board) const {
   }
   return !CheckHooks(board, move);
 }
+
+void MoveFinder::SetEndgameEquities(const LetterString& rack,
+                                    const LetterString& opp_rack,
+                                    bool preceded_by_pass, const Tiles& tiles) {
+  const int opp_rack_score = tiles.Score(opp_rack);
+  const int rack_score = tiles.Score(rack);
+  const int rack_size = rack.size();
+  const int opp_rack_size = opp_rack.size();
+  float opp_deadwood_bonus = 2.0 * opp_rack_score;
+  for (auto& move : moves_) {
+    if (move.CachedNumTiles() == rack_size) {
+      move.SetEquity(move.Score() + opp_deadwood_bonus);
+    } else if ((move.GetAction() != Move::Place) && preceded_by_pass) {
+      move.SetEquity(move.Score() - rack_score + opp_rack_score);
+    } else {
+      const int leave_score = tiles.Score(move.Leave());
+      const float leave_value = move.LeaveValue();
+      const float leave_score_multiplier = -1.0 + (opp_rack_size - 3.5) * 0.2;
+      const float leave_value_multiplier = 0.04 * opp_rack_size;
+      move.SetEquity(move.Score() + leave_score_multiplier * leave_score +
+                     leave_value_multiplier * leave_value);
+    }
+  }
+}
+
+void MoveFinder::SortMoves() {
+  std::sort(moves_.begin(), moves_.end(), [](const Move& a, const Move& b) {
+    return a.Equity() > b.Equity();
+  });
+}

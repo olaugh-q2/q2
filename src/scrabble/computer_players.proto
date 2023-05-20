@@ -19,6 +19,7 @@ message ComputerPlayerConfig {
         StaticPlayerConfig static_player_config = 2;
         SpecializingPlayerConfig specializing_player_config = 3;
         EndgamePlayerConfig endgame_player_config = 4;
+        AlphaBetaPlayerConfig alpha_beta_player_config = 5;
     }
 }
 
@@ -51,6 +52,21 @@ message SpecializingPlayerConfig {
 }
 
 message EndgamePlayerConfig {
+    string name = 1;
+    string nickname = 2;
+    int32 id = 3;
+    string anagram_map_file = 4;
+    string board_layout_file = 5;
+    string tiles_file = 6;
+    string leaves_file = 7;
+
+    int32 plies = 8;
+    float leave_score_weight = 9;
+    float leave_value_weight = 10;
+    repeated int32 caps_per_ply = 11;
+}
+
+message AlphaBetaPlayerConfig {
     string name = 1;
     string nickname = 2;
     int32 id = 3;

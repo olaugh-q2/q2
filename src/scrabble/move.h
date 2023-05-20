@@ -13,7 +13,7 @@ class Move {
   enum Action { Exchange, Place, OppDeadwoodBonus, OwnDeadwoodPenalty };
   enum Dir { None, Across, Down };
 
-  Move() : action_(Move::Exchange) {}
+  Move() : action_(Move::Exchange), score_(0) {}
 
   ~Move() {}
 

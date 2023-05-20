@@ -211,6 +211,13 @@ class MoveFinder {
     }
   }
 
+
+  void SetEndgameEquities(const LetterString& rack,
+                          const LetterString& opp_rack, bool preceded_by_pass,
+                          const Tiles& tiles);
+
+  void SortMoves();
+
  private:
   FRIEND_TEST(MoveFinderTest, Blankify);
   FRIEND_TEST(MoveFinderTest, BlankifyAllBlanks);
@@ -245,7 +252,8 @@ class MoveFinder {
   void FindSpots(int rack_tiles, const Board& board, Move::Dir direction,
                  std::vector<MoveFinder::Spot>* spots);
 
-  void FindSpots(const Rack& rack, const Board& board, std::vector<Spot>* spots);
+  void FindSpots(const Rack& rack, const Board& board,
+                 std::vector<Spot>* spots);
   std::vector<Spot> FindSpots(const Rack& rack, const Board& board);
 
   absl::uint128 AbsorbThroughTiles(const Board& board, Move::Dir direction,
@@ -327,6 +335,7 @@ class MoveFinder {
                  std::vector<Move>* moves);
 
   void SetRackBits(const Rack& rack);
+
   const AnagramMap& anagram_map_;
   const BoardLayout& board_layout_;
   const Tiles& tiles_;

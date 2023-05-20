@@ -78,6 +78,9 @@ class GamePosition {
       known_opp_rack_.PushBack(letter);
     }
   }
+  void SetKnownOppRack(const Rack& rack) {
+    known_opp_rack_ = rack.Letters();
+  }
   void UnsafePlaceMove(const Move& move) {
     board_.UnsafePlaceMove(move);
   }

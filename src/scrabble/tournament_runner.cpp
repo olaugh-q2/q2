@@ -153,7 +153,7 @@ void TournamentRunner::RunGames(
     DoPairStats(results[0].get(), results[1].get(), thread_index,
                 player_results);
 
-    if ((thread_index == 0) && (i % 100) == 0) {
+    if ((thread_index == 0) && (i % 10) == 0) {
       int thousandths = (1000 * i) / num_pairs;
       LOG(INFO) << "Progress: " << thousandths << "/1000";
     }
