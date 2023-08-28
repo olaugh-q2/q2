@@ -199,6 +199,38 @@ class MoveFinder {
 
   bool IsBlocked(const Move& move, const Board& board) const;
 
+  inline bool StuckWithTile(int* score) {
+    auto rack_bits = rack_bits_;
+    if (num_blanks_ > 0) {
+      rack_bits |= (1 << tiles_.BlankIndex());
+    }
+    if (playable_bits_ == rack_bits) {
+      return false;
+    }
+    /*
+        LOG(INFO) << "playable_bits_ = " << playable_bits_ << " rack_bits = " <<
+       rack_bits; for (int i = 1; i <= tiles_.BlankIndex(); ++i) { if (rack_bits
+       & (1 << i)) { LOG(INFO) << "rack has letter " <<
+       tiles_.NumberToChar(i).value();
+          }
+        }
+        for (int i = 1; i <= tiles_.BlankIndex(); ++i) {
+          if (playable_bits_ & (1 << i)) {
+            LOG(INFO) << "moves have letter " << tiles_.NumberToChar(i).value();
+          }
+        }
+        */
+    *score = 0;
+    const uint32_t stuck_bits = rack_bits_ & ~playable_bits_;
+    for (int i = 1; i <= tiles_.BlankIndex(); ++i) {
+      if (stuck_bits & (1 << i)) {
+        // LOG(INFO) << "stuck with tile " << tiles_.NumberToChar(i).value();
+        *score += tiles_.Score(i);
+      }
+    }
+    return true;
+  }
+
   void ClearHookTables() {
     // LOG(INFO) << "clearing hook tables";
     for (int i = 0; i < 2; ++i) {
@@ -211,10 +243,13 @@ class MoveFinder {
     }
   }
 
-
-  void SetEndgameEquities(const LetterString& rack,
-                          const LetterString& opp_rack, bool preceded_by_pass,
-                          const Tiles& tiles);
+  void SetEndgameEquities(
+      const LetterString& rack, const LetterString& opp_rack,
+      bool opp_stuck_with_tile, int opp_stuck_score, bool preceded_by_pass,
+      float stuck_tiles_left_multiplier, float stuck_leave_score_multiplier,
+      float stuck_leave_value_multiplier, float opp_stuck_score_multiplier,
+      float unstuck_leave_score_weight, float unstuck_leave_value_weight,
+      const Tiles& tiles);
 
   void SortMoves();
 
@@ -359,6 +394,7 @@ class MoveFinder {
   std::array<float, 8> best_leave_at_size_;
   std::array<bool, 8> rack_word_of_length_;
   uint32_t rack_bits_;
+  uint32_t playable_bits_;
   uint32_t unique_rack_letter_bits_;
   int num_blanks_;
   std::vector<Spot> spots_;

@@ -114,6 +114,8 @@ void MoveFinder::Blankify(const LetterString& rack_letters,
     if (word_counts[blank_letter] == rack_counts[blank_letter] + 1) {
       for (int i = 0; i < positions.size(); ++i) {
         LetterString ret_word = word;
+        CHECK_EQ(ret_word.size(), word.size());
+        CHECK_LT(positions[i], ret_word.size());
         // LOG(INFO) << "ret_word: " << tiles_.ToString(ret_word).value();
         ret_word[positions[i]] += tiles_.BlankIndex();
         // LOG(INFO) << "ret_word: " << tiles_.ToString(ret_word).value();
@@ -124,6 +126,9 @@ void MoveFinder::Blankify(const LetterString& rack_letters,
       for (int i = 0; i < positions.size() - 1; ++i) {
         for (int j = i + 1; j < positions.size(); ++j) {
           LetterString ret_word = word;
+          CHECK_EQ(ret_word.size(), word.size());
+          CHECK_LT(positions[i], ret_word.size());
+          CHECK_LT(positions[j], ret_word.size());
           // LOG(INFO) << "ret_word: " << tiles_.ToString(ret_word).value();
           ret_word[positions[i]] += tiles_.BlankIndex();
           ret_word[positions[j]] += tiles_.BlankIndex();
@@ -147,9 +152,13 @@ void MoveFinder::Blankify(const LetterString& rack_letters,
     }
     for (int i = 0; i < positions1.size(); ++i) {
       LetterString word1 = word;
+      CHECK_EQ(word1.size(), word.size());
+      CHECK_LT(positions1[i], word1.size());
       word1[positions1[i]] += tiles_.BlankIndex();
       for (int j = 0; j < positions2.size(); ++j) {
         LetterString ret_word = word1;
+        CHECK_EQ(ret_word.size(), word.size());
+        CHECK_LT(positions2[j], ret_word.size());
         ret_word[positions2[j]] += tiles_.BlankIndex();
         target->emplace_back(ret_word);
       }
@@ -331,9 +340,11 @@ void MoveFinder::CacheRackPartitions(const Rack& rack) {
 
       auto leave_counts = rack_counts;
       uint32_t bits = 0;
-      for (Letter letter : used_letters) {
-        bits |= (1 << letter);
-        leave_counts[letter]--;
+      if (!used_letters.empty()) {
+        for (Letter letter : used_letters) {
+          bits |= (1 << letter);
+          leave_counts[letter]--;
+        }
       }
       uint64_t leave_product = 1;
       LetterString leave;
@@ -377,7 +388,7 @@ void MoveFinder::FindWords(const Rack& rack, const Board& board,
       AbsorbThroughTiles(board, direction, start_row, start_col, num_tiles);
   // LOG(INFO) << "FindWords(...) start_row: " << start_row
   //           << " start_col: " << start_col << " num_tiles: " << num_tiles;
-  int partitions_used = 0;
+  //int partitions_used = 0;
   auto& partitions = rack_partitions_[num_tiles];
   for (auto& partition : partitions) {
     const auto num_blanks = partition.NumBlanks();
@@ -416,7 +427,7 @@ void MoveFinder::FindWords(const Rack& rack, const Board& board,
         continue;
       }
     }
-    partitions_used++;
+    //partitions_used++;
     /*
         LOG(INFO) << "product: " << product
                   << ", through_product: " << through_product;
@@ -479,6 +490,7 @@ void MoveFinder::FindWords(const Rack& rack, const Board& board,
             move.SetCachedNumTiles(num_tiles);
             move.SetNumBlanks(num_blanks);
             move.SetMoveBits(move_bits);
+            playable_bits_ |= move_bits;
             moves->push_back(std::move(move));
           }
         } else {
@@ -521,6 +533,7 @@ LOG(INFO) << " move " << ss.str();
               blank_move.SetCachedNumTiles(num_tiles);
               blank_move.SetNumBlanks(num_blanks);
               blank_move.SetMoveBits(move_bits);
+              playable_bits_ |= move_bits;
               moves->push_back(std::move(blank_move));
             }
           }
@@ -1304,7 +1317,7 @@ void MoveFinder::FindMoves(const Rack& rack, const Board& board, const Bag& bag,
   pass.SetMoveBits(0);
   pass.SetNumBlanks(0);
   moves_.push_back(pass);
-
+  playable_bits_ = 0;
   // LOG(INFO) << "bag.CanExchangeWithUnseen(): " <<
   // bag.CanExchangeWithUnseen();
   if (bag.CanExchangeWithUnseen()) {
@@ -1407,24 +1420,43 @@ bool MoveFinder::IsBlocked(const Move& move, const Board& board) const {
   return !CheckHooks(board, move);
 }
 
-void MoveFinder::SetEndgameEquities(const LetterString& rack,
-                                    const LetterString& opp_rack,
-                                    bool preceded_by_pass, const Tiles& tiles) {
+void MoveFinder::SetEndgameEquities(
+    const LetterString& rack, const LetterString& opp_rack,
+    bool opp_stuck_with_tile, int opp_stuck_score, bool preceded_by_pass,
+    float stuck_tiles_left_multiplier, float stuck_leave_score_multiplier,
+    float stuck_leave_value_multiplier, float opp_stuck_score_multiplier,
+    float unstuck_leave_score_weight, float unstuck_leave_value_weight,
+    const Tiles& tiles) {
   const int opp_rack_score = tiles.Score(opp_rack);
   const int rack_score = tiles.Score(rack);
   const int rack_size = rack.size();
   const int opp_rack_size = opp_rack.size();
   float opp_deadwood_bonus = 2.0 * opp_rack_score;
   for (auto& move : moves_) {
-    if (move.CachedNumTiles() == rack_size) {
+    if (move.GetAction() != Move::Place) {
+      if (preceded_by_pass) {
+        move.SetEquity(opp_rack_score - rack_score);
+      } else {
+        move.SetEquity(-20.0);
+      }
+    } else if (move.CachedNumTiles() == rack_size) {
       move.SetEquity(move.Score() + opp_deadwood_bonus);
-    } else if ((move.GetAction() != Move::Place) && preceded_by_pass) {
-      move.SetEquity(move.Score() - rack_score + opp_rack_score);
+    } else if (opp_stuck_with_tile) {
+      const int num_tiles_left = move.Leave().size();
+      const int leave_score = tiles.Score(move.Leave());
+      const float leave_value = move.LeaveValue();
+      move.SetEquity(move.Score() +
+                     stuck_tiles_left_multiplier * num_tiles_left +
+                     stuck_leave_score_multiplier * leave_score +
+                     stuck_leave_value_multiplier * leave_value +
+                     opp_stuck_score_multiplier * opp_stuck_score);
     } else {
       const int leave_score = tiles.Score(move.Leave());
       const float leave_value = move.LeaveValue();
-      const float leave_score_multiplier = -1.0 + (opp_rack_size - 3.5) * 0.2;
-      const float leave_value_multiplier = 0.04 * opp_rack_size;
+      const float leave_score_multiplier =
+          -1.2 + (opp_rack_size - 3) * unstuck_leave_score_weight;
+      const float leave_value_multiplier =
+          unstuck_leave_value_weight * opp_rack_size;
       move.SetEquity(move.Score() + leave_score_multiplier * leave_score +
                      leave_value_multiplier * leave_value);
     }
@@ -1432,7 +1464,7 @@ void MoveFinder::SetEndgameEquities(const LetterString& rack,
 }
 
 void MoveFinder::SortMoves() {
-  std::sort(moves_.begin(), moves_.end(), [](const Move& a, const Move& b) {
-    return a.Equity() > b.Equity();
-  });
+  std::stable_sort(
+      moves_.begin(), moves_.end(),
+      [](const Move& a, const Move& b) { return a.Equity() > b.Equity(); });
 }

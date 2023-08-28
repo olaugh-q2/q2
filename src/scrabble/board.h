@@ -11,7 +11,7 @@
 class Board {
  public:
   Board();
-  LetterString Row(int row_index) const;
+  const LetterString& Row(int row_index) const;
   inline Letter At(int row, int col) const { return rows_[row][col]; }
   void UnsafePlaceMove(const Move& move);
   void UnsafeUndoMove(const Move& move);

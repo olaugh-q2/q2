@@ -12,13 +12,16 @@ Board::Board() {
   }
 }
 
-LetterString Board::Row(int row_index) const {
+const LetterString& Board::Row(int row_index) const {
   CHECK_GE(row_index, 0);
   CHECK_LT(row_index, 15);
   return rows_[row_index];
 }
 
 void Board::UnsafePlaceMove(const Move& move) {
+  if (move.GetAction() != Move::Place) {
+    return;
+  }
   is_empty_ = false;
   int row = move.StartRow();
   int col = move.StartCol();
@@ -35,6 +38,9 @@ void Board::UnsafePlaceMove(const Move& move) {
 }
 
 void Board::UnsafeUndoMove(const Move& move) {
+  if (move.GetAction() != Move::Place) {
+    return;
+  }
   int row = move.StartRow();
   int col = move.StartCol();
   for (const Letter letter : move.Letters()) {

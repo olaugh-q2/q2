@@ -72,6 +72,9 @@ void Bag::CompleteRack(Rack* rack) {
 void Bag::InsertTiles(const LetterString& tiles,
                       const std::vector<uint64_t>& exchange_insertion_dividends,
                       std::size_t* exchange_insertion_index) {
+  if (tiles.empty()) {
+    return;
+  }                        
   for (const Letter& letter : tiles) {
     const int index = exchange_insertion_dividends[*exchange_insertion_index] %
                       (letters_.size() + 1);

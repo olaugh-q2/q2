@@ -29,7 +29,7 @@ class Tiles {
     return fullwidth_symbols_[static_cast<int>(letter)];
   }
   inline int FirstLetter() const { return 1; }  // A
-  inline int BlankIndex() const { return blank_index_; }
+  int BlankIndex() const { return blank_index_; }
   inline int Score(Letter letter) const { return scores_[static_cast<int>(letter)]; }
   int Score(const LetterString& s) const {
     int ret = 0;

@@ -20,6 +20,7 @@ message ComputerPlayerConfig {
         SpecializingPlayerConfig specializing_player_config = 3;
         EndgamePlayerConfig endgame_player_config = 4;
         AlphaBetaPlayerConfig alpha_beta_player_config = 5;
+        SimmingPlayerConfig simming_player_config = 6;
     }
 }
 
@@ -76,9 +77,35 @@ message AlphaBetaPlayerConfig {
     string leaves_file = 7;
 
     int32 plies = 8;
-    float leave_score_weight = 9;
-    float leave_value_weight = 10;
-    repeated int32 caps_per_ply = 11;
+    
+    bool detect_stuck_tiles = 9;
+    float stuck_tiles_left_multiplier = 10;
+    float stuck_leave_score_multiplier = 11;
+    float stuck_leave_value_multiplier = 12;
+    float opp_stuck_score_multiplier = 13;
+
+    float unstuck_leave_score_weight = 14;
+    float unstuck_leave_value_weight = 15;
+
+    repeated int32 caps_per_ply = 16;
+}
+
+message SimmingPlayerConfig {
+    string name = 1;
+    string nickname = 2;
+    int32 id = 3;
+    string anagram_map_file = 4;
+    string board_layout_file = 5;
+    string tiles_file = 6;
+    string leaves_file = 7;
+ 
+    int32 plies = 8;
+
+    int32 max_plays_considered = 9;
+    float static_equity_pruning_threshold = 10;
+
+    int32 min_iterations = 11;
+    int64 max_iterations = 12;
 }
 
 message ComputerPlayerCollection {

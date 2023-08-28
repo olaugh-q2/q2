@@ -13,7 +13,7 @@ class Move {
   enum Action { Exchange, Place, OppDeadwoodBonus, OwnDeadwoodPenalty };
   enum Dir { None, Across, Down };
 
-  Move() : action_(Move::Exchange), score_(0) {}
+  Move() : action_(Move::Exchange), direction_(Move::None), score_(0) {}
 
   ~Move() {}
 
@@ -35,10 +35,10 @@ class Move {
         score_(score) {}
 
   Move(Action action, const LetterString& letters, int score)
-      : action_(action), letters_(letters), score_(score) {}
+      : action_(action), direction_(Move::None), letters_(letters), score_(score) {}
 
   explicit Move(const LetterString& letters)
-      : action_(Move::Exchange), letters_(letters), score_(0) {}
+      : action_(Move::Exchange), direction_(Move::None), letters_(letters), score_(0) {}
 
   Move(const Move& move) {
     action_ = move.action_;

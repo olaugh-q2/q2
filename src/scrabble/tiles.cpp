@@ -148,6 +148,9 @@ absl::optional<LetterString> Tiles::ToLetterString(const std::string& s) const {
 }
 
 absl::optional<std::string> Tiles::ToString(const LetterString& s) const {
+  if (s.empty()) {
+    return "";
+  }
   std::string ret;
   for (char n : s) {
     auto c = NumberToChar(n);

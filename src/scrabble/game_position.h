@@ -30,7 +30,7 @@ class GamePosition {
 
   void CommitMove(const Move& move, const absl::Duration elapsed) {
     move_ = move;
-    CHECK_GE(elapsed, absl::ZeroDuration());
+    //CHECK_GE(elapsed, absl::ZeroDuration());
     time_remaining_end_ = time_remaining_start_ - elapsed;
   }
 
@@ -56,7 +56,7 @@ class GamePosition {
   absl::Duration TimeRemainingEnd() const { return time_remaining_end_; }
   int ScorelessTurns() const { return scoreless_turns_; }
   bool IsGameOver() const {
-    //LOG(INFO) << "scoreless_turns_: " << scoreless_turns_;
+    // LOG(INFO) << "scoreless_turns_: " << scoreless_turns_;
     if (scoreless_turns_ >= 6) {
       return true;
     }
@@ -68,9 +68,7 @@ class GamePosition {
   void WriteProto(q2::proto::GamePosition* proto) const;
   GamePosition SwapRacks() const;
   void SetBoard(const Board& board) { board_ = board; }
-  void SwapWithKnownOppRack() {
-    std::swap(rack_, known_opp_rack_);
-  }
+  void SwapWithKnownOppRack() { std::swap(rack_, known_opp_rack_); }
   const Rack& GetKnownOppRack() const { return known_opp_rack_; }
   void SetKnownOppRack(const Bag& bag) {
     known_opp_rack_.Clear();
@@ -78,18 +76,13 @@ class GamePosition {
       known_opp_rack_.PushBack(letter);
     }
   }
-  void SetKnownOppRack(const Rack& rack) {
-    known_opp_rack_ = rack.Letters();
-  }
-  void UnsafePlaceMove(const Move& move) {
-    board_.UnsafePlaceMove(move);
-  }
-  void UnsafeUndoMove(const Move& move) {
-    board_.UnsafeUndoMove(move);
-  }
+  void SetKnownOppRack(const Rack& rack) { known_opp_rack_ = rack.Letters(); }
+  void UnsafePlaceMove(const Move& move) { board_.UnsafePlaceMove(move); }
+  void UnsafeUndoMove(const Move& move) { board_.UnsafeUndoMove(move); }
   void RemoveRackTiles(const Move& move) {
     rack_.RemoveTiles(move.Letters(), tiles_);
   }
+
  private:
   const BoardLayout& layout_;
   Board board_;

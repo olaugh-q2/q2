@@ -417,6 +417,49 @@ cc_test(
 )
 
 cc_library(
+    name = "simming_player",
+    srcs = ["simming_player.cpp"],
+    hdrs = ["simming_player.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":board_layout",
+        ":component_factory",
+        ":computer_player",
+        ":computer_players_cc_proto",
+        ":data_manager",
+        ":move",
+        ":move_finder",
+        ":tiles",
+        "//src/anagram:anagram_map",
+        "//src/leaves",
+        "@com_google_absl//absl/memory",
+        "@glog",
+    ],
+)
+
+cc_test(
+    name = "simming_player_test",
+    srcs = ["simming_player_test.cpp"],
+    data = glob([
+        "testdata/*.qam",
+        "testdata/*.qlv",
+        "testdata/*.textproto",
+    ]),
+    deps = [
+        ":board",
+        ":board_layout",
+        ":computer_player",
+        ":move",
+        ":move_finder",
+        ":rack",
+        ":simming_player",
+        ":tiles",
+        "@com_google_absl//absl/memory",
+        "@com_google_googletest//:gtest_main",
+    ],
+)    
+
+cc_library(
     name = "passing_player",
     srcs = ["passing_player.cpp"],
     hdrs = ["passing_player.h"],

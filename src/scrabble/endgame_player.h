@@ -78,7 +78,6 @@ class EndgamePlayer : public ComputerPlayer {
     } else {
       return caps_per_ply_[ply];
     }
-
   }
   const Tiles& tiles_;
   const Leaves& leaves_;

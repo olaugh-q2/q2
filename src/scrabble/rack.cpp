@@ -56,6 +56,9 @@ int Rack::NumBlanks(const Tiles& tiles) const {
 
 void Rack::RemoveTiles(const LetterString& letters,
                        const Tiles& tiles) {
+  if (letters.empty()) {
+    return;
+  }                        
   auto counts = Counts();
   for (const auto& letter : letters) {
     auto i = static_cast<size_t>(letter);
@@ -80,6 +83,9 @@ void Rack::RemoveTiles(const LetterString& letters,
 
 bool Rack::SafeRemoveTiles(const LetterString& letters,
                        const Tiles& tiles) {
+  if (letters.empty()) {
+    return true;
+  }
   auto counts = Counts();
   for (const auto& letter : letters) {
     auto i = static_cast<size_t>(letter);

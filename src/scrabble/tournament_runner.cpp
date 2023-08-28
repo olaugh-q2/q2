@@ -98,14 +98,12 @@ void DoPairStats(
   int p0diff = g0->player_scores(0) - g0->player_scores(1) +
                g1->player_scores(1) - g1->player_scores(0);
   if (p0diff != 0) {
-    /*
-    if (p0diff < -100) {
+    if ((p0diff < -330) || (p0diff > 330)) {
       LOG(INFO) << "p0diff: " << p0diff << " g0: " << std::endl
                 << g0->DebugString() << std::endl
                 << "g1: " << std::endl
                 << g1->DebugString();
     }
-    */
     r0->set_total_mirrored_difference(r0->total_mirrored_difference() + p0diff);
     r1->set_total_mirrored_difference(r1->total_mirrored_difference() - p0diff);
     r0->set_mirrored_with_difference(r0->mirrored_with_difference() + 1);

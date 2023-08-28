@@ -163,7 +163,8 @@ void BoardLayout::DisplayRow(const Board& board, int row_index,
       codepoint = tiles.FullWidth(letter);
     }
     std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
-    const std::string utf8 = conv.to_bytes(&codepoint, &codepoint + 1);
+    const std::string utf8 = conv.to_bytes(codepoint);
+    //const std::string utf8 = conv.to_bytes(&codepoint, &codepoint + 1);
     os << utf8;
   }
 }

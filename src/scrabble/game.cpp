@@ -52,17 +52,19 @@ void Game::AddNextPosition(const Move& move, absl::Duration time_elapsed) {
   }
   CHECK_GE(racks_.size(), 2);
   Rack rack = racks_[racks_.size() - 2];
-  //std::stringstream ss;
-  //rack.Display(tiles_, ss);
-  // LOG(INFO) << "rack (before removal): " << ss.str();
-  // LOG(INFO) << "rack.Size() = " << rack.NumTiles();
-  //std::stringstream ss_move;
-  //move.Display(tiles_, ss_move);
-  // LOG(INFO) << "move: " << ss_move.str();
+  // std::stringstream ss;
+  // rack.Display(tiles_, ss);
+  //  LOG(INFO) << "rack (before removal): " << ss.str();
+  //  LOG(INFO) << "rack.Size() = " << rack.NumTiles();
+  // std::stringstream ss_move;
+  // move.Display(tiles_, ss_move);
+  //  LOG(INFO) << "move: " << ss_move.str();
   LetterString move_tiles = move.Letters();
-  for (auto& tile : move_tiles) {
-    if (tile >= tiles_.BlankIndex()) {
-      tile = tiles_.BlankIndex();
+  if (!move_tiles.empty()) {
+    for (auto& tile : move_tiles) {
+      if (tile >= tiles_.BlankIndex()) {
+        tile = tiles_.BlankIndex();
+      }
     }
   }
   int scoreless_turns = 0;
@@ -76,20 +78,20 @@ void Game::AddNextPosition(const Move& move, absl::Duration time_elapsed) {
     move_tiles = move.Letters();
     rack.RemoveTiles(move_tiles, tiles_);
     // LOG(INFO) << "rack.Size() = " << rack.NumTiles();
-    //std::stringstream ss1;
-    //bag.Display(ss1);
+    // std::stringstream ss1;
+    // bag.Display(ss1);
     // LOG(INFO) << "bag (before completion): " << ss1.str();
     bag.CompleteRack(&rack);
-    //std::stringstream ss2;
-    //bag.Display(ss2);
-    // LOG(INFO) << "bag (after completion): " << ss2.str();
+    // std::stringstream ss2;
+    // bag.Display(ss2);
+    //  LOG(INFO) << "bag (after completion): " << ss2.str();
     if (move.GetAction() == Move::Exchange) {
       bag.InsertTiles(move.Letters(), exchange_insertion_dividends_,
                       &exchange_dividend_index_);
     }
-    //std::stringstream ss3;
-    //bag.Display(ss3);
-    // LOG(INFO) << "bag (after insertion): " << ss3.str();
+    // std::stringstream ss3;
+    // bag.Display(ss3);
+    //  LOG(INFO) << "bag (after insertion): " << ss3.str();
 
     if (positions_.back().IsScorelessTurn()) {
       scoreless_turns = positions_.back().ScorelessTurns() + 1;
@@ -152,8 +154,8 @@ void Game::Display(std::ostream& os) const {
 }
 
 void Game::AdjustGameEndScores() {
-  //LOG(INFO) << "AdjustGameEndScores()";
-  //  Assumed that this is only called when the game is over.
+  // LOG(INFO) << "AdjustGameEndScores()";
+  //   Assumed that this is only called when the game is over.
   CHECK(positions_.back().IsGameOver());
   // This only makes sense for 2 player games.
   CHECK(players_.size() == 2);
@@ -193,10 +195,12 @@ void Game::FinishWithComputerPlayers() {
     const auto start_time = absl::Now();
     // LOG(INFO) << "start_time: " << start_time;
     std::stringstream ss;
-    //positions_.back().Display(ss);
-    //computer_player->Display(ss);
-    // LOG(INFO) << "positions_.back(): " << std::endl << ss.str() << std::endl;
-    const auto move = computer_player->ChooseBestMove(&positions_, positions_.back());
+    // positions_.back().Display(ss);
+    // computer_player->Display(ss);
+    //  LOG(INFO) << "positions_.back(): " << std::endl << ss.str() <<
+    //  std::endl;
+    const auto move =
+        computer_player->ChooseBestMove(&positions_, positions_.back());
     AddNextPosition(move, absl::Now() - start_time);
   }
   AdjustGameEndScores();
@@ -213,19 +217,19 @@ void Game::WriteProto(q2::proto::GameResult* result) const {
     absl::Duration remaining_time = initial_time_;
     for (const auto& position : positions_) {
       if (position.OnTurnPlayerId() == player->Id()) {
-        //std::stringstream ss;
-        //position.Display(ss);
-        //LOG(INFO) << "position: " << std::endl << ss.str();
+        // std::stringstream ss;
+        // position.Display(ss);
+        // LOG(INFO) << "position: " << std::endl << ss.str();
         remaining_time = position.TimeRemainingStart();
       }
     }
     result->add_micros_remaining(absl::ToInt64Microseconds(remaining_time));
     result->add_micros_used(
         absl::ToInt64Microseconds(initial_time_ - remaining_time));
-    //LOG(INFO) << "initial_time_: " << initial_time_;
-    //LOG(INFO) << "used: "
-    //          << absl::ToInt64Microseconds(initial_time_ - remaining_time)
-    //          << " remaining: " << absl::ToInt64Microseconds(remaining_time);
+    // LOG(INFO) << "initial_time_: " << initial_time_;
+    // LOG(INFO) << "used: "
+    //           << absl::ToInt64Microseconds(initial_time_ - remaining_time)
+    //           << " remaining: " << absl::ToInt64Microseconds(remaining_time);
   }
   for (const auto& rack : racks_) {
     result->add_racks(tiles_.ToString(rack.Letters()).value());

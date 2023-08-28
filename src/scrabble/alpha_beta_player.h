@@ -51,7 +51,7 @@ class AlphaBetaPlayer : public ComputerPlayer {
                          bool terminal) {
       const float sign = on_turn ? 1.0 : -1.0;
       const float net = sign * (terminal ? move_.Equity() : move_.Score());
-      //LOG(INFO) << "net: " << net;
+      // LOG(INFO) << "net: " << net;
       if (parent_ == nullptr) {
         return net;
       }
@@ -80,8 +80,13 @@ class AlphaBetaPlayer : public ComputerPlayer {
         tiles_(*DataManager::GetInstance()->GetTiles(config.tiles_file())),
         leaves_(*(DataManager::GetInstance()->GetLeaves(config.leaves_file()))),
         num_plies_(config.plies()),
-        leave_score_weight_(config.leave_score_weight()),
-        leave_value_weight_(config.leave_value_weight()) {
+        detect_stuck_tiles_(config.detect_stuck_tiles()),
+        stuck_tiles_left_multiplier_(config.stuck_tiles_left_multiplier()),
+        stuck_leave_score_multiplier_(config.stuck_leave_score_multiplier()),
+        stuck_leave_value_multiplier_(config.stuck_leave_value_multiplier()),
+        opp_stuck_score_multiplier_(config.opp_stuck_score_multiplier()),
+        unstuck_leave_score_weight_(config.unstuck_leave_score_weight()),
+        unstuck_leave_value_weight_(config.unstuck_leave_value_weight()) {
     move_finder_ = absl::make_unique<MoveFinder>(
         *DataManager::GetInstance()->GetAnagramMap(config.anagram_map_file()),
         *DataManager::GetInstance()->GetBoardLayout(config.board_layout_file()),
@@ -113,11 +118,16 @@ class AlphaBetaPlayer : public ComputerPlayer {
   const Leaves& leaves_;
   std::unique_ptr<MoveFinder> move_finder_;
   int num_plies_;
-  float leave_score_weight_;
-  float leave_value_weight_;
-  std::vector<int> caps_per_ply_;
+  bool detect_stuck_tiles_;
+  float stuck_tiles_left_multiplier_;
+  float stuck_leave_score_multiplier_;
+  float stuck_leave_value_multiplier_;
+  float opp_stuck_score_multiplier_;
+  float unstuck_leave_score_weight_;
+  float unstuck_leave_value_weight_;
   std::vector<std::unique_ptr<GameNode>> nodes_;
   GameNode* root_node_;
+  std::vector<int> caps_per_ply_;
 };
 
 #endif  // SRC_SCRABBLE_ALPHA_BETA_PLAYER_H

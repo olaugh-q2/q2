@@ -323,7 +323,6 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializing) {
   }
 }
 */
-
 /*
 TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializingMvQ) {
   Arena arena;
@@ -353,7 +352,7 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializingMvQ) {
 "src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
         }
-        number_of_rounds: 3600
+        number_of_rounds: 36000
         number_of_threads: 24
         format: HEADS_UP_MIRRORED_PAIRS
         players {
@@ -867,7 +866,7 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredCapsPerPly) {
   }
 }
 */
-
+/*
 TEST_F(TournamentRunnerTest, HeadsUpMirroredAlphaBeta) {
   Arena arena;
   auto spec = Arena::CreateMessage<q2::proto::TournamentSpec>(&arena);
@@ -891,7 +890,7 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredAlphaBeta) {
 "src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
         }
-        number_of_rounds: 10000
+        number_of_rounds: 100000
         number_of_threads: 24
         format: HEADS_UP_MIRRORED_PAIRS
         players {
@@ -983,7 +982,163 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredAlphaBeta) {
 "src/scrabble/testdata/scrabble_board.textproto" tiles_file:
 "src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
 "src/scrabble/testdata/zeroes.qlv"
-                  plies: 1
+                  plies: 20
+                  detect_stuck_tiles: true
+                  unstuck_leave_score_weight: 0.6
+                  unstuck_leave_value_weight: 0.08
+                  caps_per_ply: 4
+                  caps_per_ply: 2 
+                }
+              }
+            }
+          }
+        }
+    )",
+                                                spec);
+  TournamentRunner runner(*spec);
+  auto results = Arena::CreateMessage<q2::proto::TournamentResults>(&arena);
+  runner.Run(results);
+  for (const auto& a : results->player_averages()) {
+    LOG(INFO) << "player_averages: " << std::endl << a.DebugString();
+  }
+}
+*/
+
+TEST_F(TournamentRunnerTest, HeadsUpStuckTiles) {
+  Arena arena;
+  auto spec = Arena::CreateMessage<q2::proto::TournamentSpec>(&arena);
+  google::protobuf::TextFormat::ParseFromString(R"(
+        data_collection {
+          tiles_files: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+          board_files: "src/scrabble/testdata/scrabble_board.textproto"
+          anagram_map_file_specs {
+            anagram_map_filename: "src/scrabble/testdata/csw21.qam"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
+          }
+          leaves_file_specs {
+            leaves_filename: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
+          }
+          leaves_file_specs {
+            leaves_filename: "src/scrabble/testdata/zeroes.qlv"
+            tiles_filename:
+"src/scrabble/testdata/english_scrabble_tiles.textproto"
+          }
+        }
+        number_of_rounds: 5000000
+        number_of_threads: 24
+        format: HEADS_UP_MIRRORED_PAIRS
+        players {
+          specializing_player_config {
+            id: 1
+            name: "Macondo + NoStuck"
+            nickname: "MNSt"
+            conditional_players {
+              predicate {
+                unseen_tiles_predicate_config {
+                  min_unseen_tiles: 8
+                  max_unseen_tiles: 10000
+                }
+              }
+              player {
+                static_player_config {
+                  id: 101
+                  name: "Macondo Leaves"
+                  nickname: "M"
+                  anagram_map_file: "src/scrabble/testdata/csw21.qam"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/csw_scrabble_macondo.qlv"
+                }
+              }
+            }
+            conditional_players {
+              predicate {
+                unseen_tiles_predicate_config {
+                  min_unseen_tiles: 0
+                  max_unseen_tiles: 7
+                }
+              }
+              player {
+                alpha_beta_player_config {
+                  id: 102
+                  name: "Stuck1"
+                  nickname: "AB"
+                  anagram_map_file: "src/scrabble/testdata/csw21.qam"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/csw_scrabble_macondo.qlv"
+                  plies: 20
+                  detect_stuck_tiles: true
+                  stuck_tiles_left_multiplier: 0.2
+                  stuck_leave_score_multiplier: 1.0
+                  stuck_leave_value_multiplier: 0.2
+                  opp_stuck_score_multiplier: 1.6
+                  unstuck_leave_score_weight: 0.6
+                  unstuck_leave_value_weight: 0.08
+                  caps_per_ply: 3
+                  caps_per_ply: 2
+                }
+              }
+            }
+          }
+        }
+        players {
+          specializing_player_config {
+            id: 2
+            name: "Macondo + AlphaBetaStuck"
+            nickname: "MAB"
+            conditional_players {
+              predicate {
+                unseen_tiles_predicate_config {
+                  min_unseen_tiles: 8
+                  max_unseen_tiles: 10000
+                }
+              }
+              player {
+                static_player_config {
+                  id: 201
+                  name: "Macondo Leaves"
+                  nickname: "M"
+                  anagram_map_file: "src/scrabble/testdata/csw21.qam"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/csw_scrabble_macondo.qlv"
+                }
+              }
+            }
+            conditional_players {
+              predicate {
+                unseen_tiles_predicate_config {
+                  min_unseen_tiles: 0
+                  max_unseen_tiles: 7
+                }
+              }
+              player {
+                alpha_beta_player_config {
+                  id: 202
+                  name: "Stuck2"
+                  nickname: "AB"
+                  anagram_map_file: "src/scrabble/testdata/csw21.qam"
+                  board_layout_file:
+"src/scrabble/testdata/scrabble_board.textproto" tiles_file:
+"src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
+"src/scrabble/testdata/csw_scrabble_macondo.qlv"
+                  plies: 20
+                  detect_stuck_tiles: true
+                  stuck_tiles_left_multiplier: 0.2
+                  stuck_leave_score_multiplier: 1.0
+                  stuck_leave_value_multiplier: 0.2
+                  opp_stuck_score_multiplier: 2.0
+                  unstuck_leave_score_weight: 0.6
+                  unstuck_leave_value_weight: 0.08
+                  caps_per_ply: 3
+                  caps_per_ply: 2
                 }
               }
             }
