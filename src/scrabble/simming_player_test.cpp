@@ -141,3 +141,141 @@ TEST_F(SimmingPlayerTest, NoPrune) {
   const auto pruned_moves = player->InitialPrune(all_moves);
   EXPECT_EQ(pruned_moves.size(), 57);
 }
+
+TEST_F(SimmingPlayerTest, SelectWithinThreshold) {
+  Arena arena;
+  auto config = Arena::CreateMessage<q2::proto::SimmingPlayerConfig>(&arena);
+  google::protobuf::TextFormat::ParseFromString(R"(
+        id: 1
+        name: "Simming"
+        nickname: "S"
+        anagram_map_file: "src/scrabble/testdata/csw21.qam"
+        board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
+        tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+        leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+        plies: 1
+        static_equity_pruning_threshold: 0.1
+        min_iterations: 100
+        max_iterations: 100
+        )",
+                                                config);
+  auto player = absl::make_unique<SimmingPlayer>(*config);
+  const Board board;
+  DataManager* dm = DataManager::GetInstance();
+  const Tiles* tiles =
+      dm->GetTiles("src/scrabble/testdata/english_scrabble_tiles.textproto");
+  const BoardLayout* layout =
+      dm->GetBoardLayout("src/scrabble/testdata/scrabble_board.textproto");
+  const Rack rack(tiles->ToLetterString("OLAUGHS").value());
+  auto pos = absl::make_unique<GamePosition>(*layout, board, 1, 2, rack, 0, 0,
+                                             0, absl::Minutes(25), 0, *tiles);
+  std::vector<GamePosition> previous_positions;
+  const auto all_moves = player->FindMoves(&previous_positions, *pos);
+  const auto pruned_moves = player->InitialPrune(all_moves);
+  // Only the 80-point play is within the threshold.
+  EXPECT_EQ(pruned_moves.size(), 1);
+}
+
+TEST_F(SimmingPlayerTest, SelectWithinThreshold2) {
+  Arena arena;
+  auto config = Arena::CreateMessage<q2::proto::SimmingPlayerConfig>(&arena);
+  google::protobuf::TextFormat::ParseFromString(R"(
+        id: 1
+        name: "Simming"
+        nickname: "S"
+        anagram_map_file: "src/scrabble/testdata/csw21.qam"
+        board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
+        tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+        leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+        plies: 1
+        static_equity_pruning_threshold: 30
+        min_iterations: 100
+        max_iterations: 100
+        )",
+                                                config);
+  auto player = absl::make_unique<SimmingPlayer>(*config);
+  const Board board;
+  DataManager* dm = DataManager::GetInstance();
+  const Tiles* tiles =
+      dm->GetTiles("src/scrabble/testdata/english_scrabble_tiles.textproto");
+  const BoardLayout* layout =
+      dm->GetBoardLayout("src/scrabble/testdata/scrabble_board.textproto");
+  const Rack rack(tiles->ToLetterString("OLAUGHS").value());
+  auto pos = absl::make_unique<GamePosition>(*layout, board, 1, 2, rack, 0, 0,
+                                             0, absl::Minutes(25), 0, *tiles);
+  std::vector<GamePosition> previous_positions;
+  const auto all_moves = player->FindMoves(&previous_positions, *pos);
+  const auto pruned_moves = player->InitialPrune(all_moves);
+  // The seven bingo placements are within the threshold
+  EXPECT_EQ(pruned_moves.size(), 7);
+}
+
+TEST_F(SimmingPlayerTest, SelectTopNWithinThreshold) {
+  Arena arena;
+  auto config = Arena::CreateMessage<q2::proto::SimmingPlayerConfig>(&arena);
+  google::protobuf::TextFormat::ParseFromString(R"(
+        id: 1
+        name: "Simming"
+        nickname: "S"
+        anagram_map_file: "src/scrabble/testdata/csw21.qam"
+        board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
+        tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+        leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+        plies: 1
+        max_plays_considered: 10
+        static_equity_pruning_threshold: 30
+        min_iterations: 100
+        max_iterations: 100
+        )",
+                                                config);
+  auto player = absl::make_unique<SimmingPlayer>(*config);
+  const Board board;
+  DataManager* dm = DataManager::GetInstance();
+  const Tiles* tiles =
+      dm->GetTiles("src/scrabble/testdata/english_scrabble_tiles.textproto");
+  const BoardLayout* layout =
+      dm->GetBoardLayout("src/scrabble/testdata/scrabble_board.textproto");
+  const Rack rack(tiles->ToLetterString("OLAUGHS").value());
+  auto pos = absl::make_unique<GamePosition>(*layout, board, 1, 2, rack, 0, 0,
+                                             0, absl::Minutes(25), 0, *tiles);
+  std::vector<GamePosition> previous_positions;
+  const auto all_moves = player->FindMoves(&previous_positions, *pos);
+  const auto pruned_moves = player->InitialPrune(all_moves);
+  // The seven bingo placements are within the threshold
+  EXPECT_EQ(pruned_moves.size(), 7);
+}
+
+TEST_F(SimmingPlayerTest, SelectTopNWithinThreshold2) {
+  Arena arena;
+  auto config = Arena::CreateMessage<q2::proto::SimmingPlayerConfig>(&arena);
+  google::protobuf::TextFormat::ParseFromString(R"(
+        id: 1
+        name: "Simming"
+        nickname: "S"
+        anagram_map_file: "src/scrabble/testdata/csw21.qam"
+        board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
+        tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+        leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+        plies: 1
+        max_plays_considered: 10
+        static_equity_pruning_threshold: 300
+        min_iterations: 100
+        max_iterations: 100
+        )",
+                                                config);
+  auto player = absl::make_unique<SimmingPlayer>(*config);
+  const Board board;
+  DataManager* dm = DataManager::GetInstance();
+  const Tiles* tiles =
+      dm->GetTiles("src/scrabble/testdata/english_scrabble_tiles.textproto");
+  const BoardLayout* layout =
+      dm->GetBoardLayout("src/scrabble/testdata/scrabble_board.textproto");
+  const Rack rack(tiles->ToLetterString("OLAUGHS").value());
+  auto pos = absl::make_unique<GamePosition>(*layout, board, 1, 2, rack, 0, 0,
+                                             0, absl::Minutes(25), 0, *tiles);
+  std::vector<GamePosition> previous_positions;
+  const auto all_moves = player->FindMoves(&previous_positions, *pos);
+  const auto pruned_moves = player->InitialPrune(all_moves);
+  // The seven bingo placements are within the threshold
+  EXPECT_EQ(pruned_moves.size(), 10);
+}

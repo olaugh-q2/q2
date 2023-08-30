@@ -62,6 +62,22 @@ std::vector<SimmingPlayer::MoveWithResults> SimmingPlayer::InitialPrune(
                     [](const MoveWithResults& a, const MoveWithResults& b) {
                       return a.GetMove()->Equity() > b.GetMove()->Equity();
                     });
-  ret.resize(new_size);
+
+  CHECK_GE(ret.size(), 1);
+  const float best_equity = ret[0].GetMove()->Equity();
+  // Find the first move that should be pruned.
+  auto it = std::find_if(ret.begin(), ret.end(),
+                         [this, best_equity](const MoveWithResults& a) {
+                           return (best_equity - a.GetMove()->Equity()) >
+                                  static_equity_pruning_threshold_;
+                         });
+
+  // Erase that move and all moves after it.
+  if (it != ret.end()) {
+    ret.erase(it, ret.end());
+  }
+
+  // Resize to the number of max plays considered, if needed.
+  ret.resize(std::min(ret.size(), new_size));
   return ret;
 }

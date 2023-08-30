@@ -70,6 +70,10 @@ class SimmingPlayer : public ComputerPlayer {
   FRIEND_TEST(SimmingPlayerTest, SelectTopN);
   FRIEND_TEST(SimmingPlayerTest, UnneededSelectTopN);
   FRIEND_TEST(SimmingPlayerTest, NoPrune);
+  FRIEND_TEST(SimmingPlayerTest, SelectWithinThreshold);
+  FRIEND_TEST(SimmingPlayerTest, SelectWithinThreshold2);
+  FRIEND_TEST(SimmingPlayerTest, SelectTopNWithinThreshold);
+  FRIEND_TEST(SimmingPlayerTest, SelectTopNWithinThreshold2);
 
   std::vector<Move> FindMoves(
       const std::vector<GamePosition>* previous_positions,
