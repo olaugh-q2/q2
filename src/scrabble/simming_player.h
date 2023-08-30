@@ -48,9 +48,13 @@ class SimmingPlayer : public ComputerPlayer {
         tiles_(*DataManager::GetInstance()->GetTiles(config.tiles_file())),
         leaves_(*(DataManager::GetInstance()->GetLeaves(config.leaves_file()))),
         num_plies_(config.plies()),
-        max_plays_considered_(config.max_plays_considered()),
+        max_plays_considered_((config.max_plays_considered() == 0)
+                                  ? 999999
+                                  : config.max_plays_considered()),
         static_equity_pruning_threshold_(
-            config.static_equity_pruning_threshold()),
+            config.static_equity_pruning_threshold() == 0.0
+                ? 999999.9
+                : config.static_equity_pruning_threshold()),
         min_iterations_(config.min_iterations()),
         max_iterations_(config.max_iterations()) {
     move_finder_ = absl::make_unique<MoveFinder>(
@@ -65,6 +69,7 @@ class SimmingPlayer : public ComputerPlayer {
  private:
   FRIEND_TEST(SimmingPlayerTest, SelectTopN);
   FRIEND_TEST(SimmingPlayerTest, UnneededSelectTopN);
+  FRIEND_TEST(SimmingPlayerTest, NoPrune);
 
   std::vector<Move> FindMoves(
       const std::vector<GamePosition>* previous_positions,
