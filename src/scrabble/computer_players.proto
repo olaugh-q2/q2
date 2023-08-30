@@ -90,6 +90,15 @@ message AlphaBetaPlayerConfig {
     repeated int32 caps_per_ply = 16;
 }
 
+message TileOrderings {
+    repeated TileOrdering tile_orderings = 1;
+}
+
+message TileOrdering {
+    string bag_ordering = 1;
+    repeated uint64 exchange_insertion_dividends = 2;
+}
+
 message SimmingPlayerConfig {
     string name = 1;
     string nickname = 2;
