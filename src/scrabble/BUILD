@@ -715,9 +715,11 @@ cc_library(
     hdrs = ["tile_ordering.h"],
     visibility = ["//visibility:public"],
     deps = [
+        ":bag",
         ":computer_players_cc_proto",
         ":data_manager",
         ":strings",
+        "@com_google_absl//absl/random",
     ],
 )
 
@@ -728,6 +730,7 @@ cc_test(
     deps = [
         ":tile_ordering",
         ":tiles",
+        "@com_google_absl//absl/random",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -745,6 +748,17 @@ cc_library(
         "@com_google_protobuf//:protobuf",
         "@com_google_protobuf//:protoc",
         "@glog",
+    ],
+)
+
+cc_test(
+    name = "tile_ordering_cache_test",
+    srcs = ["tile_ordering_cache_test.cpp"],
+    data = glob(["testdata/*.textproto"]),
+    deps = [
+        ":tile_ordering_cache",
+        ":tiles",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
