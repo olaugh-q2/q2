@@ -9,6 +9,7 @@
 
 #include "src/scrabble/computer_player.h"
 #include "src/scrabble/predicate.h"
+#include "src/scrabble/tile_ordering_provider.h"
 
 class ComponentFactory {
  public:
@@ -31,6 +32,12 @@ class ComponentFactory {
                          std::function<std::unique_ptr<Predicate>(
                              const google::protobuf::Message&)>
                              creator);
+
+  void RegisterTileOrderingProvider(
+      const google::protobuf::Descriptor* descriptor,
+      std::function<std::unique_ptr<TileOrderingProvider>(
+          const google::protobuf::Message&)>
+          creator);
 
   static std::unique_ptr<ComputerPlayer> CreatePlayerFromConfig(
       const q2::proto::ComputerPlayerConfig& config);

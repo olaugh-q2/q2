@@ -95,8 +95,13 @@ message TileOrderings {
 }
 
 message TileOrdering {
-    string bag_ordering = 1;
-    repeated uint64 exchange_insertion_dividends = 2;
+    string letters = 1;
+    repeated uint32 exchange_insertion_dividends = 2;
+}
+
+message TileOrderingCacheConfig {
+    string tiles_file = 1;
+    string repeatable_orderings_file = 2;
 }
 
 message SimmingPlayerConfig {

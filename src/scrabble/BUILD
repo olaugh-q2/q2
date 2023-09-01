@@ -402,10 +402,10 @@ cc_test(
         "testdata/*.textproto",
     ]),
     deps = [
+        ":alpha_beta_player",
         ":board",
         ":board_layout",
         ":computer_player",
-        ":alpha_beta_player",
         ":move",
         ":move_finder",
         ":rack",
@@ -457,7 +457,7 @@ cc_test(
         "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
-)    
+)
 
 cc_library(
     name = "passing_player",
@@ -645,6 +645,7 @@ cc_library(
         ":computer_player",
         ":computer_players_cc_proto",
         ":predicate",
+        ":tile_ordering_provider",
         "@com_google_protobuf//:protobuf",
         "@com_google_protobuf//:protoc",
     ],
@@ -709,16 +710,58 @@ cc_test(
 )
 
 cc_library(
+    name = "tile_ordering",
+    srcs = ["tile_ordering.cpp"],
+    hdrs = ["tile_ordering.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":computer_players_cc_proto",
+        ":data_manager",
+        ":strings",
+    ],
+)
+
+cc_library(
+    name = "tile_ordering_cache",
+    srcs = ["tile_ordering_cache.cpp"],
+    hdrs = ["tile_ordering_cache.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":component_factory",
+        ":computer_players_cc_proto",
+        ":data_manager",
+        ":strings",
+        "@com_google_protobuf//:protobuf",
+        "@com_google_protobuf//:protoc",
+        "@glog",
+    ],
+)
+
+cc_library(
+    name = "tile_ordering_provider",
+    srcs = ["tile_ordering_provider.cpp"],
+    hdrs = ["tile_ordering_provider.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":strings",
+        ":tile_ordering",
+        "@com_google_protobuf//:protobuf",
+        "@com_google_protobuf//:protoc",
+        "@glog",
+    ],
+)
+
+cc_library(
     name = "tournament_runner",
     srcs = ["tournament_runner.cpp"],
     hdrs = ["tournament_runner.h"],
     visibility = ["//visibility:public"],
     deps = [
+        ":alpha_beta_player",
         ":component_factory",
         ":computer_player",
         ":computer_players_cc_proto",
         ":data_manager",
-        ":alpha_beta_player",
         ":endgame_player",
         ":game",
         ":passing_player",
