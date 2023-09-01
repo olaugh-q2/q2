@@ -721,6 +721,17 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "tile_ordering_test",
+    srcs = ["tile_ordering_test.cpp"],
+    data = glob(["testdata/*.textproto"]),
+    deps = [
+        ":tile_ordering",
+        ":tiles",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "tile_ordering_cache",
     srcs = ["tile_ordering_cache.cpp"],

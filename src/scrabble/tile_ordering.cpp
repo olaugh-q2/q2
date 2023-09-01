@@ -33,3 +33,18 @@ TileOrdering::TileOrdering(const q2::proto::TileOrdering& proto,
                            const Tiles& tiles)
     : letters_(GetLettersFromProto(proto, tiles)),
       exchange_insertion_dividends_(GetDividendsFromProto(proto)) {}
+
+TileOrdering TileOrdering::Adjust(const std::vector<Letter>& used_letters) const {
+  std::vector<Letter> letters = letters_;
+  // Remove used_letters from letters ordering, taking away letters at the back
+  // of the list first.
+  for (Letter letter : used_letters) {
+    auto it = std::find(letters.rbegin(), letters.rend(), letter);
+    if (it == letters.rend()) {
+      LOG(ERROR) << "Letter " << letter << " not found in letters";
+      return TileOrdering({}, {});
+    }
+    letters.erase((it + 1).base());
+  }
+  return TileOrdering(letters, exchange_insertion_dividends_);
+}
