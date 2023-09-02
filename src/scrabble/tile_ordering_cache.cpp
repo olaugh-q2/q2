@@ -1,5 +1,6 @@
 #include "src/scrabble/tile_ordering_cache.h"
 
+#include <absl/random/random.h>
 #include <fcntl.h>
 
 #include "glog/logging.h"
@@ -45,6 +46,33 @@ std::vector<TileOrdering> TileOrderingCache::GetTileOrderings(
         repeatable_cache_.begin() + start_index,
         repeatable_cache_.begin() + start_index + num_orderings);
   }
-  LOG(ERROR) << "fresh random cache not implemented yet";
-  return {};
+
+  std::lock_guard<std::mutex> lock(random_cache_mutex_);
+
+  int num_orderings_still_needed = num_orderings;
+  std::vector<TileOrdering> ret;
+  auto game_it = random_cache_.find(game_number);
+  if (game_it != random_cache_.end()) {
+    auto pos_it = game_it->second.find(position_index);
+    if (pos_it != game_it->second.end()) {
+      if (pos_it->second.size() >= start_index + num_orderings) {
+        // Cache hit, read from random_cache_
+        return std::vector<TileOrdering>(
+            pos_it->second.begin() + start_index,
+            pos_it->second.begin() + start_index + num_orderings);
+      } else {
+        ret = std::vector<TileOrdering>(
+            pos_it->second.begin() + start_index, pos_it->second.end());
+        // Cache hit, but not enough orderings, so generate more below
+        num_orderings_still_needed -= pos_it->second.size() - start_index;
+      }
+    }
+  }
+
+  absl::BitGen gen;
+  for (int i = 0; i < num_orderings_still_needed; ++i) {
+    ret.emplace_back(tiles_, gen, num_random_exchange_dividends_);
+    random_cache_[game_number][position_index].push_back(ret.back());
+  }
+  return ret;
 }

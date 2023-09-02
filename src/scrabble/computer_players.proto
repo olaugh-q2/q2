@@ -102,6 +102,7 @@ message TileOrdering {
 message TileOrderingCacheConfig {
     string tiles_file = 1;
     string repeatable_orderings_file = 2;
+    int32 num_random_exchange_dividends = 3;
 }
 
 message SimmingPlayerConfig {

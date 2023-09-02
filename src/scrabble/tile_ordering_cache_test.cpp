@@ -79,13 +79,13 @@ TEST_F(TileOrderingCacheTest, CreateRepeatableCache) {
 
 }
 
-/*
 TEST_F(TileOrderingCacheTest, CreateRandomCache) {
   Arena arena;
   auto config =
       Arena::CreateMessage<q2::proto::TileOrderingCacheConfig>(&arena);
   google::protobuf::TextFormat::ParseFromString(R"(
     tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+    num_random_exchange_dividends: 3
     )",
                                                 config);
   auto cache = absl::make_unique<TileOrderingCache>(*config);
@@ -93,6 +93,4 @@ TEST_F(TileOrderingCacheTest, CreateRandomCache) {
 
   const auto orderings = cache->GetTileOrderings(0, 0, 0, 1);
   ASSERT_EQ(orderings.size(), 1);
-  EXPECT_EQ(orderings[0].Letters(), LV("ABCDEFG??"));
 }
-*/

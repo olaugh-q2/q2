@@ -1,8 +1,10 @@
 #ifndef SRC_SCRABBLE_TILE_ORDERING_CACHE_H
 #define SRC_SCRABBLE_TILE_ORDERING_CACHE_H
 
+#include <mutex>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "src/scrabble/component_factory.h"
 #include "src/scrabble/computer_players.pb.h"
 #include "src/scrabble/data_manager.h"
@@ -23,7 +25,9 @@ class TileOrderingCache : public TileOrderingProvider {
       : tiles_(*DataManager::GetInstance()->GetTiles(config.tiles_file())),
         using_repeatable_cache_(config.repeatable_orderings_file().size() > 0),
         repeatable_cache_(
-            LoadRepeatableCache(config.repeatable_orderings_file())) {}
+            LoadRepeatableCache(config.repeatable_orderings_file())),
+        num_random_exchange_dividends_(config.num_random_exchange_dividends()) {
+  }
 
   std::vector<TileOrdering> GetTileOrderings(int game_number,
                                              int position_index,
@@ -36,6 +40,10 @@ class TileOrderingCache : public TileOrderingProvider {
   const Tiles& tiles_;
   const bool using_repeatable_cache_;
   const std::vector<TileOrdering> repeatable_cache_;
+  const int num_random_exchange_dividends_;
+  absl::flat_hash_map<int, absl::flat_hash_map<int, std::vector<TileOrdering>>>
+      random_cache_;
+  std::mutex random_cache_mutex_;
 };
 
 #endif  // SRC_SCRABBLE_TILE_ORDERING_CACHE_H
