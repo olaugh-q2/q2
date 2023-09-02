@@ -1,0 +1,18 @@
+tile_orderings {
+    letters: "ABCDEFG??" 
+    exchange_insertion_dividends: 0
+    exchange_insertion_dividends: 1
+    exchange_insertion_dividends: 2
+}
+tile_orderings {
+    letters: "ABCD??EFG" 
+    exchange_insertion_dividends: 2
+    exchange_insertion_dividends: 2
+    exchange_insertion_dividends: 2
+}
+tile_orderings {
+    letters: "??ABCDEFG" 
+    exchange_insertion_dividends: 3
+    exchange_insertion_dividends: 2
+    exchange_insertion_dividends: 1
+}

@@ -1,11 +1,12 @@
 #include "src/scrabble/tile_ordering.h"
 
+#include <absl/random/random.h>
 #include <google/protobuf/text_format.h>
-
-using ::google::protobuf::Arena;
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
+using ::google::protobuf::Arena;
 
 std::unique_ptr<Tiles> tiles_;
 
@@ -39,7 +40,7 @@ TEST_F(TileOrderingTest, CreateAndAdjust) {
 }
 
 TEST_F(TileOrderingTest, CreateFromProto) {
-    Arena arena;
+  Arena arena;
   auto proto = Arena::CreateMessage<q2::proto::TileOrdering>(&arena);
   google::protobuf::TextFormat::ParseFromString(R"(
       letters: "AZ?A"
@@ -56,4 +57,12 @@ TEST_F(TileOrderingTest, CreateFromProto) {
               testing::ElementsAre(L('A'), L('Z'), L('?'), L('A')));
   EXPECT_THAT(ordering.GetExchangeInsertionDividends(),
               testing::ElementsAre(1, 2, 3, 4, 5));
+}
+
+TEST_F(TileOrderingTest, CreateRandom) {
+  absl::BitGen gen;
+  const auto ordering = TileOrdering(*tiles_, gen, 5);
+
+  EXPECT_EQ(ordering.GetLetters().size(), 100);
+  EXPECT_EQ(ordering.GetExchangeInsertionDividends().size(), 5);
 }

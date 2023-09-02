@@ -20,8 +20,8 @@ class TileOrdering {
 
   TileOrdering Adjust(const std::vector<Letter>& used_letters) const;
 
-  const std::vector<Letter>& GetLetters() const { return letters_; }
-  const std::vector<uint16_t>& GetExchangeInsertionDividends() const {
+  const std::vector<Letter>& Letters() const { return letters_; }
+  const std::vector<uint16_t>& ExchangeInsertionDividends() const {
     return exchange_insertion_dividends_;
   }
 
