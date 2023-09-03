@@ -34,7 +34,14 @@ class TileOrderingCache : public TileOrderingProvider {
                                              int start_index,
                                              int num_orderings) override;
 
+  void RemoveGame(int game_number) {
+    std::lock_guard<std::mutex> lock(random_cache_mutex_);
+    random_cache_.erase(game_number);
+  }                                             
+
  private:
+  FRIEND_TEST(TileOrderingCacheTest, CreateRandomCache);
+
   std::vector<TileOrdering> LoadRepeatableCache(const std::string& file);
 
   const Tiles& tiles_;

@@ -76,7 +76,6 @@ TEST_F(TileOrderingCacheTest, CreateRepeatableCache) {
   EXPECT_EQ(orderings3[2].Letters(), LV("??ABCDEFG"));
   EXPECT_THAT(orderings3[2].ExchangeInsertionDividends(),
               testing::ElementsAre(3, 2, 1));
-
 }
 
 TEST_F(TileOrderingCacheTest, CreateRandomCache) {
@@ -90,7 +89,68 @@ TEST_F(TileOrderingCacheTest, CreateRandomCache) {
                                                 config);
   auto cache = absl::make_unique<TileOrderingCache>(*config);
   ASSERT_NE(cache, nullptr);
+  ASSERT_EQ(cache->random_cache_.size(), 0);
 
   const auto orderings = cache->GetTileOrderings(0, 0, 0, 1);
+  ASSERT_EQ(cache->random_cache_.size(), 1);
+  ASSERT_EQ(cache->random_cache_[0].size(), 1);
+  ASSERT_EQ(cache->random_cache_[0][0].size(), 1);
   ASSERT_EQ(orderings.size(), 1);
+  ASSERT_EQ(orderings[0].Letters().size(), 100);
+  ASSERT_EQ(orderings[0].ExchangeInsertionDividends().size(), 3);
+
+  const auto orderings_copy = cache->GetTileOrderings(0, 0, 0, 1);
+  ASSERT_EQ(cache->random_cache_.size(), 1);
+  ASSERT_EQ(cache->random_cache_[0].size(), 1);
+  ASSERT_EQ(cache->random_cache_[0][0].size(), 1);
+  ASSERT_EQ(orderings_copy.size(), 1);
+  ASSERT_EQ(orderings[0].Letters(), orderings_copy[0].Letters());
+  ASSERT_EQ(orderings[0].ExchangeInsertionDividends(),
+            orderings_copy[0].ExchangeInsertionDividends());
+
+  const auto orderings2 = cache->GetTileOrderings(0, 0, 0, 2);
+  ASSERT_EQ(cache->random_cache_.size(), 1);
+  ASSERT_EQ(cache->random_cache_[0].size(), 1);
+  ASSERT_EQ(cache->random_cache_[0][0].size(), 2);
+  ASSERT_EQ(orderings2.size(), 2);
+  ASSERT_EQ(orderings2[1].Letters().size(), 100);
+  ASSERT_EQ(orderings2[1].ExchangeInsertionDividends().size(), 3);
+  ASSERT_EQ(orderings2[0].Letters(), orderings[0].Letters());
+  ASSERT_EQ(orderings2[0].ExchangeInsertionDividends(),
+            orderings[0].ExchangeInsertionDividends());
+  ASSERT_NE(orderings2[0].Letters(), orderings2[1].Letters());
+
+  const auto orderings3 = cache->GetTileOrderings(0, 0, 1, 2);
+  ASSERT_EQ(cache->random_cache_.size(), 1);
+  ASSERT_EQ(cache->random_cache_[0].size(), 1);
+  ASSERT_EQ(cache->random_cache_[0][0].size(), 3);
+  ASSERT_EQ(orderings3.size(), 2);
+  ASSERT_EQ(orderings3[0].Letters().size(), 100);
+  ASSERT_EQ(orderings3[0].ExchangeInsertionDividends().size(), 3);
+  ASSERT_EQ(orderings3[1].Letters().size(), 100);
+  ASSERT_EQ(orderings3[1].ExchangeInsertionDividends().size(), 3);
+  ASSERT_EQ(orderings3[0].Letters(), orderings2[1].Letters());
+  ASSERT_EQ(orderings3[0].ExchangeInsertionDividends(),
+            orderings2[1].ExchangeInsertionDividends());
+  ASSERT_NE(orderings3[0].Letters(), orderings3[1].Letters());
+
+  const auto next_position = cache->GetTileOrderings(0, 1, 0, 100);
+  ASSERT_EQ(cache->random_cache_.size(), 1);
+  ASSERT_EQ(cache->random_cache_[0].size(), 2);
+  ASSERT_EQ(cache->random_cache_[0][1].size(), 100);
+  ASSERT_EQ(next_position.size(), 100);
+
+  const auto next_game = cache->GetTileOrderings(1, 0, 0, 10);
+  ASSERT_EQ(cache->random_cache_.size(), 2);
+  ASSERT_EQ(cache->random_cache_[1].size(), 1);
+  ASSERT_EQ(cache->random_cache_[1][0].size(), 10);
+  ASSERT_EQ(next_game.size(), 10);
+
+  cache->RemoveGame(0);
+  const auto next_game_still = cache->GetTileOrderings(1, 0, 0, 10);
+  ASSERT_EQ(cache->random_cache_.size(), 1);
+  ASSERT_EQ(cache->random_cache_[1].size(), 1);
+  ASSERT_EQ(cache->random_cache_[1][0].size(), 10);
+  ASSERT_EQ(next_game_still.size(), 10);
+
 }
