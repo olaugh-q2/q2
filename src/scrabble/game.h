@@ -16,12 +16,13 @@
 class Game {
  public:
   Game(const BoardLayout& layout, const std::vector<Player*>& players,
-       const Tiles& tiles, absl::Duration initial_time)
+       const Tiles& tiles, absl::Duration initial_time, std::size_t game_index)
       : layout_(layout),
         players_(players),
         tiles_(tiles),
         initial_time_(initial_time),
-        pregame_bag_(Bag(tiles_)) {
+        pregame_bag_(Bag(tiles_)),
+        game_index_(game_index) {
     CHECK(!players_.empty());
     CHECK_GE(initial_time, absl::ZeroDuration());
     CHECK_EQ(players_.size(), 2);
@@ -94,6 +95,9 @@ class Game {
   std::vector<uint64_t> exchange_insertion_dividends_;
 
   std::size_t exchange_dividend_index_;
+
+  // Used for TileOrderingCache lookups
+  const std::size_t game_index_;
 };
 
 #endif  // SRC_SCRABBLE_GAME_H

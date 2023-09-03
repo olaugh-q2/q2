@@ -20,8 +20,8 @@ class GamePositionTest : public ::testing::Test {
 TEST_F(GamePositionTest, Display) {
   Board board;
   Rack rack(tiles_->ToLetterString("OLAUGHS").value());
-  auto pos = absl::make_unique<GamePosition>(*layout_, board, 1, 2, rack, 0, 0,
-                                             0, absl::Minutes(25), 0, *tiles_);
+  auto pos = absl::make_unique<GamePosition>(
+      *layout_, board, 1, 2, rack, 0, 0, 0, 0, absl::Minutes(25), 0, *tiles_);
   std::stringstream ss1;
   pos->Display(ss1);
   LOG(INFO) << std::endl << ss1.str();
@@ -76,7 +76,7 @@ TEST_F(GamePositionTest, DisplayScorelessTurns) {
   Board board;
   Rack rack(tiles_->ToLetterString("OLAUGHS").value());
   auto pos = absl::make_unique<GamePosition>(*layout_, board, 1, 2, rack, 0, 0,
-                                             0, absl::Minutes(25), 5, *tiles_);
+                                             0, 0, absl::Minutes(25), 5, *tiles_);
   std::stringstream ss1;
   pos->Display(ss1);
   LOG(INFO) << std::endl << ss1.str();
@@ -127,14 +127,13 @@ This move makes it 6 consecutive scoreless turns.
 Player 1 holding OLAUGHS on 0 to opp's 0 plays PASS 0 (score = 0) [25:00 → 22:57]
 Unseen (before drawing): AAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGHIIIIIIIIIJKLLLMMNNNNNNOOOOOOOPPQRRRRRRSSSTTTTTTUUUVVWWXYYZ??
 )");
-
 }
 
 TEST_F(GamePositionTest, ScorelessTurn1) {
   Board board;
   Rack rack(tiles_->ToLetterString("JKQVVXZ").value());
   auto pos = absl::make_unique<GamePosition>(*layout_, board, 1, 2, rack, 0, 0,
-                                             0, absl::Minutes(25), 0, *tiles_);
+                                             0, 0, absl::Minutes(25), 0, *tiles_);
   const auto exchange = Move::Parse("EXCH JKQVVXZ", *tiles_);
   pos->CommitMove(exchange.value(), absl::Microseconds(200));
   std::stringstream ss;
@@ -160,7 +159,7 @@ TEST_F(GamePositionTest, NotScorelessTurn) {
   Board board;
   Rack rack(tiles_->ToLetterString("OLAUGHS").value());
   auto pos = absl::make_unique<GamePosition>(*layout_, board, 1, 2, rack, 0, 0,
-                                             0, absl::Minutes(25), 0, *tiles_);
+                                             0, 0, absl::Minutes(25), 0, *tiles_);
   const auto goulash = Move::Parse("8F GOULASH", *tiles_);
   pos->CommitMove(goulash.value(), absl::Microseconds(200));
   std::stringstream ss;

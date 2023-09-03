@@ -13,8 +13,8 @@ class GamePosition {
   GamePosition(const BoardLayout& layout, const Board& board,
                int on_turn_player_id, int opponent_player_id, const Rack& rack,
                int player_score, int opponent_score, int position_index,
-               absl::Duration time_remaining_start, int scoreless_turns,
-               const Tiles& tiles)
+               int game_index, absl::Duration time_remaining_start,
+               int scoreless_turns, const Tiles& tiles)
       : layout_(layout),
         board_(board),
         on_turn_player_id_(on_turn_player_id),
@@ -24,13 +24,14 @@ class GamePosition {
         player_score_(player_score),
         opponent_score_(opponent_score),
         position_index_(position_index),
+        game_index_(game_index),
         time_remaining_start_(time_remaining_start),
         scoreless_turns_(scoreless_turns),
         tiles_(tiles) {}
 
   void CommitMove(const Move& move, const absl::Duration elapsed) {
     move_ = move;
-    //CHECK_GE(elapsed, absl::ZeroDuration());
+    // CHECK_GE(elapsed, absl::ZeroDuration());
     time_remaining_end_ = time_remaining_start_ - elapsed;
   }
 
@@ -101,7 +102,9 @@ class GamePosition {
   // Score for opponent player.
   const int opponent_score_;
 
+  // Used for TileOrderingCacheLookups
   const std::size_t position_index_;
+  const std::size_t game_index_;
 
   // Move played in this position. nullopt if not yet played.
   absl::optional<Move> move_;

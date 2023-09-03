@@ -139,7 +139,7 @@ void TournamentRunner::RunGames(
     results.resize(2);
     for (int j = 0; j < 2; j++) {
       // LOG(INFO) << "i: " << i << " j: " << j;
-      Game game(board_layout, players, tiles, absl::Minutes(25));
+      Game game(board_layout, players, tiles, absl::Minutes(25), i);
       game.CreateInitialPosition(bag, exchange_insertion_dividends);
       game.FinishWithComputerPlayers();
       results[j] = absl::make_unique<q2::proto::GameResult>();

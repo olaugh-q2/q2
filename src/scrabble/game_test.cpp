@@ -52,10 +52,13 @@ class TestHumanPlayer : public Player {
   TestHumanPlayer(std::string name, std::string nickname, int id)
       : Player(name, nickname, Player::Human, id) {}
 
-  Move ChooseBestMove(const GamePosition& position) override;
+  Move ChooseBestMove(const std::vector<GamePosition>* previous_positions,
+                      const GamePosition& position) override;
 };
 
-Move TestHumanPlayer::ChooseBestMove(const GamePosition& position) {
+Move TestHumanPlayer::ChooseBestMove(
+    const std::vector<GamePosition>* previous_positions,
+    const GamePosition& position) {
   CHECK(false) << "TestHumanPlayer::ChooseBestMove(..) not implemented, should "
                   "not be called";
   Move move;
@@ -66,7 +69,7 @@ TEST_F(GameTest, ConstructAndDisplay) {
   TestHumanPlayer a("Alice", "A", 1);
   TestHumanPlayer b("Bob", "B", 2);
   const std::vector<Player*> players = {&a, &b};
-  Game game(*layout_, players, *tiles_, absl::Minutes(25));
+  Game game(*layout_, players, *tiles_, absl::Minutes(25), 0);
   std::stringstream ss;
   game.Display(ss);
   LOG(INFO) << ss.str();
@@ -81,7 +84,7 @@ TEST_F(GameTest, CreateInitialPosition) {
   TestHumanPlayer a("Alice", "A", 1);
   TestHumanPlayer b("Bob", "B", 2);
   const std::vector<Player*> players = {&a, &b};
-  Game game1(*layout_, players, *tiles_, absl::Minutes(25));
+  Game game1(*layout_, players, *tiles_, absl::Minutes(25), 0);
   const Bag bag(*tiles_);
   const std::vector<uint64_t> dividends = {1, 10, 150};
   game1.CreateInitialPosition(bag, dividends);
@@ -112,7 +115,7 @@ Player 1 holds ??ZYYXW on 0 to opp's 0 [25:00]
 Unseen: AAAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGGHHIIIIIIIIIJKLLLLMMNNNNNNOOOOOOOOPPQRRRRRRSSSSTTTTTTUUUUVVW
 )");
 
-  Game game2(*layout_, players, *tiles_, absl::Minutes(25));
+  Game game2(*layout_, players, *tiles_, absl::Minutes(25), 0);
   // Nondeterministic random bag and dividends but the string should be the same
   // length as in ss1.
   game2.CreateInitialPosition();
@@ -128,7 +131,7 @@ TEST_F(GameTest, AddNextPosition) {
   TestHumanPlayer a("Alice", "A", 3);
   TestHumanPlayer b("Bob", "B", 4);
   std::vector<Player*> players = {&a, &b};
-  Game game(*layout_, players, *tiles_, absl::Minutes(25));
+  Game game(*layout_, players, *tiles_, absl::Minutes(25), 0);
   Bag bag(*tiles_);
   bag.SetLetters({L('I'), L('I'), L('I'), L('I'), L('I'), L('I'), L('I'),
                   L('A'), L('A'), L('A'), L('A'), L('A'), L('A'), L('A'),
@@ -241,7 +244,7 @@ TEST_F(GameTest, SixPassGame) {
   PassingPlayer a(1);
   PassingPlayer b(2);
   std::vector<Player*> players = {&a, &b};
-  Game game(*layout_, players, *tiles_, absl::Minutes(25));
+  Game game(*layout_, players, *tiles_, absl::Minutes(25), 0);
   game.CreateInitialPosition();
   game.FinishWithComputerPlayers();
   // Both players lose the value of their rack, lowest scoring rack being five
@@ -260,7 +263,7 @@ TEST_F(GameTest, StaticPlayerPlays) {
   StaticPlayer b(2, *anagram_map_, *layout_, *tiles_, *leaves_);
   std::vector<Player*> players = {&a, &b};
   for (int i = 0; i < 10; i++) {
-    Game game(*layout_, players, *tiles_, absl::Minutes(25));
+    Game game(*layout_, players, *tiles_, absl::Minutes(25), 0);
     game.CreateInitialPosition();
     game.FinishWithComputerPlayers();
     std::stringstream ss;

@@ -92,5 +92,6 @@ GamePosition GamePosition::SwapRacks() const {
   }
   return GamePosition(layout_, board_, opponent_player_id_, on_turn_player_id_,
                       rack, opponent_score_, player_score_, position_index_,
-                      time_remaining_start_, scoreless_turns_, tiles_);
+                      game_index_, time_remaining_start_, scoreless_turns_,
+                      tiles_);
 }

@@ -14,7 +14,7 @@ class Player {
          int id)
       : name_(name), nickname_(nickname), player_type_(player_type), id_(id) {}
   virtual Move ChooseBestMove(
-      const std::vector<GamePosition>* previous_position,
+      const std::vector<GamePosition>* previous_positions,
       const GamePosition& position) = 0;
 
   std::string Name() const { return name_; }

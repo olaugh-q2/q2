@@ -112,7 +112,6 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredStatic) {
 }
 */
 
-/*
 TEST_F(TournamentRunnerTest, HeadsUpMirroredStaticVsScore) {
   Arena arena;
   auto spec = Arena::CreateMessage<q2::proto::TournamentSpec>(&arena);
@@ -167,7 +166,7 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredStaticVsScore) {
     LOG(INFO) << "player_averages: " << std::endl << a.DebugString();
   }
 }
-*/
+
 /*
 TEST_F(TournamentRunnerTest, HeadsUpMirroredMacondoVsQuackle) {
   Arena arena;
@@ -1004,6 +1003,7 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredAlphaBeta) {
 }
 */
 
+/*
 TEST_F(TournamentRunnerTest, HeadsUpStuckTiles) {
   Arena arena;
   auto spec = Arena::CreateMessage<q2::proto::TournamentSpec>(&arena);
@@ -1153,3 +1153,4 @@ TEST_F(TournamentRunnerTest, HeadsUpStuckTiles) {
     LOG(INFO) << "player_averages: " << std::endl << a.DebugString();
   }
 }
+*/

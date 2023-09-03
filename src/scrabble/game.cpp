@@ -39,7 +39,7 @@ void Game::CreateInitialPosition(
     player->ResetGameState();
   }
   positions_.emplace_back(layout_, board, players_[0]->Id(), players_[1]->Id(),
-                          player_rack, 0, 0, 0, initial_time_, 0, tiles_);
+                          player_rack, 0, 0, 0, game_index_, initial_time_, 0, tiles_);
 }
 
 void Game::AddNextPosition(const Move& move, absl::Duration time_elapsed) {
@@ -101,8 +101,8 @@ void Game::AddNextPosition(const Move& move, absl::Duration time_elapsed) {
                           positions_.back().OnTurnPlayerId(), racks_.back(),
                           positions_.back().OpponentScore(),
                           positions_.back().PlayerScore() + move.Score(),
-                          positions_.back().PositionIndex() + 1, time_remaining,
-                          scoreless_turns, tiles_);
+                          positions_.back().PositionIndex() + 1, game_index_,
+                          time_remaining, scoreless_turns, tiles_);
   bags_.emplace_back(bag);
   /*
   LOG(INFO) << "Bags:";
