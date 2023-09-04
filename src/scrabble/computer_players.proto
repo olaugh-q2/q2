@@ -121,6 +121,8 @@ message SimmingPlayerConfig {
 
     int32 min_iterations = 11;
     int64 max_iterations = 12;
+
+    ComputerPlayerConfig rollout_player = 13;
 }
 
 message ComputerPlayerCollection {

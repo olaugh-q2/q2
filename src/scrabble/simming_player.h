@@ -56,7 +56,9 @@ class SimmingPlayer : public ComputerPlayer {
                 ? 999999.9
                 : config.static_equity_pruning_threshold()),
         min_iterations_(config.min_iterations()),
-        max_iterations_(config.max_iterations()) {
+        max_iterations_(config.max_iterations()),
+        rollout_player_(ComponentFactory::CreatePlayerFromConfig(
+            config.rollout_player())) {
     move_finder_ = absl::make_unique<MoveFinder>(
         *DataManager::GetInstance()->GetAnagramMap(config.anagram_map_file()),
         *DataManager::GetInstance()->GetBoardLayout(config.board_layout_file()),
@@ -91,6 +93,8 @@ class SimmingPlayer : public ComputerPlayer {
   float static_equity_pruning_threshold_;
   int min_iterations_;
   int max_iterations_;
+
+  std::unique_ptr<ComputerPlayer> rollout_player_;
 };
 
 #endif  // SRC_SCRABBLE_SIMMING_PLAYER_H
