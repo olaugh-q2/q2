@@ -90,6 +90,12 @@ message AlphaBetaPlayerConfig {
     repeated int32 caps_per_ply = 16;
 }
 
+message TileOrderingProviderConfig {
+    oneof provider {
+        TileOrderingCacheConfig tile_ordering_cache_config = 1;
+    }
+}
+
 message TileOrderings {
     repeated TileOrdering tile_orderings = 1;
 }
@@ -103,6 +109,10 @@ message TileOrderingCacheConfig {
     string tiles_file = 1;
     string repeatable_orderings_file = 2;
     int32 num_random_exchange_dividends = 3;
+}
+
+message SingletonComponents {
+    TileOrderingProviderConfig tile_ordering_provider_config = 1;
 }
 
 message SimmingPlayerConfig {
@@ -215,6 +225,7 @@ message OutputSpec {
 
 message TournamentSpec {
     DataCollection data_collection = 1;
+    SingletonComponents singleton_components = 7;
     repeated ComputerPlayerConfig players = 2;
     enum TournamentFormat {
         HEADS_UP_MIRRORED_PAIRS = 0;

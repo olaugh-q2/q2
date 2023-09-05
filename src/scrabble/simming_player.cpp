@@ -1,5 +1,6 @@
 #include "src/scrabble/simming_player.h"
 
+#include "src/scrabble/data_manager.h"
 #include "src/scrabble/move_finder.h"
 #include "src/scrabble/rack.h"
 
@@ -11,6 +12,11 @@ Move SimmingPlayer::ChooseBestMove(
   std::sort(
       all_moves.begin(), all_moves.end(),
       [](const Move& m1, const Move& m2) { return m1.Equity() > m2.Equity(); });
+  auto candidates = InitialPrune(all_moves);    
+  auto* dm = DataManager::GetInstance();
+  //auto* ordering_cache = dm->GetTileOrderingCache();
+  //auto orderings = ordering_cache->GetT
+  //const auto unseen = pos.GetUnseenToPlayer();
   return all_moves[0];
 }
 

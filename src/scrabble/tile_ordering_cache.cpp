@@ -14,6 +14,9 @@ using ::google::protobuf::io::FileInputStream;
 
 std::vector<TileOrdering> TileOrderingCache::LoadRepeatableCache(
     const std::string& file) {
+  if (!using_repeatable_cache_) {
+    return {};
+  }
   Arena arena;
   auto tile_orderings = Arena::CreateMessage<q2::proto::TileOrderings>(&arena);
   int fd = open(file.c_str(), O_RDONLY);

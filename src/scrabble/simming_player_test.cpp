@@ -12,11 +12,13 @@ using ::google::protobuf::Arena;
 #include "src/scrabble/computer_player.h"
 #include "src/scrabble/computer_players.pb.h"
 #include "src/scrabble/static_player.h"
+#include "src/scrabble/tile_ordering_cache.h"
 
 class SimmingPlayerTest : public ::testing::Test {
  protected:
   static void SetUpTestSuite() {
-        StaticPlayer::Register();
+    StaticPlayer::Register();
+    TileOrderingCache::Register();
     DataManager* dm = DataManager::GetInstance();
     Arena arena;
     auto spec = Arena::CreateMessage<q2::proto::DataCollection>(&arena);
@@ -32,8 +34,21 @@ class SimmingPlayerTest : public ::testing::Test {
           tiles_filename: "src/scrabble/testdata/english_scrabble_tiles.textproto"
       }
     )",
-                                                  spec);
+                                                  spec);                                            
     dm->LoadData(*spec);
+
+    ComponentFactory* cf = ComponentFactory::GetInstance();
+    auto singletons = Arena::CreateMessage<q2::proto::SingletonComponents>(&arena);
+    google::protobuf::TextFormat::ParseFromString(R"(
+      tile_ordering_provider_config {
+          tile_ordering_cache_config {
+              tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+              num_random_exchange_dividends: 40
+          }  
+      }
+    )",
+                                                  singletons);
+    cf->CreateSingletonComponents(*singletons);                                                  
   }
 
   void ExpectMove(const Move& move, const std::string& expected) {
@@ -84,8 +99,8 @@ TEST_F(SimmingPlayerTest, SelectTopN) {
   const BoardLayout* layout =
       dm->GetBoardLayout("src/scrabble/testdata/scrabble_board.textproto");
   const Rack rack(tiles->ToLetterString("OLAUGHS").value());
-  auto pos = absl::make_unique<GamePosition>(*layout, board, 1, 2, rack, 0, 0,
-                                             0, 0, absl::Minutes(25), 0, *tiles);
+  auto pos = absl::make_unique<GamePosition>(
+      *layout, board, 1, 2, rack, 0, 0, 0, 0, absl::Minutes(25), 0, *tiles);
   std::vector<GamePosition> previous_positions;
   const auto all_moves = player->FindMoves(&previous_positions, *pos);
   const auto pruned_moves = player->InitialPrune(all_moves);
@@ -118,8 +133,8 @@ TEST_F(SimmingPlayerTest, UnneededSelectTopN) {
   const BoardLayout* layout =
       dm->GetBoardLayout("src/scrabble/testdata/scrabble_board.textproto");
   const Rack rack(tiles->ToLetterString("VIVIFIC").value());
-  auto pos = absl::make_unique<GamePosition>(*layout, board, 1, 2, rack, 0, 0,
-                                             0, 0, absl::Minutes(25), 0, *tiles);
+  auto pos = absl::make_unique<GamePosition>(
+      *layout, board, 1, 2, rack, 0, 0, 0, 0, absl::Minutes(25), 0, *tiles);
   std::vector<GamePosition> previous_positions;
   const auto all_moves = player->FindMoves(&previous_positions, *pos);
   const auto pruned_moves = player->InitialPrune(all_moves);
@@ -151,8 +166,8 @@ TEST_F(SimmingPlayerTest, NoPrune) {
   const BoardLayout* layout =
       dm->GetBoardLayout("src/scrabble/testdata/scrabble_board.textproto");
   const Rack rack(tiles->ToLetterString("VIVIFIC").value());
-  auto pos = absl::make_unique<GamePosition>(*layout, board, 1, 2, rack, 0, 0,
-                                             0, 0, absl::Minutes(25), 0, *tiles);
+  auto pos = absl::make_unique<GamePosition>(
+      *layout, board, 1, 2, rack, 0, 0, 0, 0, absl::Minutes(25), 0, *tiles);
   std::vector<GamePosition> previous_positions;
   const auto all_moves = player->FindMoves(&previous_positions, *pos);
   const auto pruned_moves = player->InitialPrune(all_moves);
@@ -184,8 +199,8 @@ TEST_F(SimmingPlayerTest, SelectWithinThreshold) {
   const BoardLayout* layout =
       dm->GetBoardLayout("src/scrabble/testdata/scrabble_board.textproto");
   const Rack rack(tiles->ToLetterString("OLAUGHS").value());
-  auto pos = absl::make_unique<GamePosition>(*layout, board, 1, 2, rack, 0, 0,
-                                             0, 0, absl::Minutes(25), 0, *tiles);
+  auto pos = absl::make_unique<GamePosition>(
+      *layout, board, 1, 2, rack, 0, 0, 0, 0, absl::Minutes(25), 0, *tiles);
   std::vector<GamePosition> previous_positions;
   const auto all_moves = player->FindMoves(&previous_positions, *pos);
   const auto pruned_moves = player->InitialPrune(all_moves);
@@ -218,8 +233,8 @@ TEST_F(SimmingPlayerTest, SelectWithinThreshold2) {
   const BoardLayout* layout =
       dm->GetBoardLayout("src/scrabble/testdata/scrabble_board.textproto");
   const Rack rack(tiles->ToLetterString("OLAUGHS").value());
-  auto pos = absl::make_unique<GamePosition>(*layout, board, 1, 2, rack, 0, 0,
-                                             0, 0, absl::Minutes(25), 0, *tiles);
+  auto pos = absl::make_unique<GamePosition>(
+      *layout, board, 1, 2, rack, 0, 0, 0, 0, absl::Minutes(25), 0, *tiles);
   std::vector<GamePosition> previous_positions;
   const auto all_moves = player->FindMoves(&previous_positions, *pos);
   const auto pruned_moves = player->InitialPrune(all_moves);
@@ -253,8 +268,8 @@ TEST_F(SimmingPlayerTest, SelectTopNWithinThreshold) {
   const BoardLayout* layout =
       dm->GetBoardLayout("src/scrabble/testdata/scrabble_board.textproto");
   const Rack rack(tiles->ToLetterString("OLAUGHS").value());
-  auto pos = absl::make_unique<GamePosition>(*layout, board, 1, 2, rack, 0, 0,
-                                             0, 0, absl::Minutes(25), 0, *tiles);
+  auto pos = absl::make_unique<GamePosition>(
+      *layout, board, 1, 2, rack, 0, 0, 0, 0, absl::Minutes(25), 0, *tiles);
   std::vector<GamePosition> previous_positions;
   const auto all_moves = player->FindMoves(&previous_positions, *pos);
   const auto pruned_moves = player->InitialPrune(all_moves);
@@ -288,8 +303,8 @@ TEST_F(SimmingPlayerTest, SelectTopNWithinThreshold2) {
   const BoardLayout* layout =
       dm->GetBoardLayout("src/scrabble/testdata/scrabble_board.textproto");
   const Rack rack(tiles->ToLetterString("OLAUGHS").value());
-  auto pos = absl::make_unique<GamePosition>(*layout, board, 1, 2, rack, 0, 0,
-                                             0, 0, absl::Minutes(25), 0, *tiles);
+  auto pos = absl::make_unique<GamePosition>(
+      *layout, board, 1, 2, rack, 0, 0, 0, 0, absl::Minutes(25), 0, *tiles);
   std::vector<GamePosition> previous_positions;
   const auto all_moves = player->FindMoves(&previous_positions, *pos);
   const auto pruned_moves = player->InitialPrune(all_moves);

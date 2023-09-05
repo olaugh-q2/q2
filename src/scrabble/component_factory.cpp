@@ -21,6 +21,16 @@ void ComponentFactory::RegisterPredicate(
   predicate_creators_.emplace(descriptor, creator);
 }
 
+void ComponentFactory::RegisterTileOrderingProvider(
+    const google::protobuf::Descriptor* descriptor,
+    std::function<
+        std::unique_ptr<TileOrderingProvider>(const google::protobuf::Message&)>
+        creator) {
+  LOG(INFO) << "Registering TileOrderingProvider creator for "
+            << descriptor->full_name();
+  tile_ordering_provider_creators_.emplace(descriptor, creator);
+}
+
 std::unique_ptr<ComputerPlayer> ComponentFactory::CreateComputerPlayer(
     const google::protobuf::Message& message) const {
   // LOG(INFO) << "message: " << message.DebugString();
@@ -93,4 +103,44 @@ std::unique_ptr<Predicate> ComponentFactory::CreatePredicateFromConfig(
                  << config.DebugString();
       return nullptr;
   }
+}
+
+std::unique_ptr<TileOrderingProvider>
+ComponentFactory::CreateTileOrderingProvider(
+    const google::protobuf::Message& message) const {
+  // LOG(INFO) << "message: " << message.DebugString();
+  const google::protobuf::Descriptor* descriptor = message.GetDescriptor();
+  auto it = tile_ordering_provider_creators_.find(descriptor);
+  if (it == tile_ordering_provider_creators_.end()) {
+    LOG(FATAL) << "No TileOrderingProvider creator registered for "
+               << descriptor->full_name();
+    return nullptr;
+  }
+  return it->second(message);
+}
+
+std::unique_ptr<TileOrderingProvider>
+ComponentFactory::CreateTileOrderingProviderFromConfig(
+    const q2::proto::TileOrderingProviderConfig& config) {
+  switch (config.provider_case()) {
+    case q2::proto::TileOrderingProviderConfig::kTileOrderingCacheConfig:
+      return ComponentFactory::GetInstance()->CreateTileOrderingProvider(
+          config.tile_ordering_cache_config());
+      break;
+    case q2::proto::TileOrderingProviderConfig::PROVIDER_NOT_SET:
+      LOG(ERROR) << "No tile ordering provider type specified for tile "
+                    "ordering provider "
+                 << config.DebugString();
+      return nullptr;
+  }
+}
+
+std::unique_ptr<TileOrderingProvider>
+    ComponentFactory::tile_ordering_provider_ = nullptr;
+
+void ComponentFactory::CreateSingletonComponents(
+    const q2::proto::SingletonComponents& singleton_components) {
+  LOG(INFO) << "Creating singleton components";
+  tile_ordering_provider_ = CreateTileOrderingProviderFromConfig(
+      singleton_components.tile_ordering_provider_config());
 }

@@ -106,7 +106,7 @@ TEST_F(EndgamePlayerTest, Ming) {
 
   const Rack rack(tiles->ToLetterString("MILDING").value());
   auto pos = absl::make_unique<GamePosition>(
-      *layout, board, 1, 2, rack, 395, 448, 0, absl::Minutes(25), 0, *tiles);
+      *layout, board, 1, 2, rack, 395, 448, 0, 0, absl::Minutes(25), 0, *tiles);
   std::stringstream ss2;
   pos->Display(ss2);
   LOG(INFO) << "position:" << std::endl << ss2.str();
@@ -143,23 +143,23 @@ TEST_F(EndgamePlayerTest, Alkyd) {
 
   Board board;
   board.SetLetters(
-    {R"(   A B C D E F G H I J K L M N O      olaugh    AEOR      471)",
-     R"(   ------------------------------  -> cwac      AADDILW   384)",
-     R"( 1|=     '     M E N T U M     =| --Speedy Player's choices--)",
-     R"( 2|S E N S A T E   E "       -  | best *11B AL(KY)D 13 ADIW  )",
-     R"( 3|U   -       '   R O A T E    |  3.00 12A ALI(YA) 9  ADDW  )",
-     R"( 4|T     -       V E R G E D   '|  7.00 11B AL(KY)  11 ADDIW )",
-     R"( 5|O       -       I   -        |  12.0 2L  AWDL    29 ADI   )",
-     R"( 6|R "   L O P     D "       " H|  15.0 3E  DAW     28 ADIL  )",
-     R"( 7|I   '   B U F O S       ' J A|  16.0 F14 AW      13 ADDIL )",
-     R"( 8|a     Z I N E B     L O G O I|  17.0 13E (W)AWL  14 ADDI  )",
-     R"( 9|N   ' I     H A V I O R '   R|  17.0 13E (W)AWA  14 DDIL  )",
-     R"(10|  "   N   "       F U G   " T|  17.0 13E (W)AW   13 ADDIL )",
-     R"(11|      K Y           -     E A|  18.0 B8  DAWD    21 AIL   )",
-     R"(12|'     Y A     '       -   X I| --Tracking-----------------)",
-     R"(13|    -   W   '   '       - E L| AEOR  4                    )",
-     R"(14|  -     P "       Q       C  |                            )",
-     R"(15|=     '       p E I N C T S =|                            )"},
+      {R"(   A B C D E F G H I J K L M N O      olaugh    AEOR      471)",
+       R"(   ------------------------------  -> cwac      AADDILW   384)",
+       R"( 1|=     '     M E N T U M     =| --Speedy Player's choices--)",
+       R"( 2|S E N S A T E   E "       -  | best *11B AL(KY)D 13 ADIW  )",
+       R"( 3|U   -       '   R O A T E    |  3.00 12A ALI(YA) 9  ADDW  )",
+       R"( 4|T     -       V E R G E D   '|  7.00 11B AL(KY)  11 ADDIW )",
+       R"( 5|O       -       I   -        |  12.0 2L  AWDL    29 ADI   )",
+       R"( 6|R "   L O P     D "       " H|  15.0 3E  DAW     28 ADIL  )",
+       R"( 7|I   '   B U F O S       ' J A|  16.0 F14 AW      13 ADDIL )",
+       R"( 8|a     Z I N E B     L O G O I|  17.0 13E (W)AWL  14 ADDI  )",
+       R"( 9|N   ' I     H A V I O R '   R|  17.0 13E (W)AWA  14 DDIL  )",
+       R"(10|  "   N   "       F U G   " T|  17.0 13E (W)AW   13 ADDIL )",
+       R"(11|      K Y           -     E A|  18.0 B8  DAWD    21 AIL   )",
+       R"(12|'     Y A     '       -   X I| --Tracking-----------------)",
+       R"(13|    -   W   '   '       - E L| AEOR  4                    )",
+       R"(14|  -     P "       Q       C  |                            )",
+       R"(15|=     '       p E I N C T S =|                            )"},
       *tiles);
 
   const BoardLayout* layout =
@@ -170,7 +170,7 @@ TEST_F(EndgamePlayerTest, Alkyd) {
 
   const Rack rack(tiles->ToLetterString("AADDILW").value());
   auto pos = absl::make_unique<GamePosition>(
-      *layout, board, 1, 2, rack, 471, 384, 0, absl::Minutes(25), 0, *tiles);
+      *layout, board, 1, 2, rack, 471, 384, 0, 0, absl::Minutes(25), 0, *tiles);
   std::stringstream ss2;
   pos->Display(ss2);
   LOG(INFO) << "position:" << std::endl << ss2.str();
@@ -234,7 +234,7 @@ TEST_F(EndgamePlayerTest, ViceOrVirge) {
 
   const Rack rack(tiles->ToLetterString("EEIIDRV").value());
   auto pos = absl::make_unique<GamePosition>(
-      *layout, board, 1, 2, rack, 345, 446, 0, absl::Minutes(25), 0, *tiles);
+      *layout, board, 1, 2, rack, 345, 446, 0, 0, absl::Minutes(25), 0, *tiles);
   std::stringstream ss2;
   pos->Display(ss2);
   LOG(INFO) << "position:" << std::endl << ss2.str();
