@@ -111,3 +111,17 @@ std::vector<SimmingPlayer::MoveWithResults> SimmingPlayer::InitialPrune(
   ret.resize(std::min(ret.size(), new_size));
   return ret;
 }
+
+void SimmingPlayer::SimMove(const GamePosition& position,
+                            const std::vector<TileOrdering>& orderings,
+                            MoveWithResults* move) const {
+  GamePosition pos_copy = position;
+}
+
+void SimmingPlayer::SimMoves(const GamePosition& position,
+                             const std::vector<TileOrdering>& orderings,
+                             std::vector<MoveWithResults>* moves) const {
+  for (auto& move : *moves) {
+    SimMove(position, orderings, &move);
+  }
+}

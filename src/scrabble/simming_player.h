@@ -18,19 +18,33 @@ class SimmingPlayer : public ComputerPlayer {
   class MoveWithResults {
    public:
     MoveWithResults()
-        : move_(nullptr), iterations_(0), sum_(0), sum_of_squares_(0) {}
+        : move_(nullptr),
+          iterations_(0),
+          spread_sum_(0),
+          spread_sum_of_squares_(0),
+          wins_sum_(0),
+          wins_sum_of_squares(0) {}
     MoveWithResults(const Move* move)
-        : move_(move), iterations_(0), sum_(0), sum_of_squares_(0) {}
+        : move_(move),
+          iterations_(0),
+          spread_sum_(0),
+          spread_sum_of_squares_(0),
+          wins_sum_(0),
+          wins_sum_of_squares(0) {}
     const Move* GetMove() const { return move_; }
     int Iterations() const { return iterations_; }
-    float Sum() const { return sum_; }
-    float SumOfSquares() const { return sum_of_squares_; }
+    float SpreadSum() const { return spread_sum_; }
+    float SpreadSumOfSquares() const { return spread_sum_of_squares_; }
+    float WinsSum() const { return wins_sum_; }
+    float WinsSumOfSquares() const { return wins_sum_of_squares; }
 
    private:
     const Move* move_;
     int iterations_;
-    float sum_;
-    float sum_of_squares_;
+    float spread_sum_;
+    float spread_sum_of_squares_;
+    float wins_sum_;
+    float wins_sum_of_squares;
   };
 
   static void Register() {
@@ -57,8 +71,8 @@ class SimmingPlayer : public ComputerPlayer {
                 : config.static_equity_pruning_threshold()),
         min_iterations_(config.min_iterations()),
         max_iterations_(config.max_iterations()),
-        rollout_player_(ComponentFactory::CreatePlayerFromConfig(
-            config.rollout_player())) {
+        rollout_player_(
+            ComponentFactory::CreatePlayerFromConfig(config.rollout_player())) {
     move_finder_ = absl::make_unique<MoveFinder>(
         *DataManager::GetInstance()->GetAnagramMap(config.anagram_map_file()),
         *DataManager::GetInstance()->GetBoardLayout(config.board_layout_file()),
@@ -67,6 +81,11 @@ class SimmingPlayer : public ComputerPlayer {
 
   Move ChooseBestMove(const std::vector<GamePosition>* previous_position,
                       const GamePosition& position) override;
+
+  void SimMove(const GamePosition& position, const std::vector<TileOrdering>& orderings,               MoveWithResults* move) const;
+  void SimMoves(const GamePosition& position,
+                const std::vector<TileOrdering>& orderings,
+                std::vector<MoveWithResults>* moves) const;
 
  private:
   FRIEND_TEST(SimmingPlayerTest, SelectTopN);
