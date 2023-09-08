@@ -46,12 +46,31 @@ class GamePosition {
   Bag GetUnseenToPlayer(const Bag& bag) const {
     return bag.UnseenToPlayer(board_, rack_);
   }
+  std::vector<Letter> SeenByPlayer() const {
+    std::vector<Letter> seen;
+    for (Letter letter : rack_.Letters()) {
+      seen.push_back(letter);
+    }
+    for (int row = 0; row < 15; ++row) {
+      for (int col = 0; col < 15; ++col) {
+        if (Letter letter = board_.At(row, col)) {
+          if (letter >= tiles_.BlankIndex()) {
+            letter = tiles_.BlankIndex();
+          }
+          seen.push_back(letter);
+        }
+      }
+    }
+    return seen;
+  }
+
   const absl::optional<Move>& GetMove() const { return move_; }
   bool IsScorelessTurn() const;
   int OnTurnPlayerId() const { return on_turn_player_id_; }
   int OpponentPlayerId() const { return opponent_player_id_; }
   int PlayerScore() const { return player_score_; }
   int OpponentScore() const { return opponent_score_; }
+  std::size_t GameIndex() const { return game_index_; }
   std::size_t PositionIndex() const { return position_index_; }
   absl::Duration TimeRemainingStart() const { return time_remaining_start_; }
   absl::Duration TimeRemainingEnd() const { return time_remaining_end_; }

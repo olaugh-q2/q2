@@ -54,6 +54,10 @@ class ComponentFactory {
   static void CreateSingletonComponents(
       const q2::proto::SingletonComponents& singleton_components);
 
+  TileOrderingProvider* GetTileOrderingProvider() {
+    return tile_ordering_provider_.get();
+  }
+
  private:
   ComponentFactory() = default;
   std::unordered_map<const google::protobuf::Descriptor*,

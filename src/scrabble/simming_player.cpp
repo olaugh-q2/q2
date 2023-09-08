@@ -12,11 +12,35 @@ Move SimmingPlayer::ChooseBestMove(
   std::sort(
       all_moves.begin(), all_moves.end(),
       [](const Move& m1, const Move& m2) { return m1.Equity() > m2.Equity(); });
-  auto candidates = InitialPrune(all_moves);    
-  auto* dm = DataManager::GetInstance();
-  //auto* ordering_cache = dm->GetTileOrderingCache();
-  //auto orderings = ordering_cache->GetT
-  //const auto unseen = pos.GetUnseenToPlayer();
+  auto candidates = InitialPrune(all_moves);
+  auto* cf = ComponentFactory::GetInstance();
+  auto* ordering_provider = cf->GetTileOrderingProvider();
+  auto orderings = ordering_provider->GetTileOrderings(
+      pos.GameIndex(), pos.PositionIndex(), 0, min_iterations_);
+  /*
+  for (const auto& ordering : orderings) {
+    std::string letters;
+    for (const auto& letter : ordering.Letters()) {
+      letters += tiles_.NumberToChar(letter).value();
+    }
+    LOG(INFO) << "ordering: " << letters;
+  }
+  */
+  const auto seen = pos.SeenByPlayer();
+  std::vector<TileOrdering> adjusted_orderings;
+  adjusted_orderings.reserve(orderings.size());
+  for (const auto& ordering : orderings) {
+    adjusted_orderings.push_back(ordering.Adjust(seen));
+  }
+  /*
+  for (auto& ordering : adjusted_orderings) {
+    std::string letters;
+    for (const auto& letter : ordering.Letters()) {
+      letters += tiles_.NumberToChar(letter).value();
+    }
+    LOG(INFO) << "adjusted ordering: " << letters;
+  }
+  */
   return all_moves[0];
 }
 
