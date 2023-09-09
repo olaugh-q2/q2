@@ -11,16 +11,35 @@ void Game::CreateInitialPosition() {
   Bag bag(tiles_);
   bag.Shuffle(gen_);
   bags_.emplace_back(bag);
-  std::vector<uint64_t> exchange_insertion_dividends;
+  std::vector<uint16_t> exchange_insertion_dividends;
   for (int i = 0; i < 1000; ++i) {
-    exchange_insertion_dividends.push_back(absl::Uniform<uint64_t>(gen_));
+    exchange_insertion_dividends.push_back(
+        absl::Uniform<uint16_t>(gen_, 0, 65535));
   }
   CreateInitialPosition(bag, exchange_insertion_dividends);
 }
 
+void Game::CreateInitialPosition(const GamePosition& simming_position,
+                                 const TileOrdering& ordering) {
+  Board board;
+  exchange_dividend_index_ = 0;
+  exchange_insertion_dividends_ = ordering.ExchangeInsertionDividends();
+  LetterString empty;
+  Rack opponent_rack(empty);
+  Bag new_bag = pregame_bag_;
+  new_bag.CompleteRack(&opponent_rack);
+  racks_.emplace_back(simming_position.GetRack());
+  racks_.emplace_back(opponent_rack);
+  bags_.emplace_back(new_bag);
+  for (auto& player : players_) {
+    player->ResetGameState();
+  }
+  positions_.emplace_back(simming_position);
+}
+
 void Game::CreateInitialPosition(
     const Bag& ordered_bag,
-    const std::vector<uint64_t>& exchange_insertion_dividends) {
+    const std::vector<uint16_t>& exchange_insertion_dividends) {
   // LOG(INFO) << "CreateInitialPosition";
   Board board;
   exchange_dividend_index_ = 0;
@@ -39,7 +58,8 @@ void Game::CreateInitialPosition(
     player->ResetGameState();
   }
   positions_.emplace_back(layout_, board, players_[0]->Id(), players_[1]->Id(),
-                          player_rack, 0, 0, 0, game_index_, initial_time_, 0, tiles_);
+                          player_rack, 0, 0, 0, game_index_, initial_time_, 0,
+                          tiles_);
 }
 
 void Game::AddNextPosition(const Move& move, absl::Duration time_elapsed) {

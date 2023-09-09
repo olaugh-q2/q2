@@ -70,7 +70,7 @@ void Bag::CompleteRack(Rack* rack) {
 }
 
 void Bag::InsertTiles(const LetterString& tiles,
-                      const std::vector<uint64_t>& exchange_insertion_dividends,
+                      const std::vector<uint16_t>& exchange_insertion_dividends,
                       std::size_t* exchange_insertion_index) {
   if (tiles.empty()) {
     return;

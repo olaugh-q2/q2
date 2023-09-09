@@ -59,6 +59,8 @@ class SimmingPlayer : public ComputerPlayer {
 
   explicit SimmingPlayer(const q2::proto::SimmingPlayerConfig& config)
       : ComputerPlayer(config.name(), config.nickname(), config.id()),
+        layout_(*DataManager::GetInstance()->GetBoardLayout(
+            config.board_layout_file())),
         tiles_(*DataManager::GetInstance()->GetTiles(config.tiles_file())),
         leaves_(*(DataManager::GetInstance()->GetLeaves(config.leaves_file()))),
         num_plies_(config.plies()),
@@ -70,19 +72,24 @@ class SimmingPlayer : public ComputerPlayer {
                 ? 999999.9
                 : config.static_equity_pruning_threshold()),
         min_iterations_(config.min_iterations()),
-        max_iterations_(config.max_iterations()),
-        rollout_player_(
-            ComponentFactory::CreatePlayerFromConfig(config.rollout_player())) {
+        max_iterations_(config.max_iterations()) {
     move_finder_ = absl::make_unique<MoveFinder>(
         *DataManager::GetInstance()->GetAnagramMap(config.anagram_map_file()),
         *DataManager::GetInstance()->GetBoardLayout(config.board_layout_file()),
         tiles_, *DataManager::GetInstance()->GetLeaves(config.leaves_file()));
+    for(int i = 0; i < 2; ++i) {
+      auto player = ComponentFactory::CreatePlayerFromConfig(config.rollout_player());
+      CHECK(player != nullptr);
+      rollout_players_.push_back(std::move(player));
+    }        
   }
 
   Move ChooseBestMove(const std::vector<GamePosition>* previous_position,
                       const GamePosition& position) override;
 
-  void SimMove(const GamePosition& position, const std::vector<TileOrdering>& orderings,               MoveWithResults* move) const;
+  void SimMove(const GamePosition& position,
+               const std::vector<TileOrdering>& orderings,
+               MoveWithResults* move) const;
   void SimMoves(const GamePosition& position,
                 const std::vector<TileOrdering>& orderings,
                 std::vector<MoveWithResults>* moves) const;
@@ -102,6 +109,7 @@ class SimmingPlayer : public ComputerPlayer {
 
   std::vector<MoveWithResults> InitialPrune(const std::vector<Move>& moves);
 
+  const BoardLayout& layout_;
   const Tiles& tiles_;
   int positions_with_crosses_computed_ = 0;
   const Leaves& leaves_;
@@ -113,7 +121,7 @@ class SimmingPlayer : public ComputerPlayer {
   int min_iterations_;
   int max_iterations_;
 
-  std::unique_ptr<ComputerPlayer> rollout_player_;
+  std::vector<std::unique_ptr<ComputerPlayer>> rollout_players_;
 };
 
 #endif  // SRC_SCRABBLE_SIMMING_PLAYER_H

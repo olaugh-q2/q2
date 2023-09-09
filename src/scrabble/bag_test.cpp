@@ -115,7 +115,7 @@ TEST_F(BagTest, InsertTiles) {
   Bag bag(*tiles_);
   bag.SetLetters({L('A'), L('B'), L('C')});
   EXPECT_EQ(bag.Size(), 3);
-  const std::vector<uint64_t> dividends = {0, 7, 1};
+  const std::vector<uint16_t> dividends = {0, 7, 1};
   std::size_t idx = 0;
   const LetterString tiles = LS("JQXZ");
   bag.InsertTiles(tiles, dividends, &idx);

@@ -86,7 +86,7 @@ TEST_F(GameTest, CreateInitialPosition) {
   const std::vector<Player*> players = {&a, &b};
   Game game1(*layout_, players, *tiles_, absl::Minutes(25), 0);
   const Bag bag(*tiles_);
-  const std::vector<uint64_t> dividends = {1, 10, 150};
+  const std::vector<uint16_t> dividends = {1, 10, 150};
   game1.CreateInitialPosition(bag, dividends);
   std::stringstream ss1;
   game1.Display(ss1);
@@ -137,7 +137,7 @@ TEST_F(GameTest, AddNextPosition) {
                   L('A'), L('A'), L('A'), L('A'), L('A'), L('A'), L('A'),
                   L('E'), L('E'), L('E'), L('E'), L('E'), L('E'), L('E'),
                   L('S'), L('H'), L('G'), L('U'), L('A'), L('L'), L('O')});
-  const std::vector<uint64_t> dividends = {0};
+  const std::vector<uint16_t> dividends = {0};
   game.CreateInitialPosition(bag, dividends);
   std::stringstream ss1;
   game.Display(ss1);

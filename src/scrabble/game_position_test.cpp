@@ -146,7 +146,7 @@ TEST_F(GamePositionTest, ScorelessTurn2) {
   Board board;
   Rack rack(tiles_->ToLetterString("JKQVVXZ").value());
   auto pos = absl::make_unique<GamePosition>(*layout_, board, 1, 2, rack, 0, 0,
-                                             0, absl::Minutes(25), 0, *tiles_);
+                                             0, 0, absl::Minutes(25), 0, *tiles_);
   const auto pass = Move::Parse("PASS 0", *tiles_);
   pos->CommitMove(pass.value(), absl::Microseconds(200));
   std::stringstream ss;

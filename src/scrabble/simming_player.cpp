@@ -1,6 +1,7 @@
 #include "src/scrabble/simming_player.h"
 
 #include "src/scrabble/data_manager.h"
+#include "src/scrabble/game.h"
 #include "src/scrabble/move_finder.h"
 #include "src/scrabble/rack.h"
 
@@ -115,7 +116,14 @@ std::vector<SimmingPlayer::MoveWithResults> SimmingPlayer::InitialPrune(
 void SimmingPlayer::SimMove(const GamePosition& position,
                             const std::vector<TileOrdering>& orderings,
                             MoveWithResults* move) const {
-  GamePosition pos_copy = position;
+  std::vector<Player*> players;
+  for (int i = 0; i < 2; i++) {
+    auto& player = rollout_players_[i];
+    players.push_back(player.get());
+  }                              
+  for (const auto& ordering : orderings) {
+    Game game(layout_, position, players, tiles_, ordering);
+  }
 }
 
 void SimmingPlayer::SimMoves(const GamePosition& position,

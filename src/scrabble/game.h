@@ -11,6 +11,7 @@
 #include "src/scrabble/game_position.h"
 #include "src/scrabble/player.h"
 #include "src/scrabble/rack.h"
+#include "src/scrabble/tile_ordering.h"
 #include "src/scrabble/tiles.h"
 
 class Game {
@@ -31,11 +32,31 @@ class Game {
     bags_.reserve(30);
   }
 
+  Game(const BoardLayout& layout, const GamePosition& simming_position,
+       const std::vector<Player*>& players, const Tiles& tiles,
+       const TileOrdering& ordering)
+      : layout_(layout),
+        players_(players),
+        tiles_(tiles),
+        initial_time_(simming_position.TimeRemainingStart()),
+        pregame_bag_(Bag(tiles_, ordering.Letters())),
+        game_index_(simming_position.GameIndex()) {
+    CHECK(!players_.empty());
+    CHECK_EQ(players_.size(), 2);
+    positions_.reserve(30);
+    racks_.reserve(15);
+    bags_.reserve(30);
+    CreateInitialPosition(simming_position, ordering);
+  }
+
   void CreateInitialPosition();
+
+  void CreateInitialPosition(const GamePosition& simming_position,
+                             const TileOrdering& ordering);
 
   void CreateInitialPosition(
       const Bag& ordered_bag,
-      const std::vector<uint64_t>& exchange_insertion_dividends);
+      const std::vector<uint16_t>& exchange_insertion_dividends);
 
   const GamePosition* TwoPositionsAgo() const {
     if (positions_.size() < 2) {
@@ -92,7 +113,7 @@ class Game {
 
   absl::BitGen gen_;
 
-  std::vector<uint64_t> exchange_insertion_dividends_;
+  std::vector<uint16_t> exchange_insertion_dividends_;
 
   std::size_t exchange_dividend_index_;
 
