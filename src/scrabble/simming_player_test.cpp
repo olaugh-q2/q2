@@ -388,7 +388,7 @@ TEST_F(SimmingPlayerTest, ChooseBestMove) {
         board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
         tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
         leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
-        plies: 1
+        plies: 2
         max_plays_considered: 5
         static_equity_pruning_threshold: 100000
         min_iterations: 100

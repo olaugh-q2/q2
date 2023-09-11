@@ -33,6 +33,8 @@ Move SimmingPlayer::ChooseBestMove(
   for (const auto& ordering : orderings) {
     adjusted_orderings.push_back(ordering.Adjust(seen));
   }
+
+  SimMoves(pos, adjusted_orderings, &candidates);
   /*
   for (auto& ordering : adjusted_orderings) {
     std::string letters;
@@ -123,6 +125,11 @@ void SimmingPlayer::SimMove(const GamePosition& position,
   }                              
   for (const auto& ordering : orderings) {
     Game game(layout_, position, players, tiles_, ordering);
+    game.AddNextPosition(*move->GetMove(), absl::ZeroDuration());
+    game.ContinueWithComputerPlayers(num_plies_);
+    std::stringstream ss;
+    game.Display(ss);
+    LOG(INFO) << "game: " << std::endl << ss.str();
   }
 }
 
