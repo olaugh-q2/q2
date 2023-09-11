@@ -70,6 +70,7 @@ class Game {
   void Display(std::ostream& os) const;
 
   void FinishWithComputerPlayers();
+  void ContinueWithComputerPlayers(int plies);
 
   void AdjustGameEndScores();
 

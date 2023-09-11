@@ -76,7 +76,8 @@ class GamePosition {
   absl::Duration TimeRemainingEnd() const { return time_remaining_end_; }
   int ScorelessTurns() const { return scoreless_turns_; }
   bool IsGameOver() const {
-    // LOG(INFO) << "scoreless_turns_: " << scoreless_turns_;
+    //LOG(INFO) << "IsGameOver()";
+    //LOG(INFO) << "scoreless_turns_: " << scoreless_turns_;
     if (scoreless_turns_ >= 6) {
       return true;
     }

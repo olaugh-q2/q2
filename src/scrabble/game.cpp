@@ -72,13 +72,13 @@ void Game::AddNextPosition(const Move& move, absl::Duration time_elapsed) {
   }
   CHECK_GE(racks_.size(), 2);
   Rack rack = racks_[racks_.size() - 2];
-  // std::stringstream ss;
-  // rack.Display(tiles_, ss);
-  //  LOG(INFO) << "rack (before removal): " << ss.str();
-  //  LOG(INFO) << "rack.Size() = " << rack.NumTiles();
-  // std::stringstream ss_move;
-  // move.Display(tiles_, ss_move);
-  //  LOG(INFO) << "move: " << ss_move.str();
+  //std::stringstream ss;
+  //rack.Display(tiles_, ss);
+  //LOG(INFO) << "rack (before removal): " << ss.str();
+  //LOG(INFO) << "rack.Size() = " << rack.NumTiles();
+  //std::stringstream ss_move;
+  //move.Display(tiles_, ss_move);
+  //LOG(INFO) << "move: " << ss_move.str();
   LetterString move_tiles = move.Letters();
   if (!move_tiles.empty()) {
     for (auto& tile : move_tiles) {
@@ -144,6 +144,7 @@ void Game::AddNextPosition(const Move& move, absl::Duration time_elapsed) {
 }
 
 void Game::Display(std::ostream& os) const {
+  //LOG(INFO) << "Game::Display(...)";
   for (const Player* player : players_) {
     player->Display(os);
     os << std::endl;
@@ -169,7 +170,8 @@ void Game::Display(std::ostream& os) const {
       os << std::endl;
     }
     os << "Current position: " << std::endl;
-    positions_.back().Display(os, pregame_bag_);
+    const Bag full_bag(tiles_);
+    positions_.back().Display(os, full_bag);
   }
 }
 
@@ -201,27 +203,36 @@ void Game::AdjustGameEndScores() {
 }
 
 void Game::FinishWithComputerPlayers() {
-  // LOG(INFO) << "FinishWithComputerPlayers()";
+  ContinueWithComputerPlayers(999999);
+}
+
+void Game::ContinueWithComputerPlayers(int plies) {
   CHECK(!positions_.empty());
   CHECK(players_.size() == 2);
   CHECK(players_[0]->GetPlayerType() == Player::Computer);
   CHECK(players_[1]->GetPlayerType() == Player::Computer);
+  CHECK(plies > 0);
+  int plies_done = 0;
   while (!positions_.back().IsGameOver()) {
+    //LOG(INFO) << "positions_.size(): " << positions_.size();
     const int player_index = positions_.back().PositionIndex() % 2;
-    // LOG(INFO) << "Player index: " << player_index;
+    //LOG(INFO) << "Player index: " << player_index;
     Player* player_ptr = players_[player_index];
     ComputerPlayer* computer_player = dynamic_cast<ComputerPlayer*>(player_ptr);
     // LOG(INFO) << "Player: " << computer_player->Id();
     const auto start_time = absl::Now();
     // LOG(INFO) << "start_time: " << start_time;
-    std::stringstream ss;
-    // positions_.back().Display(ss);
-    // computer_player->Display(ss);
-    //  LOG(INFO) << "positions_.back(): " << std::endl << ss.str() <<
-    //  std::endl;
+    //std::stringstream ss;
+    //positions_.back().Display(ss);
+    //computer_player->Display(ss);
+    //LOG(INFO) << "positions_.back(): " << std::endl << ss.str() << std::endl;
     const auto move =
         computer_player->ChooseBestMove(&positions_, positions_.back());
     AddNextPosition(move, absl::Now() - start_time);
+    plies_done++;
+    if (plies_done == plies) {
+      return;
+    }
   }
   AdjustGameEndScores();
 }

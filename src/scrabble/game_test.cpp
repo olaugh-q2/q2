@@ -163,7 +163,7 @@ Current position:
 14　－　　　＂　　　＂　　　－　
 15＝　　＇　　　＝　　　＇　　＝
 Player 3 holds OLAUGHS on 0 to opp's 0 [25:00]
-Unseen: AAAAAAAEEEEEEEIIIIIII
+Unseen: AAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGHIIIIIIIIIJKLLLMMNNNNNNOOOOOOOPPQRRRRRRSSSTTTTTTUUUVVWWXYYZ??
 )");
 
   auto goulash = Move::Parse("8F GOULASH", *tiles_);
@@ -198,7 +198,7 @@ Current position:
 14　－　　　＂　　　＂　　　－　
 15＝　　＇　　　＝　　　＇　　＝
 Player 4 holds EEEEEEE on 0 to opp's 80 [25:00]
-Unseen: AAAAAAAIIIIIII
+Unseen: AAAAAAAABBCCDDDDEEEEEFFGGHIIIIIIIIIJKLLLMMNNNNNNOOOOOOOPPQRRRRRRSSSTTTTTTUUUVVWWXYYZ??
 )");
 
   auto exchange = Move::Parse("EXCH EEEEEE", *tiles_);
@@ -236,7 +236,7 @@ Current position:
 15＝　　＇　　　＝　　　＇　　＝
 [Consecutive scoreless turns preceding this position: 1]
 Player 3 holds AAAAAAA on 80 to opp's 0 [24:00]
-Unseen: EEEEEEEIIIIIII
+Unseen: ABBCCDDDDEEEEEEEEEEEEFFGGHIIIIIIIIIJKLLLMMNNNNNNOOOOOOOPPQRRRRRRSSSTTTTTTUUUVVWWXYYZ??
 )");
 }
 
@@ -271,4 +271,58 @@ TEST_F(GameTest, StaticPlayerPlays) {
     LOG(INFO) << ss.str();
     EXPECT_GE(game.Positions().size(), 8);
   }
+}
+
+TEST_F(GameTest, FinishSimmedGame) {
+  Board board;
+  Rack rack(tiles_->ToLetterString("QUACKUM").value());
+  auto pos = absl::make_unique<GamePosition>(
+      *layout_, board, 1, 2, rack, 0, 0, 0, 0, absl::Minutes(25), 0, *tiles_);
+  std::stringstream ss1;
+  pos->Display(ss1);
+  LOG(INFO) << std::endl << ss1.str();
+  StaticPlayer a(1, *anagram_map_, *layout_, *tiles_, *leaves_);
+  StaticPlayer b(2, *anagram_map_, *layout_, *tiles_, *leaves_);
+  std::vector<Player*> players = {&a, &b};
+  std::vector<Letter> letters = {
+      L('E'), L('E'), L('P'), L('S'), L('A'), L('?'), L('E'), L('H'), L('O'),
+      L('R'), L('N'), L('R'), L('I'), L('I'), L('I'), L('I'), L('I'), L('I'),
+      L('I'), L('O'), L('O'), L('O'), L('O'), L('O'), L('O'), L('O'), L('A'),
+      L('A'), L('A'), L('A'), L('A'), L('A'), L('A')};
+  std::reverse(letters.begin(), letters.end());
+  const std::vector<uint16_t> dividends = {1, 2, 3, 4, 5};
+  const auto ordering = TileOrdering(letters, dividends);
+  Game game(*layout_, *pos, players, *tiles_, ordering);
+  game.FinishWithComputerPlayers();
+  std::stringstream ss;
+  game.Display(ss);
+  LOG(INFO) << ss.str();
+  EXPECT_GE(game.Positions().size(), 8);
+}
+
+TEST_F(GameTest, ContinueSimmedGame) {
+  Board board;
+  Rack rack(tiles_->ToLetterString("QUACKUM").value());
+  auto pos = absl::make_unique<GamePosition>(
+      *layout_, board, 1, 2, rack, 0, 0, 0, 0, absl::Minutes(25), 0, *tiles_);
+  std::stringstream ss1;
+  pos->Display(ss1);
+  LOG(INFO) << std::endl << ss1.str();
+  StaticPlayer a(1, *anagram_map_, *layout_, *tiles_, *leaves_);
+  StaticPlayer b(2, *anagram_map_, *layout_, *tiles_, *leaves_);
+  std::vector<Player*> players = {&a, &b};
+  std::vector<Letter> letters = {
+      L('E'), L('E'), L('P'), L('S'), L('A'), L('?'), L('E'), L('H'), L('O'),
+      L('R'), L('N'), L('R'), L('I'), L('I'), L('I'), L('I'), L('I'), L('I'),
+      L('I'), L('O'), L('O'), L('O'), L('O'), L('O'), L('O'), L('O'), L('A'),
+      L('A'), L('A'), L('A'), L('A'), L('A'), L('A')};
+  std::reverse(letters.begin(), letters.end());
+  const std::vector<uint16_t> dividends = {1, 2, 3, 4, 5};
+  const auto ordering = TileOrdering(letters, dividends);
+  Game game(*layout_, *pos, players, *tiles_, ordering);
+  game.ContinueWithComputerPlayers(3);
+  std::stringstream ss;
+  game.Display(ss);
+  LOG(INFO) << ss.str();
+  EXPECT_GE(game.Positions().size(), 4);
 }

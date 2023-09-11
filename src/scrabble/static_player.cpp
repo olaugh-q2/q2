@@ -6,9 +6,9 @@ Move StaticPlayer::ChooseBestMove(
     const std::vector<GamePosition>* previous_positions,
     const GamePosition& pos) {
   SetStartOfTurnTime();
-  // std::stringstream ss;
-  // pos.Display(ss);
-  // LOG(INFO) << "StaticPlayer::ChooseBestMove: " << std::endl << ss.str();
+  //std::stringstream ss;
+  //pos.Display(ss);
+  //LOG(INFO) << "StaticPlayer::ChooseBestMove: " << std::endl << ss.str();
   CHECK_NE(previous_positions, nullptr);
   // LOG(INFO) << "positions_with_crosses_computed_: "
   //            << positions_with_crosses_computed_;
@@ -26,12 +26,19 @@ Move StaticPlayer::ChooseBestMove(
 
   // LOG(INFO) << "positions_with_crosses_computed_: "
   //           << positions_with_crosses_computed_;
+  //LOG(INFO) << "about to find moves (which will require calling GetUnseenToPlayer)";
+  //std::stringstream ss2;
+  //pos.Display(ss2);
+  //LOG(INFO) << "pos: " << std::endl << ss2.str() << std::endl;
   move_finder_->FindMoves(pos.GetRack(), pos.GetBoard(),
                           pos.GetUnseenToPlayer(), MoveFinder::RecordBest,
                           false);
   const auto& moves = move_finder_->Moves();
   CHECK_EQ(moves.size(), 1);
   auto move = moves[0];
+  //std::stringstream ss3;
+  //move.Display(tiles_, ss3);
+  //LOG(INFO) << "static player chose move: " << ss3.str() << std::endl;
 
 /*
   move_finder_->FindMoves(pos.GetRack(), pos.GetBoard(),

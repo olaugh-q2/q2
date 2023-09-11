@@ -6,6 +6,7 @@ void GamePosition::Display(std::ostream& os) const {
 }
 
 void GamePosition::Display(std::ostream& os, const Bag& initial_bag) const {
+  //LOG(INFO) << "GamePosition::Display(...)";
   layout_.DisplayBoard(board_, tiles_, os);
   if (move_) {
     if (scoreless_turns_ > 0) {
@@ -54,6 +55,7 @@ void GamePosition::Display(std::ostream& os, const Bag& initial_bag) const {
   if (known_opp_rack_.NumTiles() > 0) {
     known_opp_rack_.Display(tiles_, os);
   } else {
+    //os << "[temporarily disabled]";    
     auto unseen_to_player = GetUnseenToPlayer(initial_bag);
     unseen_to_player.Display(os);
   }
@@ -84,6 +86,7 @@ void GamePosition::WriteProto(q2::proto::GamePosition* proto) const {
 }
 
 GamePosition GamePosition::SwapRacks() const {
+  LOG(INFO) << "GamePosition::SwapRacks()";
   const auto unseen = GetUnseenToPlayer();
   CHECK_LE(unseen.Size(), 7);
   LetterString rack;

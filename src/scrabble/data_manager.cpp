@@ -41,6 +41,7 @@ const BoardLayout* DataManager::GetBoardLayout(const std::string& filename) {
   if (it != board_layouts_.end()) {
     return it->second.get();
   }
+  LOG(INFO) << "Could not get board layout for " << filename;
   return nullptr;
 }
 
