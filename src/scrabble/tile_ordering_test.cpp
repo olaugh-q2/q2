@@ -26,16 +26,16 @@ TEST_F(TileOrderingTest, CreateAndAdjust) {
   const std::vector<uint16_t> dividends = {1, 2, 3, 4, 5};
   const auto ordering = TileOrdering(letters, dividends);
 
-  EXPECT_THAT(ordering.GetLetters(),
+  EXPECT_THAT(ordering.Letters(),
               testing::ElementsAre(L('A'), L('Z'), L('?'), L('A')));
-  EXPECT_THAT(ordering.GetExchangeInsertionDividends(),
+  EXPECT_THAT(ordering.ExchangeInsertionDividends(),
               testing::ElementsAre(1, 2, 3, 4, 5));
 
   const std::vector<Letter> used_letters = {L('A'), L('Z')};
   const auto adjusted = ordering.Adjust(used_letters);
 
-  EXPECT_THAT(adjusted.GetLetters(), testing::ElementsAre(L('A'), L('?')));
-  EXPECT_THAT(adjusted.GetExchangeInsertionDividends(),
+  EXPECT_THAT(adjusted.Letters(), testing::ElementsAre(L('?'), L('A')));
+  EXPECT_THAT(adjusted.ExchangeInsertionDividends(),
               testing::ElementsAre(1, 2, 3, 4, 5));
 }
 
@@ -53,9 +53,9 @@ TEST_F(TileOrderingTest, CreateFromProto) {
                                                 proto);
   const auto ordering = TileOrdering(*proto, *tiles_);
 
-  EXPECT_THAT(ordering.GetLetters(),
+  EXPECT_THAT(ordering.Letters(),
               testing::ElementsAre(L('A'), L('Z'), L('?'), L('A')));
-  EXPECT_THAT(ordering.GetExchangeInsertionDividends(),
+  EXPECT_THAT(ordering.ExchangeInsertionDividends(),
               testing::ElementsAre(1, 2, 3, 4, 5));
 }
 
@@ -63,6 +63,6 @@ TEST_F(TileOrderingTest, CreateRandom) {
   absl::BitGen gen;
   const auto ordering = TileOrdering(*tiles_, gen, 5);
 
-  EXPECT_EQ(ordering.GetLetters().size(), 100);
-  EXPECT_EQ(ordering.GetExchangeInsertionDividends().size(), 5);
+  EXPECT_EQ(ordering.Letters().size(), 100);
+  EXPECT_EQ(ordering.ExchangeInsertionDividends().size(), 5);
 }

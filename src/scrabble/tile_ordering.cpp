@@ -61,15 +61,15 @@ TileOrdering::TileOrdering(const Tiles& tiles, absl::BitGenRef gen,
 TileOrdering TileOrdering::Adjust(
     const std::vector<Letter>& used_letters) const {
   std::vector<Letter> letters = letters_;
-  // Remove used_letters from letters ordering, taking away letters at the back
+  // Remove used_letters from letters ordering, taking away letters at the front
   // of the list first.
   for (Letter letter : used_letters) {
-    auto it = std::find(letters.rbegin(), letters.rend(), letter);
-    if (it == letters.rend()) {
+    auto it = std::find(letters.begin(), letters.end(), letter);
+    if (it == letters.end()) {
       LOG(ERROR) << "Letter " << letter << " not found in letters";
       return TileOrdering({}, {});
     }
-    letters.erase((it + 1).base());
+    letters.erase(it);
   }
   return TileOrdering(letters, exchange_insertion_dividends_);
 }
