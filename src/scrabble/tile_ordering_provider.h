@@ -12,6 +12,7 @@ class TileOrderingProvider {
                                                      int position_index,
                                                      int start_index,
                                                      int num_orderings) = 0;
+  virtual void RemoveGame(int game_number) = 0;                                                     
 };
 
 #endif  // SRC_SCRABBLE_TILE_ORDERING_PROVIDER_H

@@ -9,6 +9,7 @@
 #include "src/scrabble/computer_player.h"
 #include "src/scrabble/computer_players.pb.h"
 #include "src/scrabble/data_manager.h"
+#include "src/scrabble/game.h"
 #include "src/scrabble/game_position.h"
 #include "src/scrabble/move.h"
 #include "src/scrabble/move_finder.h"
@@ -32,6 +33,17 @@ class SimmingPlayer : public ComputerPlayer {
           wins_sum_(0),
           wins_sum_of_squares(0) {}
     const Move* GetMove() const { return move_; }
+    void IncrementIterations(int delta) { iterations_ += delta; }
+    void RecordSpread(float spread) {
+      spread_sum_ += spread;
+      spread_sum_of_squares_ += spread * spread;
+    }
+    void RecordWins(float win_prob) {
+      wins_sum_ += win_prob;
+      wins_sum_of_squares += win_prob * win_prob;
+    }
+    float AverageSpread() const { return spread_sum_ / iterations_; }
+    float WinProb() const { return wins_sum_ / iterations_; }
     int Iterations() const { return iterations_; }
     float SpreadSum() const { return spread_sum_; }
     float SpreadSumOfSquares() const { return spread_sum_of_squares_; }
@@ -86,6 +98,8 @@ class SimmingPlayer : public ComputerPlayer {
 
   Move ChooseBestMove(const std::vector<GamePosition>* previous_position,
                       const GamePosition& position) override;
+
+  void RecordResults(const Game& game, MoveWithResults* move) const;
 
   void SimMove(const GamePosition& position,
                const std::vector<TileOrdering>& orderings,

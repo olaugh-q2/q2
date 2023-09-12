@@ -34,7 +34,7 @@ class TileOrderingCache : public TileOrderingProvider {
                                              int start_index,
                                              int num_orderings) override;
 
-  void RemoveGame(int game_number) {
+  void RemoveGame(int game_number) override {
     std::lock_guard<std::mutex> lock(random_cache_mutex_);
     random_cache_.erase(game_number);
   }                                             

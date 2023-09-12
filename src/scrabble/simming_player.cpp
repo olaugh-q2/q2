@@ -35,16 +35,22 @@ Move SimmingPlayer::ChooseBestMove(
   }
 
   SimMoves(pos, adjusted_orderings, &candidates);
-  /*
-  for (auto& ordering : adjusted_orderings) {
-    std::string letters;
-    for (const auto& letter : ordering.Letters()) {
-      letters += tiles_.NumberToChar(letter).value();
+  const MoveWithResults* best_move = nullptr;
+  std::sort(candidates.begin(), candidates.end(),
+            [](const MoveWithResults& m1, const MoveWithResults& m2) {
+              return m1.AverageSpread() > m2.AverageSpread();
+            });
+  for (auto& move : candidates) {
+    std::stringstream ss;
+    move.GetMove()->Display(tiles_, ss);
+    LOG(INFO) << "move: " << ss.str() << " spread: " << move.AverageSpread();
+    if (best_move == nullptr ||
+        move.AverageSpread() > best_move->AverageSpread()) {
+      best_move = &move;
     }
-    LOG(INFO) << "adjusted ordering: " << letters;
   }
-  */
-  return all_moves[0];
+  CHECK_NOTNULL(best_move);
+  return *best_move->GetMove();
 }
 
 std::vector<Move> SimmingPlayer::FindMoves(
@@ -115,6 +121,24 @@ std::vector<SimmingPlayer::MoveWithResults> SimmingPlayer::InitialPrune(
   return ret;
 }
 
+void SimmingPlayer::RecordResults(const Game& game,
+                                  MoveWithResults* move) const {
+  float spread = 0.0;
+  for (int i = 0; i <= num_plies_; ++i) {
+    int sign = (i % 2 == 0) ? 1 : -1;
+    const auto* pos = game.GetPosition(i);
+    CHECK(pos != nullptr);
+    const auto& move = pos->GetMove();
+    CHECK(move.has_value());
+    if (i + 2 > num_plies_) {
+      spread += sign * move->Equity();
+    } else {
+      spread += sign * move->Score();
+    }
+  }
+  move->RecordSpread(spread);
+}
+
 void SimmingPlayer::SimMove(const GamePosition& position,
                             const std::vector<TileOrdering>& orderings,
                             MoveWithResults* move) const {
@@ -122,14 +146,16 @@ void SimmingPlayer::SimMove(const GamePosition& position,
   for (int i = 0; i < 2; i++) {
     auto& player = rollout_players_[i];
     players.push_back(player.get());
-  }                              
+  }
+  move->IncrementIterations(orderings.size());
   for (const auto& ordering : orderings) {
     Game game(layout_, position, players, tiles_, ordering);
     game.AddNextPosition(*move->GetMove(), absl::ZeroDuration());
     game.ContinueWithComputerPlayers(num_plies_);
-    std::stringstream ss;
-    game.Display(ss);
-    LOG(INFO) << "game: " << std::endl << ss.str();
+    //std::stringstream ss;
+    //game.Display(ss);
+    //LOG(INFO) << "game: " << std::endl << ss.str();
+    RecordResults(game, move);
   }
 }
 

@@ -150,6 +150,9 @@ void TournamentRunner::RunGames(
     DoGameStats(results[1].get(), thread_index, 1, player_results);
     DoPairStats(results[0].get(), results[1].get(), thread_index,
                 player_results);
+  auto* cf = ComponentFactory::GetInstance();
+  auto* ordering_provider = cf->GetTileOrderingProvider();
+  ordering_provider->RemoveGame(i);                
 
     if ((thread_index == 0) && (i % 10) == 0) {
       int thousandths = (1000 * i) / num_pairs;

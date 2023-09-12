@@ -389,10 +389,10 @@ TEST_F(SimmingPlayerTest, ChooseBestMove) {
         tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
         leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
         plies: 2
-        max_plays_considered: 5
+        max_plays_considered: 9
         static_equity_pruning_threshold: 100000
-        min_iterations: 100
-        max_iterations: 100
+        min_iterations: 1000
+        max_iterations: 1000
         rollout_player {
             static_player_config {
                 id: 100
@@ -413,7 +413,7 @@ TEST_F(SimmingPlayerTest, ChooseBestMove) {
       dm->GetTiles("src/scrabble/testdata/english_scrabble_tiles.textproto");
   const BoardLayout* layout =
       dm->GetBoardLayout("src/scrabble/testdata/scrabble_board.textproto");
-  const Rack rack(tiles->ToLetterString("OLAUGHS").value());
+  const Rack rack(tiles->ToLetterString("GOULASH").value());
   auto pos = absl::make_unique<GamePosition>(
       *layout, board, 1, 2, rack, 0, 0, 0, 0, absl::Minutes(25), 0, *tiles);
   std::vector<GamePosition> previous_positions;
