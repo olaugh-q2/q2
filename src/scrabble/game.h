@@ -58,13 +58,13 @@ class Game {
       const Bag& ordered_bag,
       const std::vector<uint16_t>& exchange_insertion_dividends);
 
- const GamePosition* GetPosition(int index) const {
+  const GamePosition* GetPosition(int index) const {
     if (index < 0 || index >= positions_.size()) {
       return nullptr;
     }
     return &(positions_[index]);
   }
-  
+
   const GamePosition* TwoPositionsAgo() const {
     if (positions_.size() < 2) {
       return nullptr;

@@ -35,10 +35,16 @@ class Move {
         score_(score) {}
 
   Move(Action action, const LetterString& letters, int score)
-      : action_(action), direction_(Move::None), letters_(letters), score_(score) {}
+      : action_(action),
+        direction_(Move::None),
+        letters_(letters),
+        score_(score) {}
 
   explicit Move(const LetterString& letters)
-      : action_(Move::Exchange), direction_(Move::None), letters_(letters), score_(0) {}
+      : action_(Move::Exchange),
+        direction_(Move::None),
+        letters_(letters),
+        score_(0) {}
 
   Move(const Move& move) {
     action_ = move.action_;
@@ -149,7 +155,7 @@ class Move {
   void SetEquity(float equity) { equity_ = equity; }
 
   double Equity() const {
-    CHECK(equity_.has_value());
+    CHECK(equity_.has_value()) << " GetAction(): " << GetAction() << " Score: " << Score();
     return equity_.value();
   }
 

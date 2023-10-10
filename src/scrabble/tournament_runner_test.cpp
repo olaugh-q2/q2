@@ -7,8 +7,10 @@
 #include "src/scrabble/alpha_beta_player.h"
 #include "src/scrabble/endgame_player.h"
 #include "src/scrabble/passing_player.h"
+#include "src/scrabble/simming_player.h"
 #include "src/scrabble/specializing_player.h"
 #include "src/scrabble/static_player.h"
+#include "src/scrabble/tile_ordering_cache.h"
 #include "src/scrabble/unseen_tiles_predicate.h"
 
 using ::google::protobuf::Arena;
@@ -18,10 +20,12 @@ class TournamentRunnerTest : public ::testing::Test {
   void SetUp() override {
     PassingPlayer::Register();
     StaticPlayer::Register();
+    SimmingPlayer::Register();
     EndgamePlayer::Register();
     AlphaBetaPlayer::Register();
     SpecializingPlayer::Register();
     UnseenTilesPredicate::Register();
+    TileOrderingCache::Register();
   }
 };
 /*
@@ -324,7 +328,7 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializing) {
   }
 }
 */
-/*
+
 TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializingMvQ) {
   Arena arena;
   auto spec = Arena::CreateMessage<q2::proto::TournamentSpec>(&arena);
@@ -353,7 +357,15 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializingMvQ) {
 "src/scrabble/testdata/english_scrabble_tiles.textproto"
           }
         }
-        number_of_rounds: 36000
+        singleton_components {
+          tile_ordering_provider_config {
+            tile_ordering_cache_config {
+              tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+              num_random_exchange_dividends: 40
+            }  
+          }
+        }
+        number_of_rounds: 240
         number_of_threads: 24
         format: HEADS_UP_MIRRORED_PAIRS
         players {
@@ -459,7 +471,7 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSpecializingMvQ) {
     LOG(INFO) << "player_averages: " << std::endl << a.DebugString();
   }
 }
-*/
+
 /*
 TEST_F(TournamentRunnerTest, HeadsUpMirroredQuickEndgame) {
   Arena arena;
@@ -1157,6 +1169,7 @@ TEST_F(TournamentRunnerTest, HeadsUpStuckTiles) {
 }
 */
 
+/*
 TEST_F(TournamentRunnerTest, HeadsUpMirroredSimming) {
   Arena arena;
   auto spec = Arena::CreateMessage<q2::proto::TournamentSpec>(&arena);
@@ -1193,31 +1206,47 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSimming) {
             }  
           }
         }
-        number_of_rounds: 36000
-        number_of_threads: 24
+        number_of_rounds: 4000
+        number_of_threads: 16
         format: HEADS_UP_MIRRORED_PAIRS
         players {
           specializing_player_config {
             id: 1
-            name: "Macondo + High Score Endgame"
+            name: "Simming+Score"
             nickname: "MHSE"
             conditional_players {
               predicate {
                 unseen_tiles_predicate_config {
-                  min_unseen_tiles: 8
+                  min_unseen_tiles: 36
                   max_unseen_tiles: 10000
                 }
               }
               player {
-                static_player_config {
+                simming_player_config {
                   id: 101
-                  name: "Macondo Leaves"
-                  nickname: "M"
+                  name: "Simming"
+                  nickname: "S"
                   anagram_map_file: "src/scrabble/testdata/csw21.qam"
                   board_layout_file:
 "src/scrabble/testdata/scrabble_board.textproto" tiles_file:
 "src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
 "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+                  plies: 4
+                  max_plays_considered: 2
+                  static_equity_pruning_threshold: 5
+                  min_iterations: 5000
+                  max_iterations: 5000
+                  rollout_player {
+                    static_player_config {
+                      id: 1001
+                      name: "Rollout Static Player"
+                      nickname: "RollStat"
+                      anagram_map_file: "src/scrabble/testdata/csw21.qam"
+                      board_layout_file: "src/scrabble/testdata/scrabble_board.textproto"
+                      tiles_file: "src/scrabble/testdata/english_scrabble_tiles.textproto"
+                      leaves_file: "src/scrabble/testdata/csw_scrabble_macondo.qlv"
+                    }
+                  }
                 }
               }
             }
@@ -1225,14 +1254,14 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSimming) {
               predicate {
                 unseen_tiles_predicate_config {
                   min_unseen_tiles: 0
-                  max_unseen_tiles: 7
+                  max_unseen_tiles: 35
                 }
               }
               player {
                 static_player_config {
                   id: 102
-                  name: "High Score Endgame"
-                  nickname: "HSE"
+                  name: "High Score"
+                  nickname: "Score"
                   anagram_map_file: "src/scrabble/testdata/csw21.qam"
                   board_layout_file:
 "src/scrabble/testdata/scrabble_board.textproto" tiles_file:
@@ -1246,25 +1275,25 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSimming) {
         players {
           specializing_player_config {
             id: 2
-            name: "Quackle + High Score Endgame"
-            nickname: "QHSE"
+            name: "Macondo+Score"
+            nickname: "M+S"
             conditional_players {
               predicate {
                 unseen_tiles_predicate_config {
-                  min_unseen_tiles: 8
+                  min_unseen_tiles: 36
                   max_unseen_tiles: 10000
                 }
               }
               player {
                 static_player_config {
                   id: 201
-                  name: "Quackle Leaves"
-                  nickname: "Q"
+                  name: "Macondo"
+                  nickname: "Macondo"
                   anagram_map_file: "src/scrabble/testdata/csw21.qam"
                   board_layout_file:
 "src/scrabble/testdata/scrabble_board.textproto" tiles_file:
 "src/scrabble/testdata/english_scrabble_tiles.textproto" leaves_file:
-"src/scrabble/testdata/csw_scrabble_quackle.qlv"
+"src/scrabble/testdata/csw_scrabble_macondo.qlv"
                 }
               }
             }
@@ -1272,13 +1301,13 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSimming) {
               predicate {
                 unseen_tiles_predicate_config {
                   min_unseen_tiles: 0
-                  max_unseen_tiles: 7
+                  max_unseen_tiles: 35
                 }
               }
               player {
                 static_player_config {
                   id: 202
-                  name: "High Score Endgame"
+                  name: "Score 2"
                   nickname: "HSE"
                   anagram_map_file: "src/scrabble/testdata/csw21.qam"
                   board_layout_file:
@@ -1299,3 +1328,4 @@ TEST_F(TournamentRunnerTest, HeadsUpMirroredSimming) {
     LOG(INFO) << "player_averages: " << std::endl << a.DebugString();
   }
 }
+*/

@@ -10,8 +10,8 @@ Move StaticPlayer::ChooseBestMove(
   //pos.Display(ss);
   //LOG(INFO) << "StaticPlayer::ChooseBestMove: " << std::endl << ss.str();
   CHECK_NE(previous_positions, nullptr);
-  // LOG(INFO) << "positions_with_crosses_computed_: "
-  //            << positions_with_crosses_computed_;
+  //LOG(INFO) << "positions_with_crosses_computed_: "
+  //          << positions_with_crosses_computed_;
   if (positions_with_crosses_computed_ == 0) {
     move_finder_->ClearHookTables();
   }
@@ -26,49 +26,42 @@ Move StaticPlayer::ChooseBestMove(
 
   // LOG(INFO) << "positions_with_crosses_computed_: "
   //           << positions_with_crosses_computed_;
-  //LOG(INFO) << "about to find moves (which will require calling GetUnseenToPlayer)";
-  //std::stringstream ss2;
-  //pos.Display(ss2);
-  //LOG(INFO) << "pos: " << std::endl << ss2.str() << std::endl;
+  // LOG(INFO) << "about to find moves (which will require calling
+  // GetUnseenToPlayer)"; std::stringstream ss2; pos.Display(ss2); LOG(INFO) <<
+  // "pos: " << std::endl << ss2.str() << std::endl;
   move_finder_->FindMoves(pos.GetRack(), pos.GetBoard(),
                           pos.GetUnseenToPlayer(), MoveFinder::RecordBest,
                           false);
   const auto& moves = move_finder_->Moves();
   CHECK_EQ(moves.size(), 1);
   auto move = moves[0];
-  //std::stringstream ss3;
-  //move.Display(tiles_, ss3);
-  //LOG(INFO) << "static player chose move: " << ss3.str() << std::endl;
+  // std::stringstream ss3;
+  // move.Display(tiles_, ss3);
+  // LOG(INFO) << "static player chose move: " << ss3.str() << std::endl;
 
-/*
-  move_finder_->FindMoves(pos.GetRack(), pos.GetBoard(),
-                          pos.GetUnseenToPlayer(), MoveFinder::RecordAll,
-                          false);
-  auto all_moves = move_finder_->Moves();
-  std::sort(
-      all_moves.begin(), all_moves.end(),
-      [](const Move& m1, const Move& m2) { return m1.Equity() > m2.Equity(); });
-  std::stringstream ss;
-  pos.Display(ss);
-  LOG(INFO) << "pos: " << std::endl << ss.str();
-  for (const auto& m : move_finder_->Moves()) {
-    if (m.Equity() > move.Equity() + 1e-5) {
-      std::stringstream ss;
-      pos.Display(ss);
-      LOG(INFO) << "pos: " << std::endl << ss.str();
-      LOG(INFO) << "number of moves: " << all_moves.size();
-      for (int i = 0; i < 10; ++i) {
-        if (i < all_moves.size()) {
-          std::stringstream ss;
-          all_moves[i].Display(tiles_, ss);
-          LOG(INFO) << "move: " << ss.str() << " " << all_moves[i].Equity();
+  /*
+    move_finder_->FindMoves(pos.GetRack(), pos.GetBoard(),
+                            pos.GetUnseenToPlayer(), MoveFinder::RecordAll,
+                            false);
+    auto all_moves = move_finder_->Moves();
+    std::sort(
+        all_moves.begin(), all_moves.end(),
+        [](const Move& m1, const Move& m2) { return m1.Equity() > m2.Equity();
+    }); std::stringstream ss; pos.Display(ss); LOG(INFO) << "pos: " << std::endl
+    << ss.str(); for (const auto& m : move_finder_->Moves()) { if (m.Equity() >
+    move.Equity() + 1e-5) { std::stringstream ss; pos.Display(ss); LOG(INFO) <<
+    "pos: " << std::endl << ss.str(); LOG(INFO) << "number of moves: " <<
+    all_moves.size(); for (int i = 0; i < 10; ++i) { if (i < all_moves.size()) {
+            std::stringstream ss;
+            all_moves[i].Display(tiles_, ss);
+            LOG(INFO) << "move: " << ss.str() << " " << all_moves[i].Equity();
+          }
         }
+        LOG(INFO) << "should have found move with equity " << m.Equity()
+                  << " but found move with equity " << move.Equity();
       }
-      LOG(INFO) << "should have found move with equity " << m.Equity()
-                << " but found move with equity " << move.Equity();
     }
-  }
-  */
+    */
   return move;
 }
 

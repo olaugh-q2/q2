@@ -176,12 +176,13 @@ void Game::Display(std::ostream& os) const {
 }
 
 void Game::AdjustGameEndScores() {
-  // LOG(INFO) << "AdjustGameEndScores()";
+  //LOG(INFO) << "AdjustGameEndScores()";
   //   Assumed that this is only called when the game is over.
   CHECK(positions_.back().IsGameOver());
   // This only makes sense for 2 player games.
   CHECK(players_.size() == 2);
   if (positions_.back().ScorelessTurns() >= 6) {
+    //LOG(INFO) << "Game ended with 6 scoreless turns.";
     for (int i = 0; i < 2; i++) {
       const LetterString& letters = positions_.back().GetRack().Letters();
       int penalty = -1 * tiles_.Score(letters);

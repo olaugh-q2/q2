@@ -9,6 +9,9 @@ Move SimmingPlayer::ChooseBestMove(
     const std::vector<GamePosition>* previous_positions,
     const GamePosition& pos) {
   SetStartOfTurnTime();
+  std::stringstream ss;
+  pos.Display(ss);
+  LOG(INFO) << "SimmingPlayer::ChooseBestMove: " << std::endl << ss.str();
   auto all_moves = FindMoves(previous_positions, pos);
   std::sort(
       all_moves.begin(), all_moves.end(),
@@ -34,6 +37,21 @@ Move SimmingPlayer::ChooseBestMove(
     adjusted_orderings.push_back(ordering.Adjust(seen));
   }
 
+  std::sort(candidates.begin(), candidates.end(),
+            [](const MoveWithResults& m1, const MoveWithResults& m2) {
+              return m1.GetMove()->Equity() > m2.GetMove()->Equity();
+            });
+  for (auto& move : candidates) {
+    std::stringstream ss;
+    move.GetMove()->Display(tiles_, ss);
+    LOG(INFO) << "candidate move: " << ss.str() << " equity: " << move.GetMove()->Equity();
+  }
+  if (candidates.size() == 1) {
+    std::stringstream ss;
+    candidates[0].GetMove()->Display(tiles_, ss);
+    LOG(INFO) << "returning sole candidate " << ss.str();
+    return *candidates[0].GetMove();
+  }
   SimMoves(pos, adjusted_orderings, &candidates);
   const MoveWithResults* best_move = nullptr;
   std::sort(candidates.begin(), candidates.end(),
@@ -43,7 +61,7 @@ Move SimmingPlayer::ChooseBestMove(
   for (auto& move : candidates) {
     std::stringstream ss;
     move.GetMove()->Display(tiles_, ss);
-    LOG(INFO) << "move: " << ss.str() << " spread: " << move.AverageSpread();
+    LOG(INFO) << "simmed move: " << ss.str() << " spread: " << move.AverageSpread();
     if (best_move == nullptr ||
         move.AverageSpread() > best_move->AverageSpread()) {
       best_move = &move;
@@ -58,33 +76,10 @@ std::vector<Move> SimmingPlayer::FindMoves(
     const GamePosition& pos) {
   std::stringstream ss;
   pos.Display(ss);
-  LOG(INFO) << "SimmingPlayer::FindMoves: " << std::endl << ss.str();
-  CHECK_NE(previous_positions, nullptr);
-  // LOG(INFO) << "positions_with_crosses_computed_: "
-  //            << positions_with_crosses_computed_;
-  if (positions_with_crosses_computed_ == 0) {
-    move_finder_->ClearHookTables();
-  }
-  for (int i = positions_with_crosses_computed_ + 1;
-       i < previous_positions->size(); ++i) {
-    // LOG(INFO) << "i: " << i;
-    const auto& p1 = (*previous_positions)[i - 1];
-    const auto& p2 = (*previous_positions)[i];
-    move_finder_->CacheCrossesAndScores(p2.GetBoard(), *p1.GetMove());
-    positions_with_crosses_computed_++;
-  }
-  // LOG(INFO) << "positions_with_crosses_computed_: "
-  //           << positions_with_crosses_computed_;
-  move_finder_->FindMoves(pos.GetRack(), pos.GetBoard(),
-                          pos.GetUnseenToPlayer(), MoveFinder::RecordBest,
-                          false);
-  const auto& moves = move_finder_->Moves();
-  CHECK_EQ(moves.size(), 1);
-  auto move = moves[0];
-
+  //LOG(INFO) << "SimmingPlayer::FindMoves: " << std::endl << ss.str();
   move_finder_->FindMoves(pos.GetRack(), pos.GetBoard(),
                           pos.GetUnseenToPlayer(), MoveFinder::RecordAll,
-                          false);
+                          true);
   return move_finder_->Moves();
 }
 
@@ -145,6 +140,7 @@ void SimmingPlayer::SimMove(const GamePosition& position,
   std::vector<Player*> players;
   for (int i = 0; i < 2; i++) {
     auto& player = rollout_players_[i];
+    player->ResetGameState();
     players.push_back(player.get());
   }
   move->IncrementIterations(orderings.size());

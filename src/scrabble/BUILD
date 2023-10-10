@@ -1,3 +1,4 @@
+load("@com_google_protobuf//:protobuf.bzl", "cc_proto_library")
 load("@rules_cc//cc:defs.bzl", "cc_proto_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
@@ -86,7 +87,6 @@ cc_library(
         ":primes",
         ":strings",
         ":tiles_spec_cc_proto",
-        "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/numeric:int128",
         "@com_google_absl//absl/types:optional",
         "@com_google_googletest//:gtest_prod",
@@ -110,6 +110,7 @@ cc_library(
     name = "primes",
     srcs = ["primes.cpp"],
     hdrs = ["primes.h"],
+    copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
     deps = ["@glog"],
 )
@@ -127,6 +128,7 @@ cc_library(
     name = "strings",
     srcs = ["strings.cpp"],
     hdrs = ["strings.h"],
+    copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
     deps = ["@glog"],
 )
@@ -150,6 +152,7 @@ cc_library(
         ":computer_players_cc_proto",
         ":rack",
         ":tiles",
+        "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/status:statusor",
         "@glog",
     ],
@@ -229,6 +232,7 @@ cc_library(
         ":primes",
         ":strings",
         ":tiles",
+        "@com_google_absl//absl/container:flat_hash_map",        
         "@com_google_absl//absl/numeric:int128",
         "@glog",
     ],
@@ -451,7 +455,7 @@ cc_test(
         ":board_layout",
         ":component_factory",
         ":computer_player",
-        ":computer_players_cc_proto",        
+        ":computer_players_cc_proto",
         ":data_manager",
         ":move",
         ":move_finder",
@@ -799,7 +803,9 @@ cc_library(
         ":game",
         ":passing_player",
         ":player",
+        ":simming_player",
         ":static_player",
+        ":tile_ordering_cache",
         "@com_google_protobuf//:protobuf",
         "@com_google_protobuf//:protoc",
         "@glog",

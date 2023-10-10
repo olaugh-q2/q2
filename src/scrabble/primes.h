@@ -2,6 +2,7 @@
 #define SRC_SCRABBLE_PRIMES_H
 
 #include <array>
+#include <cstdint>
 
 class Primes {
  public:

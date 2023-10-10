@@ -2,6 +2,7 @@
 #define SRC_SCRABBLE_STRINGS_H
 
 #include <array>
+#include <cstring>
 #include <iterator>
 #include <ostream>
 #include <string_view>
@@ -65,7 +66,7 @@ class LetterString {
 
  private:
   friend void PrintTo(const LetterString& bar, std::ostream* os) {
-    for (size_t i = bar.first_position(); i <= bar.last_position(); i++) {
+    for (int i = bar.first_position(); i <= bar.last_position(); i++) {
       char c = bar[i] + 'A' - 1;
       if (bar[i] == 27) {
         c = '?';
@@ -151,7 +152,7 @@ inline LetterString::LetterString() : first_position_(0), last_position_(-1) {}
 inline LetterString::LetterString(const char* s, std::size_t n)
     : first_position_(0), last_position_(n - 1) {
   if (n > FIXED_STRING_MAXIMUM_LENGTH) {
-    LOG(FATAL) << "String is too long";
+    //LOG(FATAL) << "String is too long";
     return;
   }
   for (size_t i = 0; i < n; i++) {
@@ -161,7 +162,7 @@ inline LetterString::LetterString(const char* s, std::size_t n)
 
 inline LetterString::LetterString(size_t n, Letter c) {
   if (n > FIXED_STRING_MAXIMUM_LENGTH) {
-    LOG(FATAL) << "String is too long";
+    //LOG(FATAL) << "String is too long";
     return;
   }
   for (size_t i = 0; i < n; i++) {
@@ -174,7 +175,7 @@ inline LetterString::LetterString(size_t n, Letter c) {
 inline LetterString::LetterString(const char* s) {
   size_t sz = strlen(s);
   if (sz > FIXED_STRING_MAXIMUM_LENGTH) {
-    LOG(FATAL) << "String is too long";
+    //LOG(FATAL) << "String is too long";
   }
   memcpy(data_, s, sz);
   last_position_ = sz - 1;
@@ -198,7 +199,7 @@ inline LetterString::LetterString(LetterString&& s) {
 
 inline void LetterString::push_back(char c) {
   if (last_position_ + 1 >= FIXED_STRING_MAXIMUM_LENGTH) {
-    LOG(FATAL) << "String is too long";
+    //LOG(FATAL) << "String is too long";
     return;
   }
   data_[++last_position_] = c;

@@ -21,10 +21,10 @@ http_archive(
     urls = ["https://github.com/gflags/gflags/archive/v2.2.2.tar.gz"],
 )
 
-git_repository(
+http_archive(
     name = "com_google_absl",
-    remote = "https://github.com/abseil/abseil-cpp.git",
-    tag = "20211102.0",
+    strip_prefix = "abseil-cpp-20230125.3",
+    urls = ["https://github.com/abseil/abseil-cpp/archive/refs/tags/20230125.3.tar.gz"],
 )
 
 git_repository(

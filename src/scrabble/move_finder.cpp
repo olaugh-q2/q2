@@ -332,8 +332,6 @@ void MoveFinder::CacheRackPartitions(const Rack& rack) {
       // const bool has_word = anagram_map_.HasWord(word_iterator);
       word_iterator = anagram_map_.WordIterator(used_product, blanks);
       const auto has_word = anagram_map_.HasWord(word_iterator);
-      // LOG(INFO) << "used_letters: " << tiles_.ToString(used_letters).value()
-      //           << " has_word: " << has_word;
       if (has_word) {
         rack_word_of_length_[size] = true;
       }
@@ -388,7 +386,8 @@ void MoveFinder::FindWords(const Rack& rack, const Board& board,
       AbsorbThroughTiles(board, direction, start_row, start_col, num_tiles);
   // LOG(INFO) << "FindWords(...) start_row: " << start_row
   //           << " start_col: " << start_col << " num_tiles: " << num_tiles;
-  //int partitions_used = 0;
+  int partitions_checked = 0;
+  int partitions_used = 0;
   auto& partitions = rack_partitions_[num_tiles];
   for (auto& partition : partitions) {
     const auto num_blanks = partition.NumBlanks();
@@ -399,6 +398,7 @@ void MoveFinder::FindWords(const Rack& rack, const Board& board,
       // LOG(INFO) << "not compatible with spot";
       continue;
     }
+    partitions_checked++;
     if ((through_product == 1) && !HasWord(&partition)) {
       // LOG(INFO) << "skipping partition without word: "
       //           << tiles_.ToString(partition.UsedLetters()).value();
@@ -427,7 +427,7 @@ void MoveFinder::FindWords(const Rack& rack, const Board& board,
         continue;
       }
     }
-    //partitions_used++;
+    partitions_used++;
     /*
         LOG(INFO) << "product: " << product
                   << ", through_product: " << through_product;
@@ -475,8 +475,8 @@ void MoveFinder::FindWords(const Rack& rack, const Board& board,
           // std::stringstream ss;
           // move.Display(tiles_, ss);
           // LOG(INFO) << " found move " << ss.str();
-          //   CHECK_GE(spot.MaxEquity(), move.Equity()) << ss.str();
-          CHECK_LE(move.Equity(), leave_value + spot.MaxScore() + 1e-5);
+          // CHECK_GE(spot.MaxEquity(), move.Equity()) << ss.str();
+          // CHECK_LE(move.Equity(), leave_value + spot.MaxScore() + 1e-5);
           if (record_mode == RecordMode::RecordBest) {
             if (move.Equity() > best_equity + 1e-5) {
               best_equity = move.Equity();
@@ -518,8 +518,8 @@ LOG(INFO) << " move " << ss.str();
             // std::stringstream ss;
             // blank_move.Display(tiles_, ss);
             // LOG(INFO) << " found move " << ss.str();
-            //  CHECK_GE(spot.MaxEquity(), blank_move.Equity())
-            //      << "move " << ss.str();
+            //   CHECK_GE(spot.MaxEquity(), blank_move.Equity())
+            //       << "move " << ss.str();
             if (record_mode == RecordMode::RecordBest) {
               if (blank_move.Equity() > best_equity + 1e-5) {
                 best_equity = blank_move.Equity();
@@ -543,8 +543,6 @@ LOG(INFO) << " move " << ss.str();
       }
     }
   }
-  // LOG(INFO) << "  partitions searched: " << partitions_used << " out of "
-  //           << partitions.size();
 }
 
 void MoveFinder::CacheCrossesAndScores(const Board& board, const Move& move) {
@@ -1340,6 +1338,7 @@ void MoveFinder::FindMoves(const Rack& rack, const Board& board, const Bag& bag,
         spot_ptrs_.push_back(&spot);
       }
     }
+    int spots_checked = 0;
     std::sort(spot_ptrs_.begin(), spot_ptrs_.end(),
               [](const Spot* a, const Spot* b) {
                 return a->MaxEquity() > b->MaxEquity();
@@ -1350,6 +1349,7 @@ void MoveFinder::FindMoves(const Rack& rack, const Board& board, const Bag& bag,
       }
       FindWords(rack, board, *spot, record_mode, best_equity, &moves_);
       best_equity = moves_[0].Equity();
+      spots_checked++;
     }
     /*
     auto spot_comparer = [](const Spot* a, const Spot* b) {

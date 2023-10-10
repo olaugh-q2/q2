@@ -65,7 +65,7 @@ void DoPairStats(
   int i0 = thread_index * 2;
   int i1 = thread_index * 2 + 1;
   auto* r0 = (*player_results)[i0].get();
-  auto* r1 = (*player_results)[i1].get();  
+  auto* r1 = (*player_results)[i1].get();
   int p0halves = 0;
   if (g0->player_scores(0) > g0->player_scores(1)) {
     p0halves += 2;
@@ -98,12 +98,14 @@ void DoPairStats(
   int p0diff = g0->player_scores(0) - g0->player_scores(1) +
                g1->player_scores(1) - g1->player_scores(0);
   if (p0diff != 0) {
-    if ((p0diff < -330) || (p0diff > 330)) {
-      LOG(INFO) << "p0diff: " << p0diff << " g0: " << std::endl
-                << g0->DebugString() << std::endl
-                << "g1: " << std::endl
-                << g1->DebugString();
-    }
+    /*
+  if ((p0diff < -0) || (p0diff > 0)) {
+  LOG(INFO) << "p0diff: " << p0diff << " g0: " << std::endl
+     << g0->DebugString() << std::endl
+     << "g1: " << std::endl
+     << g1->DebugString();
+  }
+  */
     r0->set_total_mirrored_difference(r0->total_mirrored_difference() + p0diff);
     r1->set_total_mirrored_difference(r1->total_mirrored_difference() - p0diff);
     r0->set_mirrored_with_difference(r0->mirrored_with_difference() + 1);
@@ -131,9 +133,10 @@ void TournamentRunner::RunGames(
     // LOG(INFO) << "Running pair " << i << " on thread " << thread_index;
     Bag bag(tiles);
     bag.Shuffle(gen);
-    std::vector<uint64_t> exchange_insertion_dividends;
+    std::vector<uint16_t> exchange_insertion_dividends;
     for (int i = 0; i < 1000; ++i) {
-      exchange_insertion_dividends.push_back(absl::Uniform<uint64_t>(gen));
+      exchange_insertion_dividends.push_back(
+          absl::Uniform<uint16_t>(gen, 0, 65535));
     }
     std::vector<std::unique_ptr<q2::proto::GameResult>> results;
     results.resize(2);
@@ -150,14 +153,16 @@ void TournamentRunner::RunGames(
     DoGameStats(results[1].get(), thread_index, 1, player_results);
     DoPairStats(results[0].get(), results[1].get(), thread_index,
                 player_results);
-  auto* cf = ComponentFactory::GetInstance();
-  auto* ordering_provider = cf->GetTileOrderingProvider();
-  ordering_provider->RemoveGame(i);                
+    auto* cf = ComponentFactory::GetInstance();
+    auto* ordering_provider = cf->GetTileOrderingProvider();
+    ordering_provider->RemoveGame(i);
 
+    /*
     if ((thread_index == 0) && (i % 10) == 0) {
       int thousandths = (1000 * i) / num_pairs;
       LOG(INFO) << "Progress: " << thousandths << "/1000";
     }
+    */
   }
 }
 
@@ -180,10 +185,14 @@ void TournamentRunner::Run(q2::proto::TournamentResults* tournament_results) {
   if (spec_.number_of_rounds() < 1) {
     LOG(FATAL) << "At least one thread required";
   }
+  DataManager::GetInstance()->LoadData(data);
+
+  const auto& singletons = spec_.singleton_components();
+  ComponentFactory::GetInstance()->CreateSingletonComponents(singletons);
+
   Arena arena;
   std::vector<std::unique_ptr<q2::proto::PlayerResults>> player_results;
 
-  DataManager::GetInstance()->LoadData(data);
   for (int i = 0; i < spec_.number_of_threads(); ++i) {
     for (const auto& player_spec : spec_.players()) {
       auto player = ComponentFactory::CreatePlayerFromConfig(player_spec);
@@ -232,12 +241,13 @@ void TournamentRunner::Run(q2::proto::TournamentResults* tournament_results) {
     aggregated_results[i] = absl::make_unique<q2::proto::PlayerResults>();
   }
   for (int i = 0; i < player_results.size(); i++) {
-    //LOG(INFO) << "Player " << i
-    //          << " results: " << player_results[i]->DebugString();
+    // LOG(INFO) << "Player " << i
+    //           << " results: " << player_results[i]->DebugString();
     int target_index = i % 2;
     auto* p = aggregated_results[target_index].get();
     p->set_player_id(1 + target_index);
-    p->set_games_started(p->games_started() + player_results[i]->games_started());
+    p->set_games_started(p->games_started() +
+                         player_results[i]->games_started());
     p->set_num_wins(p->num_wins() + player_results[i]->num_wins());
     p->set_num_losses(p->num_losses() + player_results[i]->num_losses());
     p->set_num_draws(p->num_draws() + player_results[i]->num_draws());
