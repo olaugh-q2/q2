@@ -736,7 +736,7 @@ TEST_F(MoveFinderTest, WordScore) {
 
   board.UnsafePlaceMove(cwm.value());
   const auto euoi = Move::Parse("7H EUOI", *tiles_);
-  // 2 + 4 + 1 + 1 = 7
+  // 2 + 4 + 1 + 1 = 8
   move_finder_->cross_map_.clear();
   move_finder_->CacheCrossesAndScores(board);
   EXPECT_EQ(move_finder_->WordScore(board, euoi.value(), 1), 8);
