@@ -1,4 +1,16 @@
-build --copt -fno-implicit-modules
-build --copt -fbuiltin-module-map
-build --copt -stdlib=libc++
-build --linkopt -stdlib=libc++
+build --compiler=clang
+build --action_env=CC=/usr/bin/clang
+build --action_env=CXX=/usr/bin/clang++
+build --copt=-march=native
+build --copt=-Ofast
+build --cxxopt=-std=c++14
+build --cxxopt=-isystem=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/
+build --cxxopt="-stdlib=libc++"
+#build --action_env=CC=/usr/local/Cellar/gcc/13.2.0/bin/gcc-13
+#build --action_env=CXX=/usr/local/Cellar/gcc/13.2.0/bin/g++-13
+#build --copt -fno-implicit-modules
+#build --copt -fbuiltin-module-map
+#build --cxxopt -std=c++17
+#build --cxxopt -isystem=/usr/local/Cellar/gcc/13.2.0/include/c++/13
+#build --copt -isystem=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/
+#build --cxxopt -isystem=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/
