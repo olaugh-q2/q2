@@ -18,3 +18,16 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_binary(
+    name = "ort_tool",
+    srcs = ["ort_tool.cpp"],
+    deps = [
+        ":magpie_rack",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/flags:usage",
+        "@glog",
+    ],
+)
