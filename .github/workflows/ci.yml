@@ -50,15 +50,7 @@ jobs:
       - name: Setup Bazel
         uses: bazelbuild/setup-bazelisk@v3
 
-      - name: Build libraries and binaries with sanitizers
-        run: |
-          bazel build --config=sanitizers //src/main:main //src/main:neural_network //src/main:neural_network_lib \
-            //src/leaves:leaves_tool //src/anagram:anagram_tool //src/rack_table:ort_tool
-        env:
-          CC: clang
-          CXX: clang++
-
-      - name: Test with sanitizers
+      - name: Test with AddressSanitizer
         run: bazel test --config=sanitizers //... --test_output=errors
         env:
           CC: clang
