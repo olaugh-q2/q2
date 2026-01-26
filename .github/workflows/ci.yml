@@ -23,17 +23,16 @@ jobs:
         uses: bazelbuild/setup-bazelisk@v3
 
       - name: Build
-        run: bazel build --verbose_failures //src/main:main //src/leaves:leaves_tool //src/anagram:anagram_tool //src/rack_table:ort_tool
+        run: bazel build //...
         env:
           CC: clang
           CXX: clang++
 
-      # Tests disabled temporarily - investigating CI failures
-      # - name: Test
-      #   run: bazel test //... --test_output=errors
-      #   env:
-      #     CC: clang
-      #     CXX: clang++
+      - name: Test
+        run: bazel test //... --test_output=errors
+        env:
+          CC: clang
+          CXX: clang++
 
   sanitizers:
     runs-on: ubuntu-latest
@@ -50,14 +49,13 @@ jobs:
         uses: bazelbuild/setup-bazelisk@v3
 
       - name: Build with sanitizers
-        run: bazel build --verbose_failures --config=sanitizers //src/main:main //src/leaves:leaves_tool //src/anagram:anagram_tool //src/rack_table:ort_tool
+        run: bazel build --config=sanitizers //...
         env:
           CC: clang
           CXX: clang++
 
-      # Tests disabled temporarily - investigating CI failures
-      # - name: Test with sanitizers
-      #   run: bazel test --config=sanitizers //... --test_output=errors
-      #   env:
-      #     CC: clang
-      #     CXX: clang++
+      - name: Test with sanitizers
+        run: bazel test --config=sanitizers //... --test_output=errors
+        env:
+          CC: clang
+          CXX: clang++
