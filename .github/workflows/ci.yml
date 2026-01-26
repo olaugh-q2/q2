@@ -23,7 +23,7 @@ jobs:
         uses: bazelbuild/setup-bazelisk@v3
 
       - name: Build
-        run: bazel build //...
+        run: bazel build --verbose_failures //src/main:main //src/leaves:leaves_tool //src/anagram:anagram_tool //src/rack_table:ort_tool
         env:
           CC: clang
           CXX: clang++
@@ -50,7 +50,7 @@ jobs:
         uses: bazelbuild/setup-bazelisk@v3
 
       - name: Build with sanitizers
-        run: bazel build --config=sanitizers //...
+        run: bazel build --verbose_failures --config=sanitizers //src/main:main //src/leaves:leaves_tool //src/anagram:anagram_tool //src/rack_table:ort_tool
         env:
           CC: clang
           CXX: clang++
