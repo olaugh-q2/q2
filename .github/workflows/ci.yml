@@ -18,6 +18,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y clang lld
 
+      - name: Setup Bazel
+        uses: bazelbuild/setup-bazelisk@v3
+
       - name: Mount Bazel cache
         uses: actions/cache@v4
         with:
@@ -42,6 +45,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y clang lld
+
+      - name: Setup Bazel
+        uses: bazelbuild/setup-bazelisk@v3
 
       - name: Mount Bazel cache
         uses: actions/cache@v4
