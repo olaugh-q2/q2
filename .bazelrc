@@ -1,11 +1,50 @@
-build --compiler=clang
-build --action_env=CC=/usr/bin/clang
-build --action_env=CXX=/usr/bin/clang++
-build --copt=-march=native
-build --copt=-Ofast
+# Common build settings
 build --cxxopt=-std=c++14
-build --cxxopt=-isystem=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/
-build --cxxopt="-stdlib=libc++"
+
+# macOS-specific settings
+build:macos --compiler=clang
+build:macos --action_env=CC=/usr/bin/clang
+build:macos --action_env=CXX=/usr/bin/clang++
+build:macos --copt=-march=native
+build:macos --copt=-Ofast
+build:macos --cxxopt=-isystem=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/
+build:macos --cxxopt="-stdlib=libc++"
+
+# Linux/CI settings
+build:linux --compiler=clang
+build:linux --action_env=CC=clang
+build:linux --action_env=CXX=clang++
+
+# Address Sanitizer (ASAN)
+build:asan --strip=never
+build:asan --copt=-fsanitize=address
+build:asan --copt=-fno-omit-frame-pointer
+build:asan --copt=-O1
+build:asan --copt=-g
+build:asan --linkopt=-fsanitize=address
+test:asan --test_env=ASAN_OPTIONS=detect_leaks=1:halt_on_error=1
+
+# Undefined Behavior Sanitizer (UBSAN)
+# Note: vptr check disabled as it requires all code (including external deps) to be compiled with same flags
+build:ubsan --strip=never
+build:ubsan --copt=-fsanitize=undefined
+build:ubsan --copt=-fno-sanitize=vptr
+build:ubsan --copt=-fno-omit-frame-pointer
+build:ubsan --copt=-O1
+build:ubsan --copt=-g
+build:ubsan --linkopt=-fsanitize=undefined
+build:ubsan --linkopt=-fno-sanitize=vptr
+test:ubsan --test_env=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+
+# Sanitizers config for CI (ASAN only - UBSAN has compatibility issues with external deps)
+build:sanitizers --strip=never
+build:sanitizers --copt=-fsanitize=address
+build:sanitizers --copt=-fno-omit-frame-pointer
+build:sanitizers --copt=-O1
+build:sanitizers --copt=-g
+build:sanitizers --linkopt=-fsanitize=address
+test:sanitizers --test_env=ASAN_OPTIONS=detect_leaks=1:halt_on_error=1
+
 #build --action_env=CC=/usr/local/Cellar/gcc/13.2.0/bin/gcc-13
 #build --action_env=CXX=/usr/local/Cellar/gcc/13.2.0/bin/g++-13
 #build --copt -fno-implicit-modules

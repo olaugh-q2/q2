@@ -1,0 +1,55 @@
+name: CI
+# Build and test with sanitizers
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Clang
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang lld
+
+      - name: Setup Bazel
+        uses: bazelbuild/setup-bazelisk@v3
+
+      - name: Build
+        run: bazel build //src/main:main //src/leaves:leaves_tool //src/anagram:anagram_tool //src/rack_table:ort_tool
+        env:
+          CC: clang
+          CXX: clang++
+
+      - name: Test
+        run: bazel test //... --test_output=errors
+        env:
+          CC: clang
+          CXX: clang++
+
+  sanitizers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Clang
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang lld
+
+      - name: Setup Bazel
+        uses: bazelbuild/setup-bazelisk@v3
+
+      - name: Test with AddressSanitizer
+        run: bazel test --config=sanitizers //... --test_output=errors
+        env:
+          CC: clang
+          CXX: clang++
