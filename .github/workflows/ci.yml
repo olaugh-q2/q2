@@ -30,10 +30,16 @@ jobs:
             bazel-${{ runner.os }}-
 
       - name: Build
-        run: bazel build --config=linux //...
+        run: bazel build //...
+        env:
+          CC: clang
+          CXX: clang++
 
       - name: Test
-        run: bazel test --config=linux //...
+        run: bazel test //...
+        env:
+          CC: clang
+          CXX: clang++
 
   sanitizers:
     runs-on: ubuntu-latest
@@ -58,7 +64,13 @@ jobs:
             bazel-sanitizers-${{ runner.os }}-
 
       - name: Build with sanitizers
-        run: bazel build --config=linux --config=sanitizers //...
+        run: bazel build --config=sanitizers //...
+        env:
+          CC: clang
+          CXX: clang++
 
       - name: Test with sanitizers
-        run: bazel test --config=linux --config=sanitizers //...
+        run: bazel test --config=sanitizers //...
+        env:
+          CC: clang
+          CXX: clang++
