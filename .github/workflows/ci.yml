@@ -22,18 +22,19 @@ jobs:
       - name: Setup Bazel
         uses: bazelbuild/setup-bazelisk@v3
 
-      - name: Build
-        run: bazel build //...
+      - name: Build libraries and binaries
+        run: |
+          bazel build //src/main:main //src/main:neural_network //src/main:neural_network_lib \
+            //src/leaves:leaves_tool //src/anagram:anagram_tool //src/rack_table:ort_tool
         env:
           CC: clang
           CXX: clang++
 
       - name: Test
-        run: bazel test //... --test_output=errors || echo "Some tests failed"
+        run: bazel test //... --test_output=errors
         env:
           CC: clang
           CXX: clang++
-        continue-on-error: true
 
   sanitizers:
     runs-on: ubuntu-latest
@@ -49,15 +50,16 @@ jobs:
       - name: Setup Bazel
         uses: bazelbuild/setup-bazelisk@v3
 
-      - name: Build with sanitizers
-        run: bazel build --config=sanitizers //...
+      - name: Build libraries and binaries with sanitizers
+        run: |
+          bazel build --config=sanitizers //src/main:main //src/main:neural_network //src/main:neural_network_lib \
+            //src/leaves:leaves_tool //src/anagram:anagram_tool //src/rack_table:ort_tool
         env:
           CC: clang
           CXX: clang++
 
       - name: Test with sanitizers
-        run: bazel test --config=sanitizers //... --test_output=errors || echo "Some tests failed"
+        run: bazel test --config=sanitizers //... --test_output=errors
         env:
           CC: clang
           CXX: clang++
-        continue-on-error: true
