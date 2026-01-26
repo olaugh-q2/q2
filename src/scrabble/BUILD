@@ -130,7 +130,10 @@ cc_library(
     hdrs = ["strings.h"],
     copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
-    deps = ["@glog"],
+    deps = [
+        "@com_google_absl//absl/strings",
+        "@glog",
+    ],
 )
 
 proto_library(
