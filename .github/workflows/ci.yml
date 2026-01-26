@@ -22,14 +22,6 @@ jobs:
       - name: Setup Bazel
         uses: bazelbuild/setup-bazelisk@v3
 
-      - name: Mount Bazel cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/bazel
-          key: bazel-${{ runner.os }}-${{ hashFiles('WORKSPACE', '.bazelrc') }}
-          restore-keys: |
-            bazel-${{ runner.os }}-
-
       - name: Build
         run: bazel build //...
         env:
@@ -55,14 +47,6 @@ jobs:
 
       - name: Setup Bazel
         uses: bazelbuild/setup-bazelisk@v3
-
-      - name: Mount Bazel cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/bazel
-          key: bazel-sanitizers-${{ runner.os }}-${{ hashFiles('WORKSPACE', '.bazelrc') }}
-          restore-keys: |
-            bazel-sanitizers-${{ runner.os }}-
 
       - name: Build with sanitizers
         run: bazel build --config=sanitizers //...
