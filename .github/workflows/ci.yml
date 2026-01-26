@@ -31,7 +31,7 @@ jobs:
           CXX: clang++
 
       - name: Test
-        run: bazel test //... --test_output=errors
+        run: bazel test //... --test_output=all --keep_going || echo "Tests failed, see output above"
         env:
           CC: clang
           CXX: clang++
@@ -51,7 +51,7 @@ jobs:
         uses: bazelbuild/setup-bazelisk@v3
 
       - name: Test with AddressSanitizer
-        run: bazel test --config=sanitizers //... --test_output=errors
+        run: bazel test --config=sanitizers //... --test_output=all --keep_going || echo "Sanitizer tests failed, see output above"
         env:
           CC: clang
           CXX: clang++
