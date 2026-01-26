@@ -363,5 +363,4 @@ TEST_F(DawgTest, CountNodeSubstrings2) {
   for (const auto& pair : substrings) {
     std::cout << pair.first << " " << pair.second << std::endl;
   }
-  EXPECT_TRUE(false);
 }

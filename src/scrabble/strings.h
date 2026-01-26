@@ -5,7 +5,7 @@
 #include <cstring>
 #include <iterator>
 #include <ostream>
-#include <string_view>
+#include "absl/strings/string_view.h"
 
 #include "glog/logging.h"
 
@@ -137,7 +137,7 @@ inline bool operator!=(const LetterString& lhs, const LetterString& rhs) {
 
 template <typename H>
 H AbslHashValue(H h, const LetterString& m) {
-  const std::string_view s(&m.constData()[m.first_position()], m.size());
+  const absl::string_view s(&m.constData()[m.first_position()], m.size());
   h = H::combine(std::move(h), s);
   /*
   for (auto letter : m) {

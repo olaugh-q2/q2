@@ -163,7 +163,7 @@ void Dawg::AddUniqueIndices(const Node* node,
   }
 }
 
-void Dawg::ConvertToBytes() { ConvertToBytes(&root_, 0); }
+// void Dawg::ConvertToBytes() { ConvertToBytes(&root_, 0); }
 
 /*
 int Dawg::ConvertToBytes(Node* node, int pos) {

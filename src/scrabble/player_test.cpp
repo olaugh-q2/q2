@@ -17,10 +17,13 @@ class TestHumanPlayer : public Player {
   TestHumanPlayer(std::string name, std::string nickname, int id)
       : Player(name, nickname, Player::Human, id) {}
 
-  Move ChooseBestMove(const GamePosition& position) override;
+  Move ChooseBestMove(const std::vector<GamePosition>* previous_positions,
+                      const GamePosition& position) override;
 };
 
-Move TestHumanPlayer::ChooseBestMove(const GamePosition& position) {
+Move TestHumanPlayer::ChooseBestMove(
+    const std::vector<GamePosition>* /*previous_positions*/,
+    const GamePosition& position) {
   CHECK(false) << "TestHumanPlayer::ChooseBestMove(..) not implemented, should "
                   "not be called";
   Move move;
