@@ -22,16 +22,14 @@ jobs:
       - name: Setup Bazel
         uses: bazelbuild/setup-bazelisk@v3
 
-      - name: Build libraries and binaries
-        run: |
-          bazel build --keep_going //src/main:main //src/main:neural_network //src/main:neural_network_lib \
-            //src/leaves:leaves_tool //src/anagram:anagram_tool //src/rack_table:ort_tool 2>&1 || echo "Build had issues, continuing..."
+      - name: Build
+        run: bazel build //src/main:main //src/leaves:leaves_tool //src/anagram:anagram_tool //src/rack_table:ort_tool
         env:
           CC: clang
           CXX: clang++
 
       - name: Test
-        run: bazel test //... --test_output=errors --keep_going 2>&1 || echo "Some tests failed"
+        run: bazel test //... --test_output=errors
         env:
           CC: clang
           CXX: clang++
@@ -51,7 +49,7 @@ jobs:
         uses: bazelbuild/setup-bazelisk@v3
 
       - name: Test with AddressSanitizer
-        run: bazel test --config=sanitizers //... --test_output=errors --keep_going 2>&1 || echo "Some sanitizer tests failed"
+        run: bazel test --config=sanitizers //... --test_output=errors
         env:
           CC: clang
           CXX: clang++
