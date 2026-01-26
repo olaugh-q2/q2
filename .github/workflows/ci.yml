@@ -29,7 +29,7 @@ jobs:
           CXX: clang++
 
       - name: Test
-        run: bazel test //...
+        run: bazel test //... --test_output=errors
         env:
           CC: clang
           CXX: clang++
@@ -55,7 +55,7 @@ jobs:
           CXX: clang++
 
       - name: Test with sanitizers
-        run: bazel test --config=sanitizers //...
+        run: bazel test --config=sanitizers //... --test_output=errors
         env:
           CC: clang
           CXX: clang++
