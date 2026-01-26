@@ -61,8 +61,8 @@ class Dawg {
   bool NodesAreEqual(const Node* lhs, const Node*) const;
   void AddUniqueIndices(const Node* node,
                         absl::flat_hash_set<int>* unique_indices) const;
-  void ConvertToBytes();
-  int ConvertToBytes(Node* node, int pos);
+  // void ConvertToBytes();
+  // int ConvertToBytes(Node* node, int pos);
   void CountNodeSubstrings(const Node* node);
   const Tiles& tiles_;
   absl::flat_hash_map<std::string, int> substring_counts_;
