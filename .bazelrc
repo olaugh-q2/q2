@@ -26,24 +26,30 @@ build:asan --linkopt=-fsanitize=address
 test:asan --test_env=ASAN_OPTIONS=detect_leaks=1:halt_on_error=1
 
 # Undefined Behavior Sanitizer (UBSAN)
+# Note: vptr check disabled as it requires all code (including external deps) to be compiled with same flags
 build:ubsan --strip=never
 build:ubsan --copt=-fsanitize=undefined
+build:ubsan --copt=-fno-sanitize=vptr
 build:ubsan --copt=-fno-omit-frame-pointer
 build:ubsan --copt=-DUNDEFINED_SANITIZER
 build:ubsan --copt=-O1
 build:ubsan --copt=-g
 build:ubsan --linkopt=-fsanitize=undefined
+build:ubsan --linkopt=-fno-sanitize=vptr
 test:ubsan --test_env=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
 
 # Combined ASAN + UBSAN
+# Note: vptr check disabled as it requires all code (including external deps) to be compiled with same flags
 build:sanitizers --strip=never
 build:sanitizers --copt=-fsanitize=address,undefined
+build:sanitizers --copt=-fno-sanitize=vptr
 build:sanitizers --copt=-fno-omit-frame-pointer
 build:sanitizers --copt=-DADDRESS_SANITIZER
 build:sanitizers --copt=-DUNDEFINED_SANITIZER
 build:sanitizers --copt=-O1
 build:sanitizers --copt=-g
 build:sanitizers --linkopt=-fsanitize=address,undefined
+build:sanitizers --linkopt=-fno-sanitize=vptr
 test:sanitizers --test_env=ASAN_OPTIONS=detect_leaks=1:halt_on_error=1
 test:sanitizers --test_env=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
 
